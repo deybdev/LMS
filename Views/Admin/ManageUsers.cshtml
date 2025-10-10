@@ -1,0 +1,286 @@
+﻿@{
+    ViewBag.Title = "Manage Users";
+}
+
+<div class="admin-container">
+    <!-- Header with Back button and Logout -->
+    <div class="admin-header">
+        <button class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <button class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log out</button>
+    </div>
+
+    <div class="page-header">
+        <h1>User Account Management</h1>
+        <p class="subtitle">Create new accounts, update existing user information, or delete accounts</p>
+    </div>
+
+    <!-- Create account dropdown -->
+    <div class="create-dropdown mb-3">
+        <button class="dropdown-toggle" type="button" id="createAccountMenu" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-solid fa-user-plus"></i> Create Account
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="createAccountMenu">
+            <li>
+                <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#manualAccountModal" href="#">
+                    <i class="fa-solid fa-pen-to-square"></i> Create Manually
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#uploadExcelModal">
+                    <i class="fa-solid fa-file-excel"></i> Import from Excel
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Manual Account Modal -->
+    <div class="modal fade" id="manualAccountModal" tabindex="-1" aria-labelledby="manualAccountModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content rounded-0">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="manualAccountModalLabel">
+                        <i class="fa-solid fa-pen-to-square"></i> Create Account Manually
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form asp-action="CreateAccount" asp-controller="Admin" method="post">
+                        <div class="mb-3">
+                            <label for="role" class="form-label mb-1">Select Role</label>
+                            <select id="role" name="role" class="form-select" required>
+                                <option value="">Choose Role</option>
+                                <option value="Student">Student</option>
+                                <option value="Teacher">Teacher</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="role" class="form-label mb-1">Select Department</label>
+                            <select id="role" name="role" class="form-select" required>
+                                <option value="">Choose department</option>
+                                <option value="ComputerStudies">Computer Studies</option>
+                                <option value="InformationTechnology">Information Technology</option>
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName" class=" mb-1 form-label">First Name</label>
+                                <input type="text" id="firstName" name="firstName" class="form-control" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName" class=" mb-1 form-label">Last Name</label>
+                                <input type="text" id="lastName" name="lastName" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="mb-1 form-label">Email</label>
+                            <input type="email" id="email" name="email" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="studentId" class="form-label mb-1">ID (Student/Teacher)</label>
+                            <input type="text" id="studentId" name="id" class="form-control" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-upload"></i> Upload</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Excel Upload Modal -->
+    <div class="modal fade overflow-hidden" id="uploadExcelModal" tabindex="-1" aria-labelledby="uploadExcelModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content rounded-0">
+                <form asp-action="UploadAccounts" asp-controller="Admin" method="post" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="uploadExcelModalLabel">
+                            <i class="fa-solid fa-file-excel"></i> Import Accounts from Excel
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <!-- Account Type -->
+                        <div class="mb-3">
+                            <label for="roleSelect" class="form-label">Select Account Type</label>
+                            <select class="form-select" id="roleSelect" name="role" required>
+                                <option value="">Choose...</option>
+                                <option value="Student">Student</option>
+                                <option value="Teacher">Teacher</option>
+                            </select>
+                        </div>
+
+                        <!-- File Upload -->
+                        <div class="mb-3">
+                            <label class="form-label">Upload Excel File (.xlsx)</label>
+                            <input type="file" name="file" class="form-control" accept=".xlsx" required>
+                        </div>
+
+                        <!-- Guide / Instructions -->
+                        <div class="alert alert-info mb-0 small">
+                            <h6 class="mb-1"><i class="fa-solid fa-circle-info"></i> Excel Format Guide</h6>
+                            <p>Your Excel file should contain the following columns (in order):</p>
+                            <ul>
+                                <li><strong>ID</strong> — Student ID or Teacher ID (e.g., 20231001)</li>
+                                <li><strong>Department</strong> — Computer Studies</li>
+                                <li><strong>LastName</strong> — e.g., Dela Cruz</li>
+                                <li><strong>FirstName</strong> — e.g., Juan</li>
+                                <li><strong>Email</strong> — e.g., juan.delacruz@school.edu</li>
+                            </ul>
+                            <p><strong>Password Format:</strong> The password will be automatically generated for each user upon upload.</p>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn"><i class="fa-solid fa-upload"></i> Upload</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="admin-content">
+
+        <!-- Search and Filter Section -->
+        <div class="search-filter-section">
+            <div class="table-name">
+                <span><i class="fa-solid fa-users"></i></span>
+                <span>User Accounts</span>
+            </div>
+
+            <div class="filter-controls">
+                <input type="text" class="search-input" placeholder="Search users by Name, Department, or Email" />
+
+                <div class="filter-dropdowns">
+                    <select class="filter-select">
+                        <option value="">Role</option>
+                        <option value="professor">Professor</option>
+                        <option value="student">Student</option>
+                        <option value="admin">Admin</option>
+                    </select>
+
+                    <select class="filter-select">
+                        <option value="">Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="users-table-container">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th>Last Login</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="user-row">
+                        <td class="user-info">
+                            <div class="user-details">
+                                <div class="user-name">Dr. Sarah Johnson</div>
+                                <div class="user-email">sarah.johnson@university.edu</div>
+                                <div class="user-phone">+1 (555) 123-4567</div>
+                            </div>
+                        </td>
+                        <td><span class="role-tag">Professor</span></td>
+                        <td>Computer Studies</td>
+                        <td><span class="status-badge status-active">Active</span></td>
+                        <td class="last-login">
+                            <div>10/31/2024</div>
+                            <div class="login-time">3:45 PM</div>
+                        </td>
+                        <td class="action-buttons">
+                            <button class="action-btn edit-btn"><i class="fa-solid fa-pen"></i></button>
+                            <button class="action-btn delete-btn"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+
+                    <tr class="user-row">
+                        <td class="user-info">
+                            <div class="user-details">
+                                <div class="user-name">Alice Cooper</div>
+                                <div class="user-email">alice.cooper@student.edu</div>
+                                <div class="user-phone">+1 (555) 234-5678</div>
+                            </div>
+                        </td>
+                        <td><span class="role-tag role-student">Student</span></td>
+                        <td>Information Technology</td>
+                        <td><span class="status-badge status-inactive">Inactive</span></td>
+                        <td class="last-login">
+                            <div>10/21/2024</div>
+                            <div class="login-time">1:20 PM</div>
+                        </td>
+                        <td class="action-buttons">
+                            <button class="action-btn edit-btn"><i class="fa-solid fa-pen"></i></button>
+                            <button class="action-btn delete-btn"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+
+                    <tr class="user-row">
+                        <td class="user-info">
+                            <div class="user-details">
+                                <div class="user-name">Dr. Sarah Johnson</div>
+                                <div class="user-email">sarah.johnson2@university.edu</div>
+                                <div class="user-phone">+1 (555) 345-6789</div>
+                            </div>
+                        </td>
+                        <td><span class="role-tag">Professor</span></td>
+                        <td>Computer Studies</td>
+                        <td><span class="status-badge status-active">Active</span></td>
+                        <td class="last-login">
+                            <div>10/31/2024</div>
+                            <div class="login-time">2:15 PM</div>
+                        </td>
+                        <td class="action-buttons">
+                            <button class="action-btn edit-btn"><i class="fa-solid fa-pen"></i></button>
+                            <button class="action-btn delete-btn"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+
+                    <tr class="user-row">
+                        <td class="user-info">
+                            <div class="user-details">
+                                <div class="user-name">Dr. Sarah Johnson</div>
+                                <div class="user-email">sarah.johnson3@university.edu</div>
+                                <div class="user-phone">+1 (555) 456-7890</div>
+                            </div>
+                        </td>
+                        <td><span class="role-tag">Professor</span></td>
+                        <td>Computer Studies</td>
+                        <td><span class="status-badge status-active">Active</span></td>
+                        <td class="last-login">
+                            <div>10/31/2024</div>
+                            <div class="login-time">4:30 PM</div>
+                        </td>
+                        <td class="action-buttons">
+                            <button class="action-btn edit-btn"><i class="fa-solid fa-pen"></i></button>
+                            <button class="action-btn delete-btn"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
