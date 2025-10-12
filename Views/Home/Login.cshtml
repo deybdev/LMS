@@ -1,23 +1,28 @@
-﻿@{
+﻿@model IEnumerable<LMS.Models.User>
+
+
+@{
     ViewData["Title"] = "Login";
 }
 
 <div class="login-page">
-        
+
     <!--LOGIN CONTAINER-->
     <div class="login-container text-center">
-        
+
         <img src="/images/logo.png" alt="" />
         <h1>School LMS</h1>
         <p>
             Enter your credentials to access the learning management system
         </p>
-
-
-        <form method="post" action="/Home/Login">
+        <form method="post" action="@Url.Action("Login", "Home")"">
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger small p-2 mt-3 mb-1">@ViewBag.Error</div>
+            }
             <label class="w-100 mt-2 text-start">
                 Username
-                <input type="text" name="username" class="form-control mb-3 mt-2" />
+                <input type="email" name="email" class="form-control mb-3 mt-2" />
 
             </label>
             <label class="w-100 text-start">
