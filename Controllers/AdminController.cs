@@ -16,7 +16,6 @@ namespace LMS.Controllers
     {
         private readonly LMSContext db = new LMSContext();
 
-        // TARUUUUUUUUU
         // GET: Admin(View)
         public ActionResult Index()
         {
