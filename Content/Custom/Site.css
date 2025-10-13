@@ -60,6 +60,13 @@ main {
     border-bottom: 10px solid black
 }
 
+.nav-link.active {
+    font-weight: bold;
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+}
+
+
 .navbar-brand {
     display: flex;
     flex-direction: column;

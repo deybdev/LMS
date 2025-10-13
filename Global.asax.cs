@@ -1,4 +1,5 @@
-﻿using System;
+﻿using dotenv.net;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -16,6 +17,10 @@ namespace LMS
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+            DotEnv.Load();
+            string conn = Environment.GetEnvironmentVariable("DB_CONNECTION");
+            System.Diagnostics.Debug.WriteLine("Loaded Connection: " + conn);
         }
     }
 }

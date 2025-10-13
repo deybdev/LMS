@@ -2,6 +2,7 @@
 using System.Configuration;
 using System.Net;
 using System.Net.Mail;
+using dotenv.net;
 
 namespace LMS.Helpers
 {
@@ -11,17 +12,19 @@ namespace LMS.Helpers
         {
             try
             {
-                // Load SMTP configuration from Web.config
-                string host = ConfigurationManager.AppSettings["EmailHost"];
-                int port = int.Parse(ConfigurationManager.AppSettings["EmailPort"]);
-                string username = ConfigurationManager.AppSettings["EmailUsername"];
-                string password = ConfigurationManager.AppSettings["EmailPassword"];
-                string defaultFromName = ConfigurationManager.AppSettings["EmailFromName"] ?? "G2 Academy University";
-                bool enableSSL = bool.Parse(ConfigurationManager.AppSettings["EmailEnableSSL"] ?? "true");
+                DotEnv.Load();
+
+                // Load SMTP configuration from .env
+                string host = Environment.GetEnvironmentVariable("EmailHost");
+                int port = int.Parse(Environment.GetEnvironmentVariable("EmailPort"));
+                string username = Environment.GetEnvironmentVariable("EmailUsername");
+                string password = Environment.GetEnvironmentVariable("EmailPassword");
+                string defaultFromName = Environment.GetEnvironmentVariable("EmailFromName") ?? "G2 Academy University";
+                bool enableSSL = bool.Parse(Environment.GetEnvironmentVariable("EmailEnableSSL") ?? "true");
 
                 // Check for missing configuration
-                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-                    throw new InvalidOperationException("Incomplete email configuration in Web.config.");
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(defaultFromName))
+                    throw new InvalidOperationException("Incomplete email configuration in .env.");
 
                 using (var smtp = new SmtpClient(host, port))
                 {
@@ -52,7 +55,6 @@ namespace LMS.Helpers
 
         public static string CreateWelcomeEmailTemplate(string userEmail, string userPassword, string userName = null)
         {
-            string baseUrl = ConfigurationManager.AppSettings["AppBaseUrl"] ?? "https://localhost:44354";
             string greeting = !string.IsNullOrEmpty(userName) ? $"Dear {userName}," : "Dear user,";
 
             return $@"
@@ -74,7 +76,7 @@ namespace LMS.Helpers
             <p style='color: #000'><strong>Email:</strong> <span>{userEmail}</span></p>
             <p><strong>Password:</strong> <span>{userPassword}</span></p>
         <div style='text-align:center;margin:30px 0;'>
-            <a href='{baseUrl}/Home/Login' 
+            <a href='#' 
                style='display:inline-block;background:#007bff;color:white;text-decoration:none;padding:12px 30px;border-radius:6px;font-weight:bold;'>
                Access LMS Portal
             </a>

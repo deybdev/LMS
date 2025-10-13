@@ -37,7 +37,7 @@ namespace LMS.Controllers
             }
 
             // Administrator login bypass
-            if (email == "admin" && password == "password")
+            if (email == "admin@gmail.com" && password == "password")
             {
                 Session["Role"] = "Admin";
                 return RedirectToAction("Index", "Admin");
