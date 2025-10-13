@@ -36,12 +36,6 @@ html {
     min-height: 100%;
 }
 
-@media (min-width: 768px) {
-    html {
-        font-size: 16px;
-    }
-}
-
 body {
     min-height: 100vh;
     display: flex;
@@ -53,19 +47,11 @@ main {
     flex: 1;
 }
 
-
 .navbar {
     padding: .5rem 2rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border-bottom: 10px solid black
 }
-
-.nav-link.active {
-    font-weight: bold;
-    color: #007bff;
-    border-bottom: 2px solid #007bff;
-}
-
 
 .navbar-brand {
     display: flex;
@@ -73,7 +59,7 @@ main {
 }
 
 .navbar-brand .school-name{
-    color: var(--primary-color);
+    color: var(--dark-primary-color);
     font-weight: 600;
     font-family: var(--archivo-plain-font);
 }
@@ -91,24 +77,25 @@ main {
 }
 
 .nav-link {
-    font-weight: 500;
     padding: 0.5rem 1rem !important;
     font-family: var(--archivo-plain-font);
     color: var(--dark-primary-color) !important;
+    transition: all .3s;
 }
 
 .nav-link.active{
-    font-family: var(--archivo-black-font);
     text-decoration: underline;
+    font-weight: 800;
  }
 
 .nav-link:hover {
-    color: #3498db !important;
+    text-decoration: underline;
 }
 
 .nav-actions {
     display: flex;
-    gap: .5rem;
+    gap: 1.5rem;
+    font-size: 1.2rem;
 }
 
 .signup-btn, .login-btn {
@@ -260,3 +247,6 @@ footer {
     font-size: 1.3rem;
 }
 
+.student{
+    font-size: 30px;
+}

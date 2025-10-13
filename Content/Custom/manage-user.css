@@ -1,9 +1,6 @@
 ﻿
 .create-dropdown {
     display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
-    margin-bottom: 20px;
 }
 
 .create-dropdown button{

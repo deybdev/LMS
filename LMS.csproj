@@ -260,10 +260,16 @@
     <Content Include="Views\Admin\Index.cshtml" />
     <Content Include="Views\Admin\ManageUsers.cshtml" />
     <Content Include="Views\Student\Index.cshtml" />
+    <Content Include="Views\Student\Course.cshtml" />
+    <Content Include="Views\Student\TodoList.cshtml" />
+    <Content Include="Views\Student\Notification.cshtml" />
+    <Content Include="Views\Student\Profile.cshtml" />
+    <Content Include="Views\Teacher\Index.cshtml" />
+    <Content Include="Views\Teacher\Course.cshtml" />
+    <Content Include="Views\Teacher\Notification.cshtml" />
+    <Content Include="Views\Teacher\Profile.cshtml" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Views\Teacher\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
     <Content Include="Content\bootstrap.rtl.css.map" />

@@ -13,5 +13,17 @@ namespace LMS.Controllers
         {
             return View();
         }
+        public ActionResult Course()
+        {
+            return View();
+        }
+        public ActionResult Notification()
+        {
+            return View();
+        }
+        public new ActionResult Profile()
+        {
+            return View();
+        }
     }
 }

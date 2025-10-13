@@ -8,10 +8,30 @@ namespace LMS.Controllers
 {
     public class StudentController : Controller
     {
-        // GET: Student
         public ActionResult Index()
         {
             return View();
         }
+
+        public ActionResult Course()
+        {
+            return View();
+        }
+
+        public ActionResult TodoList()
+        {
+            return View();
+        }
+
+        public ActionResult Notification()
+        {
+            return View();
+        }
+
+        public new ActionResult Profile()
+        {
+            return View();
+        }
+
     }
 }
