@@ -191,6 +191,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Data\LMS_DB.mdf" />
+    <Content Include="App_Data\LMS_DB_log.ldf">
+      <DependentUpon>LMS_DB.mdf</DependentUpon>
+    </Content>
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
     <Content Include="Content\bootstrap-grid.rtl.css" />
@@ -258,7 +262,6 @@
     <Content Include="Views\Student\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="App_Data\" />
     <Folder Include="Views\Teacher\" />
   </ItemGroup>
   <ItemGroup>
