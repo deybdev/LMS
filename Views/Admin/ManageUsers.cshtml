@@ -4,16 +4,14 @@
     ViewBag.Title = "Manage Users";
 }
 
-@* Alert script moved to scripts section *@
 
-
-@Styles.Render("~/Content/Custom/manage-user.css")
+@Styles.Render("~/Content/Custom/manageUser.css")
 
 
 <div class="admin-container">
     <!-- Header with Back button and Logout -->
     <div class="admin-header">
-        <button class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <button class="back-btn" onclick="history.back()"><i class="fa-solid fa-arrow-left"></i> Back</button>
         <button class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log out</button>
     </div>
 

@@ -1,6 +1,7 @@
 ﻿
 .create-dropdown {
     display: flex;
+    justify-content: end;
 }
 
 .create-dropdown button{
@@ -12,6 +13,7 @@
     cursor: pointer;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
 }
 

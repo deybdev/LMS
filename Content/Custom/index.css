@@ -1,4 +1,4 @@
-﻿.welcome-section {
+﻿﻿.welcome-section {
     color: white;
     background: var(--light-blue);
     width: 100%;
@@ -182,4 +182,3 @@
     font-size: 0.8rem;
     font-weight: 500;
 }
-

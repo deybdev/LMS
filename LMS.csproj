@@ -212,10 +212,10 @@
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\Custom\index.css" />
-    <Content Include="Content\Custom\manage-user.css" />
+    <Content Include="Content\Custom\manageUser.css" />
+    <Content Include="Content\Custom\Site.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
-    <Content Include="Content\Custom\Site.css" />
     <Content Include="Images\logo.png" />
     <Content Include="Images\news1.jpg" />
     <Content Include="Images\news2.jpg" />

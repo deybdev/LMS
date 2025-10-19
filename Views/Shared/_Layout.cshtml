@@ -30,7 +30,7 @@
 
                 <!-- Navbar links -->
                 <div class="collapse navbar-collapse" id="navbarResponsive">
-                    <div class="navbar-nav ms-auto">
+                    <div class="navbar-nav gap-4">
                         @{
                             var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
                             var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
@@ -44,7 +44,8 @@
                         @if (Session["Role"] == null)
                         {
                             <!-- Guest -->
-                            <a href="@Url.Action("Login", "Home")" class="nav-link @(isActive("Home", "Login"))">Login</a>
+                            <a href="@Url.Action("Login", "Home")" class="login-btn">Login</a>
+
                         }
                         else if (Session["Role"].ToString() == "Admin")
                         {
@@ -71,6 +72,7 @@
                     </div>
                 </div>
             </div>
+                </div>
         </nav>
     </header>
 
