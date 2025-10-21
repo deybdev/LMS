@@ -44,7 +44,7 @@
                         @if (Session["Role"] == null)
                         {
                             <!-- Guest -->
-                            <a href="@Url.Action("Login", "Home")" class="login-btn">Login</a>
+                            <a href="@Url.Action("Login", "Home")" class="login-btn py-2 px-5">Login</a>
 
                         }
                         else if (Session["Role"].ToString() == "Admin")
