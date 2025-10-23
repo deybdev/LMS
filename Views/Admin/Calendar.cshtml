@@ -1,0 +1,216 @@
+﻿@{
+    ViewBag.Title = "Academic Calendar";
+    @Styles.Render("~/Content/calendar.css")
+}
+
+<div class="admin-container">
+    <!-- Header with Back button and Logout -->
+    <div class="admin-header">
+        <button class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <button class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log out</button>
+    </div>
+
+    <div class="page-header">
+        <h1>Academic Calendar</h1>
+        <p class="subtitle">Manage events, assignments, and important dates for students and teachers</p>
+    </div>
+
+    <div class="calendar-container">
+        <!-- Calendar Header -->
+        <div class="calendar-header">
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <span class="legend-color academic"></span>
+                        <span>Academic</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color holidays"></span>
+                        <span>Holidays</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color examinations"></span>
+                        <span>Examinations</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color school-events"></span>
+                        <span>School Events</span>
+                    </div>
+                </div>
+
+            <div class="calendar-navigation">
+                <button class="nav-btn" id="prevMonth">
+                    <i class="fa-solid fa-caret-left"></i>
+                </button>
+                <span id="currentMonth">October 2025</span>
+                <button class="nav-btn" id="nextMonth">
+                    <i class="fa-solid fa-caret-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div class="calendar-content">
+            <div class="calendar-grid">
+                <!-- Days of Week Header -->
+                <div class="days-header">
+                    <div class="day-header">SUN</div>
+                    <div class="day-header">MON</div>
+                    <div class="day-header">TUE</div>
+                    <div class="day-header">WED</div>
+                    <div class="day-header">THU</div>
+                    <div class="day-header">FRI</div>
+                    <div class="day-header">SAT</div>
+                </div>
+
+                <!-- Calendar Days -->
+                <div class="days-grid" id="calendarDays">
+                    <!-- Days will be dynamically generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Event Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalLabel">
+                    <i class="fa-solid fa-calendar-plus"></i> <span id="modalTitle">Add Event</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="eventForm">
+                    <!-- Hidden field for event ID when editing -->
+                    <input type="hidden" id="eventId" name="eventId" />
+
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="eventTitle" class="form-label">Event Title</label>
+                            <input type="text" id="eventTitle" name="eventTitle" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="eventType" class="form-label">Event Type</label>
+                            <select id="eventType" name="eventType" class="form-select" required>
+                                <option value="">Choose Type</option>
+                                <option value="classes">Classes</option>
+                                <option value="academic">Academic Events</option>
+                                <option value="holidays">Holidays</option>
+                                <option value="examinations">Examinations</option>
+                                <option value="school-events">School Events</option>
+                                <option value="deadlines">Deadlines</option>
+                                <option value="administrative">Administrative</option>
+                                <option value="special-events">Special Events</option>
+                                <option value="events">General Events</option>
+                                <option value="assignments">Assignments</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="eventDate" class="form-label">Date</label>
+                            <input type="date" id="eventDate" name="eventDate" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="eventAudience" class="form-label">Target Audience</label>
+                            <select id="eventAudience" name="eventAudience" class="form-select" required>
+                                <option value="">Choose Audience</option>
+                                <option value="all">All (Students & Teachers)</option>
+                                <option value="students">Students Only</option>
+                                <option value="teachers">Teachers Only</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="startTime" class="form-label">Start Time</label>
+                            <input type="time" id="startTime" name="startTime" class="form-control">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="endTime" class="form-label">End Time</label>
+                            <input type="time" id="endTime" name="endTime" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="eventDescription" class="form-label">Description</label>
+                        <textarea id="eventDescription" name="eventDescription" class="form-control" rows="3" placeholder="Enter event description..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="eventLocation" class="form-label">Location</label>
+                        <input type="text" id="eventLocation" name="eventLocation" class="form-control" placeholder="Enter event location...">
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn cancel-btn" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn delete-btn d-none" id="deleteEventBtn">
+                    <i class="fa-solid fa-trash"></i> Delete Event
+                </button>
+                <button type="submit" class="btn" id="saveEventBtn" form="eventForm">
+                    <i class="fa-solid fa-save"></i> <span id="saveButtonText">Save Event</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Details Modal -->
+<div class="modal fade" id="eventDetailsModal" tabindex="-1" aria-labelledby="eventDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventDetailsModalLabel">
+                    <i class="fa-solid fa-calendar-check"></i> Event Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="event-detail-content">
+                    <h6 id="detailTitle"></h6>
+                    <div class="detail-row">
+                        <strong>Type:</strong> <span id="detailType" class="event-badge"></span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Date:</strong> <span id="detailDate"></span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Time:</strong> <span id="detailTime"></span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Audience:</strong> <span id="detailAudience"></span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Location:</strong> <span id="detailLocation"></span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Description:</strong> <p id="detailDescription"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn cancel-btn" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn" id="editEventBtn">
+                    <i class="fa-solid fa-edit"></i> Edit Event
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/Scripts/Custom/calendar.js"></script>
+}
+

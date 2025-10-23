@@ -1,0 +1,484 @@
+/* Calendar Container */
+.calendar-container {
+    background-color: white;
+    padding: 25px;
+    border: 1px solid var(--border-color);
+    margin-top: 20px;
+}
+
+/* Calendar Header */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.calendar-header .legend-items span{
+    font-size: 1.2rem;
+}
+
+.calendar-header span{
+    font-size: 1.5rem;
+}
+
+.calendar-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--dark-primary-color);
+    font-family: var(--archivo-black-font);
+}
+
+.calendar-title i {
+    color: var(--primary-color);
+    font-size: 1.3rem;
+}
+
+.calendar-navigation {
+    display: flex;
+    gap: 10px;
+}
+
+.nav-btn {
+    color: #000;
+    background: none;
+    border: none;
+    width: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.calendar-header i {
+    font-size: 1.5rem;
+}
+
+
+/* Calendar Content */
+.calendar-content {
+    display: flex;
+    gap: 30px;
+}
+
+.calendar-grid {
+    flex: 1;
+    border: 1px solid #C1BEBE;
+    overflow: hidden;
+}
+
+/* Days Header */
+.days-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.day-header {
+    text-align: center;
+    padding: 12px 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-right: 1px solid #C1BEBE;
+    border-bottom: 1px solid #C1BEBE;
+}
+
+.day-header:last-child {
+    border-right: none;
+}
+
+/* Days Grid - Fixed sizing */
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(6, 120px); /* Fixed row height */
+    min-height: 720px; /* 6 rows × 120px */
+}
+
+/* Calendar Day - Fixed sizing and overflow handling */
+.calendar-day {
+    border-right: 1px solid #C1BEBE;
+    border-bottom: 1px solid #C1BEBE;
+    padding: 8px;
+    height: 120px; /* Fixed height */
+    cursor: pointer;
+    transition: all 0.2s;
+    background: white;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent content overflow */
+}
+
+.calendar-day:nth-child(7n) {
+    border-right: none;
+}
+
+.calendar-day:hover {
+    background: #f8f9fa;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 1;
+}
+
+.calendar-day.other-month {
+    color: #ccc;
+    background: #fafafa;
+}
+
+.calendar-day.today {
+    background: #e3f2fd;
+    border: 2px solid var(--primary-color);
+    font-weight: bold;
+}
+
+.calendar-day.selected {
+    background: var(--light-blue);
+    border: 2px solid var(--primary-color);
+}
+
+.day-number {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--dark-primary-color);
+    flex-shrink: 0;
+}
+
+.calendar-day.other-month .day-number {
+    color: #ccc;
+}
+
+.event-items {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.event-item {
+    background: var(--primary-color);
+    color: white;
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+}
+
+.event-item:hover {
+    transform: scale(1.02);
+    z-index: 10;
+    position: relative;
+    white-space: normal;
+    word-wrap: break-word;
+    min-height: auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* More events indicator */
+.event-item.more-events {
+    background: #666 !important;
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-align: center;
+    justify-content: center;
+}
+
+.event-item.more-events:hover {
+    background: #555 !important;
+}
+
+/* Show "more events" indicator when there are too many events */
+.event-items::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 15px;
+    background: linear-gradient(transparent, white);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.event-items.has-overflow::after {
+    opacity: 1;
+}
+
+/* Event Type Colors */
+.event-item.academic {
+    background: #007bff; /* Blue - Academic Events */
+}
+
+.event-item.holidays {
+    background: #dc3545; /* Red - Holidays */
+}
+
+.event-item.examinations {
+    background: #fd7e14; /* Orange - Examinations */
+}
+
+.event-item.deadlines {
+    background: #721c24; /* Dark Red - Deadlines */
+    color: white;
+}
+
+.event-item.special-events {
+    background: #6f42c1; /* Purple - Special/Religious Events */
+}
+
+.event-item.administrative {
+    background: #6c757d; /* Gray - Administrative */
+}
+
+.event-item.classes {
+    background: #28a745; /* Green - Classes */
+}
+
+.event-item.events {
+    background: #17a2b8; /* Cyan - General Events */
+}
+
+.event-item.assignments {
+    background: #ffc107; /* Yellow - Assignments */
+    color: #212529;
+}
+
+.event-item.school-events {
+    background: #6f42c1; /* Purple - School Events */
+}
+
+.event-legend {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 15px;
+    width: 100%;
+    background: #f8f9fa;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 20px;
+    height: fit-content;
+}
+
+.event-legend {
+    display: grid;
+    grid-template-columns: 2fr; /* You can change this to 2 or more columns if needed */
+    gap: 10px; /* spacing between grid items */
+    width: 250px;
+    background: #f8f9fa;
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    height: fit-content;
+}
+
+.event-legend h4 {
+    margin-bottom: 20px;
+    color: var(--dark-primary-color);
+    font-family: var(--archivo-black-font);
+    font-size: 1.1rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+/* Fixed legend items layout */
+.legend-items {
+    display: flex;
+    align-items: center;
+    gap: 50px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.legend-item:hover {
+    background: white;
+}
+
+.legend-color {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Color codes for all event types */
+.legend-color.academic {
+    background: #007bff; /* Blue */
+}
+
+.legend-color.holidays {
+    background: #dc3545; /* Red */
+}
+
+.legend-color.examinations {
+    background: #fd7e14; /* Orange */
+}
+
+.legend-color.deadlines {
+    background: #721c24; /* Dark Red */
+}
+
+.legend-color.special-events {
+    background: #6f42c1; /* Purple */
+}
+
+.legend-color.administrative {
+    background: #6c757d; /* Gray */
+}
+
+/* Legacy colors */
+.legend-color.classes {
+    background: #28a745; /* Green */
+}
+
+.legend-color.events {
+    background: #17a2b8; /* Cyan */
+}
+
+.legend-color.assignments {
+    background: #ffc107; /* Yellow */
+}
+
+.legend-color.school-events {
+    background: #6f42c1; /* Purple */
+}
+
+/* Modal Enhancements */
+.event-detail-content {
+    padding: 10px 0;
+}
+
+.detail-row {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.detail-row strong {
+    min-width: 80px;
+    color: var(--dark-primary-color);
+}
+
+.event-badge {
+    background: var(--primary-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Event badge colors matching event items */
+.event-badge.academic {
+    background: #007bff; /* Blue */
+}
+
+.event-badge.holidays {
+    background: #dc3545; /* Red */
+}
+
+.event-badge.examinations {
+    background: #fd7e14; /* Orange */
+}
+
+.event-badge.deadlines {
+    background: #721c24; /* Dark Red */
+}
+
+.event-badge.special-events {
+    background: #6f42c1; /* Purple */
+}
+
+.event-badge.administrative {
+    background: #6c757d; /* Gray */
+}
+
+/* Legacy badge colors */
+.event-badge.classes {
+    background: #28a745; /* Green */
+}
+
+.event-badge.events {
+    background: #17a2b8; /* Cyan */
+}
+
+.event-badge.assignments {
+    background: #ffc107; /* Yellow */
+    color: #212529;
+}
+
+.event-badge.school-events {
+    background: #6f42c1; /* Purple */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .calendar-content {
+        flex-direction: column;
+    }
+    
+    .event-legend {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .legend-items {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .calendar-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .days-grid {
+        grid-template-columns: repeat(7, 1fr);
+        grid-template-rows: repeat(6, 100px); /* Smaller height on mobile */
+    }
+    
+    .calendar-day {
+        height: 100px;
+        padding: 4px;
+    }
+    
+    .day-header {
+        padding: 8px 4px;
+        font-size: 0.8rem;
+    }
+    
+    .event-item {
+        font-size: 0.6rem;
+        padding: 2px 4px;
+        min-height: 16px;
+    }
+}

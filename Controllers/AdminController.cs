@@ -22,6 +22,12 @@ namespace LMS.Controllers
             return View();
         }
 
+        // GET: Admin(View)
+        public ActionResult Calendar()
+        {
+            return View();
+        }
+
         // GET: Admin/ManageUsers
         public ActionResult ManageUsers()
         {

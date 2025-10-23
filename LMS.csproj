@@ -211,9 +211,10 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
-    <Content Include="Content\Custom\index.css" />
-    <Content Include="Content\Custom\manageUser.css" />
-    <Content Include="Content\Custom\Site.css" />
+    <Content Include="Content\calendar.css" />
+    <Content Include="Content\index.css" />
+    <Content Include="Content\manageUser.css" />
+    <Content Include="Content\Site.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Images\logo.png" />
@@ -231,6 +232,7 @@
     <Content Include=".env" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\Custom\ajaxHelper.js" />
+    <Content Include="Scripts\Custom\calendar.js" />
     <Content Include="Scripts\Custom\deleteModalHandler.js" />
     <Content Include="Scripts\Custom\index.js" />
     <Content Include="Scripts\Custom\manageUser.js" />
@@ -268,6 +270,7 @@
     <Content Include="Views\Teacher\Course.cshtml" />
     <Content Include="Views\Teacher\Notification.cshtml" />
     <Content Include="Views\Teacher\Profile.cshtml" />
+    <Content Include="Views\Admin\Calendar.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

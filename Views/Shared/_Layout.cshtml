@@ -6,7 +6,8 @@
     <title>@ViewBag.Title</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    @Styles.Render("~/Content/Custom/css")
+    @Styles.Render("~/Content/css")
+    @Styles.Render("~/Content/Site.css")
     @Scripts.Render("~/bundles/modernizr")
 </head>
 <body>
@@ -51,23 +52,23 @@
                         {
                             <a href="@Url.Action("Index", "Admin")" class="nav-link @(isActive("Admin", "Index"))">Home</a>
                             <a href="@Url.Action("ManageUsers", "Admin")" class="nav-link @(isActive("Admin", "ManageUsers"))">User's Account</a>
-                            <a href="@Url.Action("Reports", "Home")" class="nav-link text-danger @(isActive("Home", "Reports"))">Reports</a>
-                            <a href="@Url.Action("System", "Home")" class="nav-link text-danger @(isActive("Home", "System"))">System Management</a>
+                            <a href="@Url.Action("Calendar", "Admin")" class="nav-link @(isActive("Admin", "Calendar"))">Calendar</a>
+                            <a href="@Url.Action("System", "Home")" class="nav-link @(isActive("Home", "System"))">System Management</a>
                         }
                         else if (Session["Role"].ToString() == "Teacher")
                         {
                             <a href="@Url.Action("Index", "Teacher")" class="nav-link @(isActive("Teacher", "Index"))">Home</a>
                             <a href="@Url.Action("Course", "Teacher")" class="nav-link @(isActive("Teacher", "Course"))">Course</a>
-                            <a href="@Url.Action("Notification", "Teacher")" class="nav-link text-danger @(isActive("Teacher", "Notification"))">Notification</a>
-                            <a href="@Url.Action("Profile", "Teacher")" class="nav-link text-danger @(isActive("Teacher", "Profile"))">Profile</a>
+                            <a href="@Url.Action("Notification", "Teacher")" class="nav-link  @(isActive("Teacher", "Notification"))">Notification</a>
+                            <a href="@Url.Action("Profile", "Teacher")" class="nav-link @(isActive("Teacher", "Profile"))">Profile</a>
                         }
                         else if (Session["Role"].ToString() == "Student")
                         {
                             <a href="@Url.Action("Index", "Student")" class="nav-link @(isActive("Student", "Index"))">Home</a>
                             <a href="@Url.Action("Course", "Student")" class="nav-link @(isActive("Student", "Course"))">Course</a>
                             <a href="@Url.Action("TodoList", "Student")" class="nav-link @(isActive("Student", "TodoList"))">To-Do List</a>
-                            <a href="@Url.Action("Notification", "Student")" class="nav-link text-danger @(isActive("Student", "Notification"))">Notification</a>
-                            <a href="@Url.Action("Profile", "Student")" class="nav-link text-danger @(isActive("Student", "Profile"))">Profile</a>
+                            <a href="@Url.Action("Notification", "Student")" class="nav-link @(isActive("Student", "Notification"))">Notification</a>
+                            <a href="@Url.Action("Profile", "Student")" class="nav-link @(isActive("Student", "Profile"))">Profile</a>
                         }
                     </div>
                 </div>
