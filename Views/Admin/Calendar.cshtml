@@ -3,6 +3,8 @@
     @Styles.Render("~/Content/calendar.css")
 }
 
+<link rel="stylesheet" href="~/Content/Site.css" />
+
 <div class="admin-container">
     <!-- Header with Back button and Logout -->
     <div class="admin-header">
@@ -97,57 +99,28 @@
                             <label for="eventType" class="form-label">Event Type</label>
                             <select id="eventType" name="eventType" class="form-select" required>
                                 <option value="">Choose Type</option>
-                                <option value="classes">Classes</option>
                                 <option value="academic">Academic Events</option>
                                 <option value="holidays">Holidays</option>
                                 <option value="examinations">Examinations</option>
                                 <option value="school-events">School Events</option>
-                                <option value="deadlines">Deadlines</option>
-                                <option value="administrative">Administrative</option>
-                                <option value="special-events">Special Events</option>
-                                <option value="events">General Events</option>
-                                <option value="assignments">Assignments</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="eventDate" class="form-label">Date</label>
-                            <input type="date" id="eventDate" name="eventDate" class="form-control" required>
+                            <label for="startDate" class="form-label">From Date</label>
+                            <input type="date" id="startDate" name="startDate" class="form-control" required>
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label for="eventAudience" class="form-label">Target Audience</label>
-                            <select id="eventAudience" name="eventAudience" class="form-select" required>
-                                <option value="">Choose Audience</option>
-                                <option value="all">All (Students & Teachers)</option>
-                                <option value="students">Students Only</option>
-                                <option value="teachers">Teachers Only</option>
-                            </select>
+                            <label for="endDate" class="form-label">To Date</label>
+                            <input type="date" id="endDate" name="endDate" class="form-control" required>
                         </div>
                     </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="startTime" class="form-label">Start Time</label>
-                            <input type="time" id="startTime" name="startTime" class="form-control">
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="endTime" class="form-label">End Time</label>
-                            <input type="time" id="endTime" name="endTime" class="form-control">
-                        </div>
-                    </div>
-
                     <div class="mb-3">
                         <label for="eventDescription" class="form-label">Description</label>
                         <textarea id="eventDescription" name="eventDescription" class="form-control" rows="3" placeholder="Enter event description..."></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="eventLocation" class="form-label">Location</label>
-                        <input type="text" id="eventLocation" name="eventLocation" class="form-control" placeholder="Enter event location...">
                     </div>
                 </form>
             </div>
@@ -184,15 +157,6 @@
                     </div>
                     <div class="detail-row">
                         <strong>Date:</strong> <span id="detailDate"></span>
-                    </div>
-                    <div class="detail-row">
-                        <strong>Time:</strong> <span id="detailTime"></span>
-                    </div>
-                    <div class="detail-row">
-                        <strong>Audience:</strong> <span id="detailAudience"></span>
-                    </div>
-                    <div class="detail-row">
-                        <strong>Location:</strong> <span id="detailLocation"></span>
                     </div>
                     <div class="detail-row">
                         <strong>Description:</strong> <p id="detailDescription"></p>

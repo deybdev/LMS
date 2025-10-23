@@ -2,7 +2,6 @@
 using System.Configuration;
 using System.Net;
 using System.Net.Mail;
-using dotenv.net;
 
 namespace LMS.Helpers
 {
@@ -12,19 +11,17 @@ namespace LMS.Helpers
         {
             try
             {
-                DotEnv.Load();
+                // Load SMTP configuration from Web.config
+                string host = ConfigurationManager.AppSettings["EmailHost"];
+                int port = int.Parse(ConfigurationManager.AppSettings["EmailPort"]);
+                string username = ConfigurationManager.AppSettings["EmailUsername"];
+                string password = ConfigurationManager.AppSettings["EmailPassword"];
+                string defaultFromName = ConfigurationManager.AppSettings["EmailFromName"] ?? "G2 Academy University";
+                bool enableSSL = bool.Parse(ConfigurationManager.AppSettings["EmailEnableSSL"] ?? "true");
 
-                // Load SMTP configuration from .env
-                string host = Environment.GetEnvironmentVariable("EmailHost");
-                int port = int.Parse(Environment.GetEnvironmentVariable("EmailPort"));
-                string username = Environment.GetEnvironmentVariable("EmailUsername");
-                string password = Environment.GetEnvironmentVariable("EmailPassword");
-                string defaultFromName = Environment.GetEnvironmentVariable("EmailFromName") ?? "G2 Academy University";
-                bool enableSSL = bool.Parse(Environment.GetEnvironmentVariable("EmailEnableSSL") ?? "true");
-
-                // Check for missing configuration
-                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(defaultFromName))
-                    throw new InvalidOperationException("Incomplete email configuration in .env.");
+                // Validate configuration
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+                    throw new InvalidOperationException("Incomplete email configuration in Web.config.");
 
                 using (var smtp = new SmtpClient(host, port))
                 {
@@ -47,7 +44,6 @@ namespace LMS.Helpers
             }
             catch (Exception ex)
             {
-                // Log or print for debugging
                 System.Diagnostics.Debug.WriteLine("Email sending failed: " + ex.Message);
                 return false;
             }
@@ -68,13 +64,12 @@ namespace LMS.Helpers
     <div>
         <h1 style='color:#003366;text-align:center;margin-bottom:30px;'>Welcome to G2 Academy University LMS</h1>
 
-        <p style='color: #000;>{greeting}</p>
-        <p style='color: #000;'>
+        <p style='color:#000;'>{greeting}</p>
+        <p style='color:#000;'>
             Your account has been successfully created! You can now access our <strong>Learning Management System (LMS)</strong> using the credentials below:
         </p>
-            <p style='margin-top:0;'>Your Login Credentials</h3>
-            <p style='color: #000'><strong>Email:</strong> <span>{userEmail}</span></p>
-            <p><strong>Password:</strong> <span>{userPassword}</span></p>
+        <p><strong>Email:</strong> {userEmail}</p>
+        <p><strong>Password:</strong> {userPassword}</p>
         <div style='text-align:center;margin:30px 0;'>
             <a href='#' 
                style='display:inline-block;background:#007bff;color:white;text-decoration:none;padding:12px 30px;border-radius:6px;font-weight:bold;'>
@@ -88,3 +83,4 @@ namespace LMS.Helpers
         }
     }
 }
+    

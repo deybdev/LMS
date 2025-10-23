@@ -22,10 +22,64 @@ namespace LMS.Controllers
             return View();
         }
 
-        // GET: Admin(View)
+        // GET: Admin/Calendar
         public ActionResult Calendar()
         {
             return View();
+        }
+
+        // GET: Admin/GetEvents
+        public JsonResult GetEvents()
+        {
+            var events = db.Events.ToList().Select(e => new
+            {
+                e.Id,
+                e.Title,
+                e.Type,
+                StartDate = e.StartDate.ToString("yyyy-MM-dd"),
+                EndDate = e.EndDate.ToString("yyyy-MM-dd"),
+                e.Description
+            });
+
+            return Json(events, JsonRequestBehavior.AllowGet);
+        }
+
+        // POST: Admin/SaveEvent
+        public JsonResult SaveEvent(Event e)
+        {
+            if (e.Id > 0)
+            {
+                var existing = db.Events.Find(e.Id);
+                if (existing != null)
+                {
+                    existing.Title = e.Title;
+                    existing.Type = e.Type;
+                    existing.StartDate = e.StartDate;
+                    existing.EndDate = e.EndDate;
+                    existing.Description = e.Description;
+                }
+            }
+            else
+            {
+                db.Events.Add(e);
+            }
+
+            db.SaveChanges();
+            return Json(new { success = true });
+        }
+
+        // POST: Admin/DeleteEvent
+        [HttpPost]
+        public JsonResult DeleteEvent(int id)
+        {
+            var ev = db.Events.Find(id);
+            if (ev != null)
+            {
+                db.Events.Remove(ev);
+                db.SaveChanges();
+            }
+
+            return Json(new { success = true });
         }
 
         // GET: Admin/ManageUsers
@@ -326,7 +380,7 @@ namespace LMS.Controllers
         // Password Generator
         private string GeneratePassword(int length = 8)
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!";
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
             var random = new Random();
             return new string(Enumerable.Repeat(chars, length)
               .Select(s => s[random.Next(s.Length)]).ToArray());

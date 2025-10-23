@@ -6,7 +6,7 @@
 
 
 @Styles.Render("~/Content/manageUser.css")
-
+<link rel="stylesheet" href="~/Content/Site.css" />
 
 <div class="admin-container">
     <!-- Header with Back button and Logout -->
@@ -66,8 +66,8 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
 
-                    <form id="createAccountForm" 
-                          data-create-url="@Url.Action("CreateAccount", "Admin")" 
+                    <form id="createAccountForm"
+                          data-create-url="@Url.Action("CreateAccount", "Admin")"
                           data-edit-url="@Url.Action("EditAccount", "Admin")"
                           data-get-user-url="@Url.Action("GetUserData", "Admin")">
                         @Html.AntiForgeryToken()
@@ -354,31 +354,30 @@
             // Create alert element
             const alertId = 'alert-' + Date.now();
             const alertHtml = `
-                <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show mb-3" role="alert" style="box-shadow: 0 3px 10px rgba(0,0,0,0.2);">
-                    <i class="fa-solid fa-${
-                        type === 'success' ? 'check-circle' :
-                        type === 'danger' ? 'circle-exclamation' :
+                    <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show mb-3" role="alert" style="box-shadow: 0 3px 10px rgba(0,0,0,0.2);">
+                        <i class="fa-solid fa-${type === 'success' ? 'check-circle' :
+                    type === 'danger' ? 'circle-exclamation' :
                         type === 'warning' ? 'triangle-exclamation' : 'circle-info'
-                    } me-1"></i>
-                    <span>${message}</span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
-            
+                } me-1"></i>
+                        <span>${message}</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+
             $('#alertContainer').append(alertHtml);
-            
-            setTimeout(function() {
-                $(`#${alertId}`).fadeOut(300, function() {
+
+            setTimeout(function () {
+                $(`#${alertId}`).fadeOut(300, function () {
                     $(this).remove();
                 });
             }, 5000);
         }
 
-        $(function() {
+        $(function () {
             // Remove the old FormValidation.init call since we're handling this differently now
         });
     </script>
-    
+
     @if (TempData["AlertMessage"] != null)
     {
         <script>
@@ -387,7 +386,7 @@
             });
         </script>
     }
-    
+
     @if (TempData["AlertMessage2"] != null)
     {
         <script>

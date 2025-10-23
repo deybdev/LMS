@@ -243,3 +243,138 @@ footer {
 .student{
     font-size: 30px;
 }
+
+/* MODAL GLOBAL START*/
+
+.modal{
+    overflow: hidden;
+}
+
+.modal-content{
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-dialog {
+    max-width: 600px;
+    margin: 30px auto;
+}
+
+.modal-body{
+    padding: 1.5rem 2rem;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--border-color);
+    color: var(--dark-primary-color);
+    background-color: #f8f9fa;
+}
+
+.modal-header .modal-title{
+    font-family: var(--archivo-black-font);
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.modal-header i{
+    margin-right: 8px;
+    color: var(--primary-color);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--border-color);
+    background-color: #f8f9fa;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.modal-footer .btn{
+    padding: 8px 20px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all .3s;
+    min-width: 100px;
+}
+
+.modal-footer .btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.modal-footer .cancel-btn{
+    background: #6c757d;
+    color: white;
+}
+
+.modal-footer .cancel-btn:hover{
+    background: #545b62;
+}
+
+.modal-footer .delete-btn {
+    background: #dc3545;
+}
+
+.modal-footer .delete-btn:hover {
+    background: #c82333;
+}
+
+/* Form Styling Inside Modal */
+.modal .form-control {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 14px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.modal .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+    outline: none;
+}
+
+.modal .form-select {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 14px;
+    background-color: white;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.modal .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+    outline: none;
+}
+
+.modal .form-label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.modal .row {
+    margin: 0 -8px;
+}
+
+.modal .row > * {
+    padding: 0 8px;
+}
+
+.form-text {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+/* MODAL GLOBAL END*/

@@ -12,7 +12,7 @@ class AdminCalendar {
     }
 
     init() {
-        this.loadSampleEvents();
+        this.loadEventsFromServer();
         this.bindEvents();
         this.renderCalendar();
     }
@@ -111,39 +111,84 @@ class AdminCalendar {
             title.textContent = 'Add Event';
             saveBtn.textContent = 'Save Event';
             delBtn.classList.add('d-none');
-            if (date) document.getElementById('eventDate').value = this.formatDateForInput(date);
+            if (date) {
+                document.getElementById('startDate').value = this.formatDateForInput(date);
+                document.getElementById('endDate').value = this.formatDateForInput(date);
+            }
         }
         modal.show();
     }
 
     populateEventForm(e) {
-        Object.entries({
-            eventId: e.id, eventTitle: e.title, eventType: e.type, eventDate: e.date,
-            eventAudience: e.audience, startTime: e.startTime || '', endTime: e.endTime || '',
-            eventDescription: e.description || '', eventLocation: e.location || ''
-        }).forEach(([id, val]) => document.getElementById(id).value = val);
+        document.getElementById('eventId').value = e.id || '';
+        document.getElementById('eventTitle').value = e.title || '';
+        document.getElementById('eventType').value = e.type || '';
+        document.getElementById('startDate').value = e.startDate || '';
+        document.getElementById('endDate').value = e.endDate || '';
+        document.getElementById('eventDescription').value = e.description || '';
     }
 
-    saveEvent() {
+    async saveEvent() {
         const f = new FormData(document.getElementById('eventForm'));
         const ev = Object.fromEntries(f.entries());
-        ev.id = this.isEditMode ? this.currentEventId : this.generateEventId();
-        if (this.isEditMode)
-            this.events = this.events.map(e => e.id === this.currentEventId ? ev : e);
-        else this.events.push(ev);
-        document.getElementById('eventModal').querySelector('[data-bs-dismiss="modal"]').click();
-        this.renderCalendar();
-        this.showAlert('success', this.isEditMode ? 'Event updated!' : 'Event added!');
-    }
+        ev.Id = this.isEditMode ? this.currentEventId : 0;
 
-    deleteEvent() {
-        if (this.currentEventId) {
-            this.events = this.events.filter(e => e.id !== this.currentEventId);
-            document.getElementById('eventModal').querySelector('[data-bs-dismiss="modal"]').click();
-            this.renderCalendar();
-            this.showAlert('success', 'Event deleted!');
+        try {
+            const response = await fetch('/Admin/SaveEvent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    Id: ev.Id,
+                    Title: ev.eventTitle,
+                    Type: ev.eventType,
+                    StartDate: ev.startDate,
+                    EndDate: ev.endDate,
+                    Description: ev.eventDescription
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                document.getElementById('eventModal').querySelector('[data-bs-dismiss="modal"]').click();
+                this.showAlert('success', this.isEditMode ? 'Event updated!' : 'Event added!');
+                await this.loadEventsFromServer();
+            } else {
+                this.showAlert('danger', 'Error saving event.');
+            }
+        } catch (err) {
+            console.error('Save event failed:', err);
+            this.showAlert('danger', 'Error saving event.');
         }
     }
+
+
+
+    async deleteEvent() {
+        if (!this.currentEventId) return;
+
+        try {
+            const response = await fetch('/Admin/DeleteEvent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: this.currentEventId })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                document.getElementById('eventModal').querySelector('[data-bs-dismiss="modal"]').click();
+                this.showAlert('success', 'Event deleted!');
+                await this.loadEventsFromServer();
+            } else {
+                this.showAlert('danger', 'Error deleting event.');
+            }
+        } catch (err) {
+            console.error('Delete failed:', err);
+            this.showAlert('danger', 'Error deleting event.');
+        }
+    }
+
 
     showEventDetails(e) {
         this.currentEventId = e.id;
@@ -151,10 +196,10 @@ class AdminCalendar {
         const t = document.getElementById('detailType');
         t.textContent = this.capitalizeFirst(e.type);
         t.className = `event-badge ${e.type}`;
-        document.getElementById('detailDate').textContent = this.formatDateForDisplay(new Date(e.date));
-        document.getElementById('detailTime').textContent = e.startTime && e.endTime ? `${e.startTime} - ${e.endTime}` : 'All Day';
-        document.getElementById('detailAudience').textContent = this.capitalizeFirst(e.audience);
-        document.getElementById('detailLocation').textContent = e.location || 'Not specified';
+        document.getElementById('detailDate').textContent =
+            e.startDate && e.endDate
+                ? `${this.formatDateForDisplay(new Date(e.startDate))} - ${this.formatDateForDisplay(new Date(e.endDate))}`
+                : this.formatDateForDisplay(new Date(e.date));
         document.getElementById('detailDescription').textContent = e.description || 'No description';
         new bootstrap.Modal(document.getElementById('eventDetailsModal')).show();
     }
@@ -166,8 +211,15 @@ class AdminCalendar {
     }
 
     getEventsForDate(date) {
-        return this.events.filter(e => e.date === this.formatDateForInput(date));
+        const target = this.formatDateForInput(date);
+        return this.events.filter(e => {
+            if (e.startDate && e.endDate) {
+                return target >= e.startDate && target <= e.endDate;
+            }
+            return e.date === target;
+        });
     }
+
 
     generateEventId() {
         return 'event_' + Date.now();
@@ -187,21 +239,39 @@ class AdminCalendar {
     showAlert(type,msg){
         const id='alert-'+Date.now();
         document.body.insertAdjacentHTML('beforeend',`
-        <div id="${id}" class="alert alert-${type} alert-dismissible fade show" style="position:fixed;top:80px;right:20px;z-index:9999;">
-            <i class="fa-solid fa-${type==='success'?'check-circle':'circle-exclamation'} me-1"></i>${msg}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>`);
+       <div id="${id}" 
+             class="alert alert-${type} alert-dismissible fade show d-flex align-items-center justify-content-start" 
+             style="position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; min-width: 320px; text-align: center; font-size: 16px;">
+            <i class="fa-solid fa-${type === 'success' ? 'check-circle' : 'circle-exclamation'} me-3"></i>
+            <span>${msg}</span>
+            <button type="button" class="btn-close ms-2" data-bs-dismiss="alert"></button>
+        </div>
+
+                `);
         setTimeout(()=>document.getElementById(id)?.remove(),5000);
     }
 
-    loadSampleEvents() {
-        this.events = [
-            { id:'oct1', title:'October Academic Planning', type:'academic', date:'2025-10-03', audience:'teachers', startTime:'09:00', endTime:'17:00', description:'Planning session', location:'Conference Room' },
-            { id:'oct2', title:'Student Orientation', type:'academic', date:'2025-10-23', audience:'students', startTime:'08:00', endTime:'12:00', description:'Orientation Program', location:'Main Auditorium' },
-            { id:'oct3', title:'Halloween Celebration', type:'school-events', date:'2025-10-31', audience:'all', startTime:'14:00', endTime:'18:00', description:'Costume Party', location:'Campus Grounds' },
-            { id:'holiday3', title:'Christmas Day', type:'holidays', date:'2025-12-25', audience:'all', startTime:'00:00', endTime:'23:59', description:'Christmas Holiday', location:'No Classes' },
-        ];
+    async loadEventsFromServer() {
+        try {
+            const response = await fetch('/Admin/GetEvents');
+            const data = await response.json();
+
+            this.events = data.map(e => ({
+                id: e.Id,
+                title: e.Title,
+                type: e.Type,
+                startDate: e.StartDate ? e.StartDate.split('T')[0] : null,
+                endDate: e.EndDate ? e.EndDate.split('T')[0] : null,
+                description: e.Description
+            }));
+
+            this.renderCalendar();
+        } catch (err) {
+            console.error('Error loading events:', err);
+            this.showAlert('danger', 'Failed to load events.');
+        }
     }
+
 }
 
 document.addEventListener('DOMContentLoaded', () => new AdminCalendar());

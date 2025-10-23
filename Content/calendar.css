@@ -101,19 +101,18 @@
     min-height: 720px; /* 6 rows × 120px */
 }
 
-/* Calendar Day - Fixed sizing and overflow handling */
+/* Calendar Day */
 .calendar-day {
     border-right: 1px solid #C1BEBE;
     border-bottom: 1px solid #C1BEBE;
-    padding: 8px;
-    height: 120px; /* Fixed height */
+    height: 120px;
     cursor: pointer;
     transition: all 0.2s;
     background: white;
     position: relative;
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Prevent content overflow */
+    overflow: hidden;
 }
 
 .calendar-day:nth-child(7n) {
@@ -144,6 +143,8 @@
 
 .day-number {
     font-weight: 600;
+    margin-top: 5px;
+    margin-left: 10px;
     margin-bottom: 5px;
     color: var(--dark-primary-color);
     flex-shrink: 0;
@@ -165,13 +166,10 @@
 .event-item {
     background: var(--primary-color);
     color: white;
-    padding: 3px 6px;
-    border-radius: 3px;
-    font-size: 0.65rem;
-    font-weight: 500;
+    padding: 7px;
+    font-size: 1rem;
     cursor: pointer;
     transition: all 0.2s;
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.2;
@@ -482,3 +480,4 @@
         min-height: 16px;
     }
 }
+
