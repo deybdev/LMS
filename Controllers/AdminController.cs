@@ -1,12 +1,13 @@
 ﻿using LMS.Models;
 using LMS.Helpers;
-using OfficeOpenXml;
+using ClosedXML.Excel;
 using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
+using OfficeOpenXml;
 
 
 
@@ -15,6 +16,7 @@ namespace LMS.Controllers
     public class AdminController : Controller
     {
         private readonly LMSContext db = new LMSContext();
+
 
         // GET: Admin(View)
         public ActionResult Index()
@@ -31,55 +33,87 @@ namespace LMS.Controllers
         // GET: Admin/GetEvents
         public JsonResult GetEvents()
         {
-            var events = db.Events.ToList().Select(e => new
+            try
             {
-                e.Id,
-                e.Title,
-                e.Type,
-                StartDate = e.StartDate.ToString("yyyy-MM-dd"),
-                EndDate = e.EndDate.ToString("yyyy-MM-dd"),
-                e.Description
-            });
+                var events = db.Events.ToList().Select(e => new
+                {
+                    e.Id,
+                    e.Title,
+                    e.Type,
+                    StartDate = e.StartDate.ToString("yyyy-MM-dd"),
+                    EndDate = e.EndDate.ToString("yyyy-MM-dd"),
+                    e.Description
+                });
 
-            return Json(events, JsonRequestBehavior.AllowGet);
+                return Json(events, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetEvents Error: {ex.Message}");
+                return Json(new { error = "Failed to load events", message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
         }
 
         // POST: Admin/SaveEvent
+        [HttpPost]
         public JsonResult SaveEvent(Event e)
         {
-            if (e.Id > 0)
+            try
             {
-                var existing = db.Events.Find(e.Id);
-                if (existing != null)
+                if (e.Id > 0)
                 {
-                    existing.Title = e.Title;
-                    existing.Type = e.Type;
-                    existing.StartDate = e.StartDate;
-                    existing.EndDate = e.EndDate;
-                    existing.Description = e.Description;
+                    var existing = db.Events.Find(e.Id);
+                    if (existing != null)
+                    {
+                        existing.Title = e.Title;
+                        existing.Type = e.Type;
+                        existing.StartDate = e.StartDate;
+                        existing.EndDate = e.EndDate;
+                        existing.Description = e.Description;
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Event not found" });
+                    }
                 }
-            }
-            else
-            {
-                db.Events.Add(e);
-            }
+                else
+                {
+                    db.Events.Add(e);
+                }
 
-            db.SaveChanges();
-            return Json(new { success = true });
+                db.SaveChanges();
+                return Json(new { success = true, message = "Event saved successfully" });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SaveEvent Error: {ex.Message}");
+                return Json(new { success = false, message = "Failed to save event: " + ex.Message });
+            }
         }
 
         // POST: Admin/DeleteEvent
         [HttpPost]
         public JsonResult DeleteEvent(int id)
         {
-            var ev = db.Events.Find(id);
-            if (ev != null)
+            try
             {
-                db.Events.Remove(ev);
-                db.SaveChanges();
+                var ev = db.Events.Find(id);
+                if (ev != null)
+                {
+                    db.Events.Remove(ev);
+                    db.SaveChanges();
+                    return Json(new { success = true, message = "Event deleted successfully" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Event not found" });
+                }
             }
-
-            return Json(new { success = true });
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"DeleteEvent Error: {ex.Message}");
+                return Json(new { success = false, message = "Failed to delete event: " + ex.Message });
+            }
         }
 
         // GET: Admin/ManageUsers
@@ -300,81 +334,199 @@ namespace LMS.Controllers
 
             try
             {
+                // Ensure license is set before using ExcelPackage (safety check)
+                if (ExcelPackage.LicenseContext != OfficeOpenXml.LicenseContext.NonCommercial)
+                {
+                    ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+                }
+
                 using (var package = new ExcelPackage(file.InputStream))
                 {
+                    if (package.Workbook.Worksheets.Count == 0)
+                    {
+                        TempData["AlertMessage"] = "Excel file has no worksheets.";
+                        TempData["AlertType"] = "warning";
+                        return RedirectToAction("ManageUsers");
+                    }
+
                     var worksheet = package.Workbook.Worksheets.First();
-                    int rowCount = worksheet.Dimension.Rows;
+                    int rowCount = worksheet.Dimension?.Rows ?? 0;
+                    
+                    if (rowCount <= 1)
+                    {
+                        TempData["AlertMessage"] = "Excel file appears to be empty or has no data rows.";
+                        TempData["AlertType"] = "warning";
+                        return RedirectToAction("ManageUsers");
+                    }
+
                     int successCount = 0;
                     int errorCount = 0;
+                    int totalRows = rowCount - 1; // Subtract header row
+                    var errorDetails = new List<string>();
 
+                    // Process each row with detailed tracking
                     for (int row = 2; row <= rowCount; row++)
                     {
                         try
                         {
-                            var lastName = worksheet.Cells[row, 3].Text.Trim();
-                            var firstName = worksheet.Cells[row, 4].Text.Trim();
-                            var email = worksheet.Cells[row, 5].Text.Trim();
+                            var userId = worksheet.Cells[row, 1].Text.Trim();
+                            var lastName = worksheet.Cells[row, 2].Text.Trim();
+                            var firstName = worksheet.Cells[row, 3].Text.Trim();
+                            var email = worksheet.Cells[row, 4].Text.Trim();
+                            var phone = worksheet.Cells[row, 5].Text.Trim();
+                            var department = worksheet.Cells[row, 6].Text.Trim();
 
-                            if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName) || string.IsNullOrEmpty(email))
+                            // Validate required fields
+                            if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName) || 
+                                string.IsNullOrEmpty(email) || string.IsNullOrEmpty(userId))
                             {
                                 errorCount++;
+                                errorDetails.Add($"Row {row}: Missing required fields (ID, Name, or Email)");
                                 continue;
                             }
 
+                            // Validate email format
+                            if (!IsValidEmail(email))
+                            {
+                                errorCount++;
+                                errorDetails.Add($"Row {row}: Invalid email format - {email}");
+                                continue;
+                            }
+
+                            // Check for duplicate email
                             if (db.Users.Any(u => u.Email == email))
                             {
                                 errorCount++;
+                                errorDetails.Add($"Row {row}: Email already exists - {email}");
+                                continue;
+                            }
+
+                            // Check for duplicate UserID
+                            if (db.Users.Any(u => u.UserID == userId))
+                            {
+                                errorCount++;
+                                errorDetails.Add($"Row {row}: User ID already exists - {userId}");
                                 continue;
                             }
 
                             string password = GeneratePassword();
 
-                            db.Users.Add(new User
+                            var newUser = new User
                             {
+                                UserID = userId,
                                 LastName = lastName,
                                 FirstName = firstName,
                                 Email = email,
-                                Password = password,
+                                PhoneNumber = phone,
+                                Department = department,
+                                Password = HashPassword(password),
                                 Role = role,
                                 DateCreated = DateTime.Now
-                            });
+                            };
 
+                            db.Users.Add(newUser);
                             successCount++;
+
+                            // Send welcome email for each user
+                            try
+                            {
+                                EmailHelper.SendEmail(
+                                    toEmail: email,
+                                    subject: "Welcome to G2 Academy University LMS",
+                                    htmlBody: EmailHelper.CreateWelcomeEmailTemplate(email, password, $"{firstName} {lastName}")
+                                );
+                            }
+                            catch (Exception emailEx)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"Failed to send email to {email}: {emailEx.Message}");
+                                // Continue processing even if email fails
+                            }
+
+                            // Log progress for debugging
+                            System.Diagnostics.Debug.WriteLine($"Processed {successCount + errorCount}/{totalRows} records");
                         }
-                        catch
+                        catch (Exception rowEx)
                         {
+                            System.Diagnostics.Debug.WriteLine($"Error processing row {row}: {rowEx.Message}");
                             errorCount++;
+                            errorDetails.Add($"Row {row}: Processing error - {rowEx.Message}");
                         }
                     }
 
+                    // Save all changes at once for better performance
                     db.SaveChanges();
 
+                    // Prepare detailed results
                     if (successCount > 0)
                     {
-                        TempData["AlertMessage"] = $"Successfully uploaded {successCount} accounts!";
-                        TempData["AlertType"] = "success";
+                        string successMsg = $"Successfully uploaded {successCount} of {totalRows} accounts!";
                         
+                        if (successCount == totalRows)
+                        {
+                            successMsg += " All records processed successfully.";
+                        }
+                        
+                        TempData["AlertMessage"] = successMsg;
+                        TempData["AlertType"] = "success";
+
                         if (errorCount > 0)
                         {
-                            // Add a second alert for the warnings
-                            TempData["AlertMessage2"] = $"{errorCount} records had errors and were skipped.";
+                            string errorMsg = $"{errorCount} records had errors and were skipped.";
+                            if (errorDetails.Count > 0 && errorDetails.Count <= 5)
+                            {
+                                errorMsg += " Issues: " + string.Join("; ", errorDetails.Take(3));
+                                if (errorDetails.Count > 3)
+                                {
+                                    errorMsg += $" and {errorDetails.Count - 3} more...";
+                                }
+                            }
+                            
+                            TempData["AlertMessage2"] = errorMsg;
                             TempData["AlertType2"] = "warning";
                         }
                     }
                     else
                     {
-                        TempData["AlertMessage"] = "No accounts were uploaded. Please check your Excel file format.";
-                        TempData["AlertType"] = "danger";  // Using danger instead of error for Bootstrap
+                        string errorMsg = "No accounts were uploaded.";
+                        if (errorDetails.Any())
+                        {
+                            errorMsg += " Issues found: " + string.Join("; ", errorDetails.Take(3));
+                        }
+                        else
+                        {
+                            errorMsg += " Please check your Excel file format.";
+                        }
+                        
+                        TempData["AlertMessage"] = errorMsg;
+                        TempData["AlertType"] = "danger";
                     }
+
+                    // Log final statistics
+                    System.Diagnostics.Debug.WriteLine($"Upload completed: {successCount} successful, {errorCount} errors out of {totalRows} total rows");
                 }
             }
             catch (Exception ex)
             {
                 TempData["AlertMessage"] = $"Error uploading accounts: {ex.Message}";
                 TempData["AlertType"] = "danger";
+                System.Diagnostics.Debug.WriteLine($"Upload Error: {ex.Message}");
             }
 
             return RedirectToAction("ManageUsers");
+        }
+
+        // Helper method to validate email format
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         // Password Generator

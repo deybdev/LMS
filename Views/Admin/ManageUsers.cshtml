@@ -137,20 +137,19 @@
 
 
     <!-- Excel Upload Modal -->
-    <div class="modal fade overflow-hidden" id="uploadExcelModal" tabindex="-1" aria-labelledby="uploadExcelModalLabel" aria-hidden="true">
+    <div class="modal fade" id="uploadExcelModal" tabindex="-1" aria-labelledby="uploadExcelModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-md">
             <div class="modal-content rounded-0">
-                <form asp-action="UploadAccounts" asp-controller="Admin" method="post" enctype="multipart/form-data">
+                <form id="excelUploadForm" action="@Url.Action("UploadAccounts", "Admin")" method="post" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
                     <div class="modal-header">
                         <h5 class="modal-title" id="uploadExcelModalLabel">
                             <i class="fa-solid fa-file-excel"></i> Import Accounts from Excel
                         </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" id="uploadModalClose"></button>
                     </div>
 
                     <div class="modal-body">
-                        <!-- Account Type -->
                         <div class="mb-3">
                             <label for="roleSelect" class="form-label">Select Account Type</label>
                             <select class="form-select" id="roleSelect" name="role" required>
@@ -160,37 +159,55 @@
                             </select>
                         </div>
 
-                        <!-- File Upload -->
                         <div class="mb-3">
                             <label class="form-label">Upload Excel File (.xlsx)</label>
-                            <input type="file" name="file" class="form-control" accept=".xlsx" required>
+                            <input type="file" name="file" id="excelFile" class="form-control" accept=".xlsx" required>
                         </div>
 
-                        <!-- Guide / Instructions -->
-                        <div class="alert alert-info mb-0 small">
+                        <!-- Simplified Progress Section -->
+                        <div id="uploadProgressSection" class="mb-3" style="display: none;">
+                            <div class="alert alert-info">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong id="progressTitle">Processing Excel File...</strong>
+                                    <span id="progressPercent">0%</span>
+                                </div>
+                                <div class="progress mb-2" style="height: 20px;">
+                                    <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                         role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <div class="small">
+                                    <span id="progressStatus">Starting upload...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info mb-0 small" id="uploadInstructions">
                             <h6 class="mb-1"><i class="fa-solid fa-circle-info"></i> Excel Format Guide</h6>
-                            <p>Your Excel file should contain the following columns (in order):</p>
+                            <p>Excel columns (in order):</p>
                             <ul>
-                                <li><strong>Column 1</strong> — Teacher/Student's ID (23-2342)</li>
-                                <li><strong>Column 2</strong> — Last Name (Dela Cruz)</li>
-                                <li><strong>Column 3</strong> — First Name (Juan)</li>
-                                <li><strong>Column 4</strong> — Email (example@gmail.com)</li>
-                                <li><strong>Column 5</strong> — Phone Number (09123456789)</li>
-                                <li><strong>Column 5</strong> — Department (Computer Science)</li>
+                                <li>Column 1 — ID</li>
+                                <li>Column 2 — Last Name</li>
+                                <li>Column 3 — First Name</li>
+                                <li>Column 4 — Email</li>
+                                <li>Column 5 — Phone</li>
+                                <li>Column 6 — Department</li>
                             </ul>
-                            <p><strong>Password Format:</strong> The password will be automatically generated for each user upon upload.</p>
+                            <p><strong>Password:</strong> auto-generated for each user.</p>
                         </div>
-
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn cancel-btn" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn"><i class="fa-solid fa-upload"></i> Upload</button>
+                        <button type="button" class="btn cancel-btn" data-bs-dismiss="modal" id="uploadCancelBtn">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="uploadSubmitBtn">
+                            <i class="fa-solid fa-upload"></i> <span id="uploadBtnText">Upload</span>
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
 
     <!-- Main Content -->
     <div class="admin-content ">
@@ -349,35 +366,9 @@
     <script src="~/Scripts/Admin/formValidation.js"></script>
     <script src="~/Scripts/Custom/ajaxHelper.js"></script>
     <script src="~/Scripts/Custom/deleteModalHandler.js"></script>
-    <script>
-        function showAlert(type, message) {
-            // Create alert element
-            const alertId = 'alert-' + Date.now();
-            const alertHtml = `
-                    <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show mb-3" role="alert" style="box-shadow: 0 3px 10px rgba(0,0,0,0.2);">
-                        <i class="fa-solid fa-${type === 'success' ? 'check-circle' :
-                    type === 'danger' ? 'circle-exclamation' :
-                        type === 'warning' ? 'triangle-exclamation' : 'circle-info'
-                } me-1"></i>
-                        <span>${message}</span>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                `;
+    <script src="~/Scripts/Custom/improvedExcelProgress.js"></script>
 
-            $('#alertContainer').append(alertHtml);
-
-            setTimeout(function () {
-                $(`#${alertId}`).fadeOut(300, function () {
-                    $(this).remove();
-                });
-            }, 5000);
-        }
-
-        $(function () {
-            // Remove the old FormValidation.init call since we're handling this differently now
-        });
-    </script>
-
+    @* Server-side alert handling *@
     @if (TempData["AlertMessage"] != null)
     {
         <script>
@@ -393,9 +384,43 @@
             $(function() {
                 setTimeout(function() {
                     showAlert('@(TempData["AlertType2"] ?? "info")', '@TempData["AlertMessage2"]');
-                }, 300); // Small delay for the second alert
+                }, 300);
             });
         </script>
     }
 }
+
+<style>
+    #uploadProgressSection {
+        animation: slideDown 0.3s ease-out;
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            max-height: 0;
+        }
+        to {
+            opacity: 1;
+            max-height: 150px;
+        }
+    }
+
+    .progress {
+        transition: all 0.3s ease;
+    }
+
+    .progress-bar {
+        transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    #uploadProgressSection .alert {
+        border-left: 4px solid #17a2b8;
+    }
+
+    .modal-footer button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+</style>
 

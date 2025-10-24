@@ -24,61 +24,117 @@
                 </a>
                 <div class="nav-actions d-flex ms-auto">
 
-                <!-- Mobile toggle button -->
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+                    <!-- Mobile toggle button -->
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
 
-                <!-- Navbar links -->
-                <div class="collapse navbar-collapse" id="navbarResponsive">
-                    <div class="navbar-nav gap-4">
-                        @{
-                            var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
-                            var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+                    <!-- Navbar links -->
+                    <div class="collapse navbar-collapse" id="navbarResponsive">
+                        <div class="navbar-nav gap-4">
+                            @{
+                                var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+                                var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
 
-                            Func<string, string, string> isActive = (controller, action) =>
+                                Func<string, string, string> isActive = (controller, action) =>
+                                {
+                                    return (currentController == controller && currentAction == action) ? "active" : "";
+                                };
+                            }
+
+                            @if (Session["Role"] == null)
                             {
-                                return (currentController == controller && currentAction == action) ? "active" : "";
-                            };
-                        }
+                                <!-- Guest -->
+                                <a href="@Url.Action("Login", "Home")" class="login-btn py-2 px-5">Login</a>
 
-                        @if (Session["Role"] == null)
-                        {
-                            <!-- Guest -->
-                            <a href="@Url.Action("Login", "Home")" class="login-btn py-2 px-5">Login</a>
-
-                        }
-                        else if (Session["Role"].ToString() == "Admin")
-                        {
-                            <a href="@Url.Action("Index", "Admin")" class="nav-link @(isActive("Admin", "Index"))">Home</a>
-                            <a href="@Url.Action("ManageUsers", "Admin")" class="nav-link @(isActive("Admin", "ManageUsers"))">User's Account</a>
-                            <a href="@Url.Action("Calendar", "Admin")" class="nav-link @(isActive("Admin", "Calendar"))">Calendar</a>
-                            <a href="@Url.Action("System", "Home")" class="nav-link @(isActive("Home", "System"))">System Management</a>
-                        }
-                        else if (Session["Role"].ToString() == "Teacher")
-                        {
-                            <a href="@Url.Action("Index", "Teacher")" class="nav-link @(isActive("Teacher", "Index"))">Home</a>
-                            <a href="@Url.Action("Course", "Teacher")" class="nav-link @(isActive("Teacher", "Course"))">Course</a>
-                            <a href="@Url.Action("Notification", "Teacher")" class="nav-link  @(isActive("Teacher", "Notification"))">Notification</a>
-                            <a href="@Url.Action("Profile", "Teacher")" class="nav-link @(isActive("Teacher", "Profile"))">Profile</a>
-                        }
-                        else if (Session["Role"].ToString() == "Student")
-                        {
-                            <a href="@Url.Action("Index", "Student")" class="nav-link @(isActive("Student", "Index"))">Home</a>
-                            <a href="@Url.Action("Course", "Student")" class="nav-link @(isActive("Student", "Course"))">Course</a>
-                            <a href="@Url.Action("TodoList", "Student")" class="nav-link @(isActive("Student", "TodoList"))">To-Do List</a>
-                            <a href="@Url.Action("Notification", "Student")" class="nav-link @(isActive("Student", "Notification"))">Notification</a>
-                            <a href="@Url.Action("Profile", "Student")" class="nav-link @(isActive("Student", "Profile"))">Profile</a>
-                        }
+                            }
+                            else if (Session["Role"].ToString() == "Admin")
+                            {
+                                <a href="@Url.Action("Index", "Admin")" class="nav-link @(isActive("Admin", "Index"))">Home</a>
+                                <a href="@Url.Action("ManageUsers", "Admin")" class="nav-link @(isActive("Admin", "ManageUsers"))">User's Account</a>
+                                <a href="@Url.Action("Calendar", "Admin")" class="nav-link @(isActive("Admin", "Calendar"))">Calendar</a>
+                                <a href="@Url.Action("System", "Home")" class="nav-link @(isActive("Home", "System"))">System Management</a>
+                            }
+                            else if (Session["Role"].ToString() == "Teacher")
+                            {
+                                <a href="@Url.Action("Index", "Teacher")" class="nav-link @(isActive("Teacher", "Index"))">Home</a>
+                                <a href="@Url.Action("Course", "Teacher")" class="nav-link @(isActive("Teacher", "Course"))">Course</a>
+                                <a href="@Url.Action("Notification", "Teacher")" class="nav-link  @(isActive("Teacher", "Notification"))">Notification</a>
+                                <a href="@Url.Action("Profile", "Teacher")" class="nav-link @(isActive("Teacher", "Profile"))">Profile</a>
+                            }
+                            else if (Session["Role"].ToString() == "Student")
+                            {
+                                <a href="@Url.Action("Index", "Student")" class="nav-link @(isActive("Student", "Index"))">Home</a>
+                                <a href="@Url.Action("Course", "Student")" class="nav-link @(isActive("Student", "Course"))">Course</a>
+                                <a href="@Url.Action("TodoList", "Student")" class="nav-link @(isActive("Student", "TodoList"))">To-Do List</a>
+                                <a href="@Url.Action("Notification", "Student")" class="nav-link @(isActive("Student", "Notification"))">Notification</a>
+                                <a href="@Url.Action("Profile", "Student")" class="nav-link @(isActive("Student", "Profile"))">Profile</a>
+                            }
+                        </div>
                     </div>
                 </div>
             </div>
-                </div>
         </nav>
     </header>
 
+    <!--
+    <div id="loadingOverlay" style="
+    position: absolute;
+    top: 65px;
+    left:0;
+    width:100%;
+    height:calc(100vh - 65px);
+    background: rgba(255,255,255,1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99;
+    flex-direction: column;
+">
+        <img src="~/Images/logo.png" alt="Logo" class="loading-logo" style="width:120px;">
+    </div>
 
 
+    <style>
+        @@keyframes slowPulse {
+            0% {
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .loading-logo {
+            animation: slowPulse 2s ease-in-out infinite;
+        }
+
+        #loadingOverlay.fade-out {
+            opacity: 0;
+            transition: opacity 1s ease-out;
+        }
+    </style>
+
+    <script>
+        window.onload = function () {
+            const overlay = document.getElementById('loadingOverlay');
+            const content = document.getElementById('pageContent');
+
+            setTimeout(() => {
+                overlay.classList.add('fade-out');
+                overlay.style.display = 'none';
+                content.style.display = 'block';
+            }, 2000);
+        };
+    </script>
+
+
+    <!-- <div id="pageContent" style="display:none;"> -->
     <div>
         @RenderBody()
 
