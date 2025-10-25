@@ -53,7 +53,7 @@
                                 <a href="@Url.Action("Index", "Admin")" class="nav-link @(isActive("Admin", "Index"))">Home</a>
                                 <a href="@Url.Action("ManageUsers", "Admin")" class="nav-link @(isActive("Admin", "ManageUsers"))">User's Account</a>
                                 <a href="@Url.Action("Calendar", "Admin")" class="nav-link @(isActive("Admin", "Calendar"))">Calendar</a>
-                                <a href="@Url.Action("System", "Home")" class="nav-link @(isActive("Home", "System"))">System Management</a>
+                                <a href="@Url.Action("Course", "Admin")" class="nav-link @(isActive("Admin", "Course"))">Courses</a>
                             }
                             else if (Session["Role"].ToString() == "Teacher")
                             {

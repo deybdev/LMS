@@ -8,6 +8,7 @@ using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using OfficeOpenXml;
+using System.Collections.Generic;
 
 
 
@@ -26,6 +27,11 @@ namespace LMS.Controllers
 
         // GET: Admin/Calendar
         public ActionResult Calendar()
+        {
+            return View();
+        }
+
+        public ActionResult Course()
         {
             return View();
         }
@@ -334,11 +340,6 @@ namespace LMS.Controllers
 
             try
             {
-                // Ensure license is set before using ExcelPackage (safety check)
-                if (ExcelPackage.LicenseContext != OfficeOpenXml.LicenseContext.NonCommercial)
-                {
-                    ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
-                }
 
                 using (var package = new ExcelPackage(file.InputStream))
                 {

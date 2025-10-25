@@ -1,0 +1,416 @@
+﻿@{
+    ViewBag.Title = "Course Management";
+}
+
+<link rel="stylesheet" href="~/Content/adminCourse.css" />
+
+<div class="admin-container">
+    <!-- Header with Back button and Logout -->
+    <div class="admin-header">
+        <button class="back-btn" onclick="history.back()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <button class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log out</button>
+    </div>
+
+    <div class="page-header">
+        <h1>Course Management</h1>
+        <p class="subtitle">Monitor all courses, track enrollments, and manage course visibility</p>
+    </div>
+    <!-- Main Content -->
+    <div class="admin-content">
+        <!-- Filter and Search Section -->
+        <div class="course-filter-section">
+            
+
+            <div class="filter-controls">
+                <input type="text" id="courseSearchInput" class="search-input" placeholder="Search courses by title, teacher, or department..." />
+
+                <div class="filter-dropdowns">
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="archived">Archived</option>
+                    </select>
+
+                    <select class="filter-select" id="departmentFilter">
+                        <option value="">All Departments</option>
+                        <option value="ComputerStudies">Computer Studies</option>
+                        <option value="InformationTechnology">Information Technology</option>
+                        <option value="BusinessAdministration">Business Administration</option>
+                        <option value="Engineering">Engineering</option>
+                    </select>
+
+                    <select class="filter-select" id="sortBy">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="name">Course Name</option>
+                        <option value="enrollments">Most Enrolled</option>
+                        <option value="teacher">Teacher Name</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Courses Grid - 2 Cards Per Row -->
+        <div class="courses-grid-container">
+            <div class="courses-row">
+                <!-- Course Card 1 -->
+                <div class="course-card" data-course-id="1" onclick="openCourseModal(1)">
+                    <div class="course-header">
+                        <div class="course-main-info">
+                            <h3 class="course-title">Advanced Web Development</h3>
+                            <div class="course-meta-row">
+                                <span class="course-code">CS401</span>
+                                <span class="department-tag">Computer Studies</span>
+                                <span class="status-badge status-active">
+                                    <i class="fas fa-circle"></i> Active
+                                </span>
+                            </div>
+                            <p class="course-description">Learn modern web technologies including React, Node.js, and database integration</p>
+
+
+
+                        </div>
+
+                        <div class="course-actions">
+                            <button class="action-btn status-btn" title="Change Status" onclick="event.stopPropagation(); toggleStatus(1)">
+                                <i class="fas fa-toggle-on"></i>
+                            </button>
+                            <button class="action-btn more-btn" title="More Options" onclick="event.stopPropagation(); showMoreOptions(1)">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="course-stats-row">
+                        <div class="stat-item">
+                            <div class="teacher-info">
+                                <i class="fas fa-user-tie"></i>
+                                <div class="teacher-details">
+                                    <div class="teacher-name">Dr. Sarah Johnson</div>
+                                    <div class="teacher-email">sarah.johnson@g2academy.edu</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="enrollment-info">
+                                <i class="fas fa-users"></i>
+                                <div class="enrollment-details">
+                                    <div class="enrollment-count">45 students</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="course-footer">
+                        <div class="material-info">
+                            <i class="fas fa-file-alt"></i>
+                            <span class="material-count">24 materials</span>
+                        </div>
+                        <div class="created-date">
+                            <i class="fas fa-calendar"></i>
+                            <span>Created Sep 15, 2024</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Course Card 2 -->
+                <div class="course-card" data-course-id="2" onclick="openCourseModal(2)">
+                    <div class="course-header">
+                        <div class="course-main-info">
+                            <h3 class="course-title">Database Management Systems</h3>
+                            <div class="course-meta-row">
+                                <span class="course-code">CS302</span>
+                                <span class="department-tag">Information Technology</span>
+                                
+                            </div>
+                            <p class="course-description">Comprehensive course on SQL, NoSQL databases, and data modeling principles</p>
+                        </div>
+                        <div class="course-actions">
+                           
+                            <button class="action-btn status-btn" title="Change Status" onclick="event.stopPropagation(); toggleStatus(2)">
+                                <i class="fas fa-toggle-on"></i>
+                            </button>
+                            <button class="action-btn more-btn" title="More Options" onclick="event.stopPropagation(); showMoreOptions(2)">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="course-stats-row">
+                        <div class="stat-item">
+                            <div class="teacher-info">
+                                <i class="fas fa-user-tie"></i>
+                                <div class="teacher-details">
+                                    <div class="teacher-name">Prof. Michael Chen</div>
+                                    <div class="teacher-email">michael.chen@g2academy.edu</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="enrollment-info">
+                                <i class="fas fa-users"></i>
+                                <div class="enrollment-details">
+                                    <div class="enrollment-count">38 students</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="course-footer">
+                        <div class="material-info">
+                            <i class="fas fa-file-alt"></i>
+                            <span class="material-count">18 materials</span>
+                        </div>
+                        <div class="created-date">
+                            <i class="fas fa-calendar"></i>
+                            <span>Created Aug 28, 2024</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="courses-row">
+                <!-- Course Card 3 -->
+                <div class="course-card" data-course-id="3" onclick="openCourseModal(3)">
+                    <div class="course-header">
+                        <div class="course-main-info">
+                            <h3 class="course-title">Mobile App Development</h3>
+                            <div class="course-meta-row">
+                                <span class="course-code">CS450</span>
+                                <span class="department-tag">Computer Studies</span>
+                                <span class="status-badge status-active">
+                                    <i class="fas fa-circle"></i> Active
+                                </span>
+                            </div>
+                            <p class="course-description">Build native and cross-platform mobile applications using React Native and Flutter</p>
+                        </div>
+                        <div class="course-actions">
+                            <button class="action-btn status-btn" title="Change Status" onclick="event.stopPropagation(); toggleStatus(3)">
+                                <i class="fas fa-toggle-on"></i>
+                            </button>
+                            <button class="action-btn more-btn" title="More Options" onclick="event.stopPropagation(); showMoreOptions(3)">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="course-stats-row">
+                        <div class="stat-item">
+                            <div class="teacher-info">
+                                <i class="fas fa-user-tie"></i>
+                                <div class="teacher-details">
+                                    <div class="teacher-name">Dr. Emily Rodriguez</div>
+                                    <div class="teacher-email">emily.rodriguez@g2academy.edu</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="enrollment-info">
+                                <i class="fas fa-users"></i>
+                                <div class="enrollment-details">
+                                    <div class="enrollment-count">52 students</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="course-footer">
+                        <div class="material-info">
+                            <i class="fas fa-file-alt"></i>
+                            <span class="material-count">31 materials</span>
+                        </div>
+                        <div class="created-date">
+                            <i class="fas fa-calendar"></i>
+                            <span>Created Sep 22, 2024</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Course Card 4 -->
+                <div class="course-card" data-course-id="4" onclick="openCourseModal(4)">
+                    <div class="course-header">
+                        <div class="course-main-info">
+                            <h3 class="course-title">Artificial Intelligence</h3>
+                            <div class="course-meta-row">
+                                <span class="course-code">CS501</span>
+                                <span class="department-tag">Computer Studies</span>
+                                <span class="status-badge status-active">
+                                    <i class="fas fa-circle"></i> Active
+                                </span>
+                            </div>
+                            <p class="course-description">Introduction to AI concepts, machine learning algorithms, and neural networks</p>
+                        </div>
+                        <div class="course-actions">
+                            <button class="action-btn status-btn" title="Change Status" onclick="event.stopPropagation(); toggleStatus(4)">
+                                <i class="fas fa-toggle-on"></i>
+                            </button>
+                            <button class="action-btn more-btn" title="More Options" onclick="event.stopPropagation(); showMoreOptions(4)">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="course-stats-row">
+                        <div class="stat-item">
+                            <div class="teacher-info">
+                                <i class="fas fa-user-tie"></i>
+                                <div class="teacher-details">
+                                    <div class="teacher-name">Dr. Robert Kim</div>
+                                    <div class="teacher-email">robert.kim@g2academy.edu</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="enrollment-info">
+                                <i class="fas fa-users"></i>
+                                <div class="enrollment-details">
+                                    <div class="enrollment-count">29 students</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="course-footer">
+                        <div class="material-info">
+                            <i class="fas fa-file-alt"></i>
+                            <span class="material-count">15 materials</span>
+                        </div>
+                        <div class="created-date">
+                            <i class="fas fa-calendar"></i>
+                            <span>Created Oct 1, 2024</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <span>Showing 1-4 of 156 courses</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" disabled>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <div class="pagination-numbers">
+                    <button class="pagination-number active">1</button>
+                    <button class="pagination-number">2</button>
+                    <button class="pagination-number">3</button>
+                    <span class="pagination-ellipsis">...</span>
+                    <button class="pagination-number">39</button>
+                </div>
+                <button class="pagination-btn">
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Course Details Modal -->
+<div class="modal fade" id="courseDetailsModal" tabindex="-1" aria-labelledby="courseDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="courseDetailsModalLabel">
+                    <i class="fas fa-book-open"></i> <span id="modalCourseTitle">Course Details</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Course Info Header -->
+                <div class="modal-course-header">
+                    <div class="course-info-section">
+                        <div class="course-meta-info">
+                            <span id="modalCourseCode" class="course-code">CS401</span>
+                            <span id="modalDepartment" class="department-tag">Computer Studies</span>
+                            <span id="modalStatus" class="status-badge status-active">
+                                <i class="fas fa-circle"></i> Active
+                            </span>
+                        </div>
+                        <p id="modalCourseDescription" class="course-description">Course description will appear here</p>
+                        <div class="teacher-section">
+                            <i class="fas fa-user-tie"></i>
+                            <div class="teacher-info">
+                                <div id="modalTeacherName" class="teacher-name">Teacher Name</div>
+                                <div id="modalTeacherEmail" class="teacher-email">teacher@email.com</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="course-stats-section">
+                        <div class="stat-box">
+                            <div class="stat-value" id="modalStudentCount">45</div>
+                            <div class="stat-label">Students</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="modalMaterialCount">24</div>
+                            <div class="stat-label">Materials</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="modalEngagementRate">87%</div>
+                            <div class="stat-label">Engagement</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="modal-tabs">
+                    <nav class="tab-nav">
+                        <button class="tab-btn active" onclick="showModalTab('students')">
+                            <i class="fas fa-users"></i> Students
+                        </button>
+                        <button class="tab-btn" onclick="showModalTab('materials')">
+                            <i class="fas fa-file-alt"></i> Materials
+                        </button>
+                    </nav>
+
+                    <div class="tab-content">
+                        <!-- Students Tab -->
+                        <div id="modal-students-tab" class="tab-pane active">
+                            <div class="students-header">
+                                <h4>Enrolled Students</h4>
+                                <div class="search-students">
+                                    <input type="text" placeholder="Search students..." class="form-control">
+                                </div>
+                            </div>
+                            <div class="students-list" id="modalStudentsList">
+                                <!-- Students will be loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- Materials Tab -->
+                        <div id="modal-materials-tab" class="tab-pane">
+                            <div class="materials-header">
+                                <h4>Course Materials</h4>
+                                <div class="materials-filter">
+                                    <select class="form-select">
+                                        <option value="">All Types</option>
+                                        <option value="pdf">PDFs</option>
+                                        <option value="video">Videos</option>
+                                        <option value="assignment">Assignments</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="materials-list" id="modalMaterialsList">
+                                <!-- Materials will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="generateCourseReport()">
+                    <i class="fas fa-download"></i> Generate Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/Scripts/Custom/adminCourse.js"></script>
+}
+

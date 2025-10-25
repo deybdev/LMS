@@ -1,7 +1,117 @@
-﻿
-@{
-    ViewBag.Title = "Index";
+﻿@{
+    ViewBag.Title = "Admin Dashboard";
 }
 
-<h2>Dashboard</h2>
+<link rel="stylesheet" href="~/Content/adminDashboard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+<div class="admin-dashboard">
+
+    <!-- Header -->
+    <div class="dashboard-header d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Admin Dashboard</h1>
+            <p>System Overview and Management Controls</p>
+        </div>
+        <div class="date-time">
+            <div id="currentTime" class="current-time"></div>
+            <div id="currentDate" class="current-date"></div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card students">
+            <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+            <div class="stat-content">
+                <p class="stat-number" data-target="1247">1,247</p>
+                <p class="stat-label">Students</p>
+            </div>
+        </div>
+
+        <div class="stat-card teachers">
+            <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+            <div class="stat-content">
+                <p class="stat-number" data-target="89">89</p>
+                <p class="stat-label">Teachers</p>
+            </div>
+        </div>
+
+        <div class="stat-card courses">
+            <div class="stat-icon"><i class="fas fa-book-open"></i></div>
+            <div class="stat-content">
+                <p class="stat-number" data-target="156">156</p>
+                <p class="stat-label">Courses</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions and Upcoming Events -->
+    <div class="dashboard-grid">
+        <!-- Quick Actions -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+            </div>
+            <div class="card-content">
+                <div class="action-buttons">
+                    <a href="#" class="action-btn"><i class="fas fa-bullhorn"></i><span>Send Announcement</span></a>
+                    <a href="#" class="action-btn"><i class="fas fa-chart-line"></i><span>Generate Report</span></a>
+                    <a href="#" class="action-btn"><i class="fas fa-cog"></i><span>System Settings</span></a>
+                    <a href="#" class="action-btn"><i class="fas fa-database"></i><span>Backup Data</span></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Events -->
+        <div class="dashboard-card upcoming-events">
+            <div class="card-header">
+                <h3><i class="fas fa-calendar-alt"></i> Upcoming Events</h3>
+            </div>
+            <div class="card-content">
+                <table class="events-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Event</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Oct 28, 2025</td>
+                            <td>Midterm Exams</td>
+                            <td>Academic</td>
+                        </tr>
+                        <tr>
+                            <td>Nov 15, 2025</td>
+                            <td>Faculty Meeting</td>
+                            <td>Administrative</td>
+                        </tr>
+                        <tr>
+                            <td>Dec 20, 2025</td>
+                            <td>Christmas Break Starts</td>
+                            <td>Holiday</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="dashboard-card full-width">
+        <div class="card-header">
+            <h3><i class="fas fa-clipboard-list"></i> Recent Activities</h3>
+        </div>
+        <div class="card-content">
+            <div class="activity-list"></div>
+        </div>
+    </div>
+
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="~/Scripts/Custom/adminDashboard.js"></script>
+}

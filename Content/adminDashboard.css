@@ -1,0 +1,413 @@
+/* Admin Dashboard Styles */
+.admin-dashboard {
+    padding: 2rem 3.5rem;
+    background-color: var(--light-gray);
+    min-height: calc(100vh - 70px);
+}
+
+/* ========== Header Section ========== */
+.dashboard-header {
+    margin-bottom: 2rem;
+    padding: 2rem 2.5rem;
+    background: #ffffff;
+    border-radius: 12px;
+    color: var(--dark-primary-color);
+    box-shadow: 0 4px 15px rgba(24, 82, 172, 0.1);
+    border: 1px solid var(--border-color);
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    font-size: 2.2rem;
+    font-weight: 600;
+    font-family: var(--archivo-black-font);
+    line-height: 1.2;
+}
+
+.dashboard-header p {
+    margin: 0.5rem 0 0 0;
+    opacity: 0.8;
+    font-family: var(--archivo-plain-font);
+    font-size: 1rem;
+}
+
+.date-time {
+    text-align: right;
+    font-family: var(--archivo-plain-font);
+}
+
+.current-date {
+    font-size: .9rem;
+    color: var(--gray-text);
+    margin-bottom: 0.25rem;
+}
+
+.current-time {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--dark-primary-color);
+}
+
+/* ========== Stats Section ========== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.75rem 2rem;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1.25rem;
+    font-size: 1.5rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.students .stat-icon { background: var(--primary-color); }
+.teachers .stat-icon { background: var(--success-color); }
+.courses .stat-icon { background: var(--warning-color); }
+
+.stat-content { 
+    flex: 1; 
+    min-width: 0;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem 0;
+    color: var(--dark-primary-color);
+    font-family: var(--archivo-black-font);
+    line-height: 1.1;
+}
+
+.stat-label {
+    font-size: 0.95rem;
+    color: var(--gray-text);
+    font-family: var(--archivo-plain-font);
+    margin: 0;
+    font-weight: 500;
+}
+
+/* ========== Dashboard Grid ========== */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* ========== Dashboard Cards ========== */
+.dashboard-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--dark-primary-color);
+    font-family: var(--archivo-black-font);
+    flex: 1;
+}
+
+.card-header i { 
+    color: var(--primary-color); 
+    margin-right: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.card-content {
+    padding: 1.75rem 2rem;
+}
+
+.btn-refresh {
+    background: none;
+    border: none;
+    color: var(--gray-text);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ========== Upcoming Events ========== */
+.events-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    font-family: var(--archivo-plain-font);
+}
+
+.events-table th, .events-table td {
+    padding: 0.875rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.events-table th {
+    background-color: #f8f9fa;
+    color: var(--dark-primary-color);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.events-table td {
+    color: var(--dark-primary-color);
+    font-weight: 500;
+}
+
+.events-table tr:hover {
+    background-color: rgba(24, 82, 172, 0.05);
+}
+
+.events-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* ========== Quick Actions ========== */
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.25rem 1rem;
+    background: #f8f9fa;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--dark-primary-color);
+    transition: all 0.2s ease;
+    text-align: center;
+    font-family: var(--archivo-plain-font);
+}
+
+.action-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(24, 82, 172, 0.2);
+    text-decoration: none;
+}
+
+.action-btn i { 
+    font-size: 1.5rem; 
+    margin-bottom: 0.5rem;
+}
+
+.action-btn span {
+    font-size: 0.85rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+/* ========== Recent Activities ========== */
+.full-width { 
+    grid-column: 1 / -1; 
+    margin-top: 0.5rem;
+}
+
+.activity-list {
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.activity-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.activity-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.activity-list::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.activity-list::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-text);
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.activity-item:last-child { 
+    border-bottom: none; 
+}
+
+.activity-item:hover {
+    background-color: rgba(24, 82, 172, 0.02);
+    border-radius: 6px;
+    margin: 0 -0.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    background: rgba(24, 82, 172, 0.1);
+    color: var(--primary-color);
+}
+
+.activity-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-text {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.9rem;
+    color: var(--dark-primary-color);
+    font-family: var(--archivo-plain-font);
+    line-height: 1.4;
+}
+
+.activity-time {
+    font-size: 0.8rem;
+    color: var(--gray-text);
+    font-family: var(--archivo-plain-font);
+    margin: 0;
+}
+
+/* ========== Responsive Design ========== */
+@media (max-width: 1200px) {
+    .admin-dashboard {
+        padding: 1.5rem 2rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.25rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-dashboard { 
+        padding: 1rem 1.5rem; 
+    }
+    
+    .dashboard-header { 
+        padding: 1.5rem 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .dashboard-header h1 { 
+        font-size: 1.8rem; 
+    }
+    
+    .dashboard-header .d-flex {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .date-time { 
+        text-align: left; 
+        margin-top: 1rem; 
+    }
+    
+    .stats-grid { 
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .dashboard-grid { 
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+    
+    .action-buttons { 
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .card-content {
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .card-header {
+        padding: 1.25rem 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-dashboard {
+        padding: 1rem;
+    }
+    
+    .dashboard-header {
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .stat-card {
+        padding: 1.5rem;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        margin-right: 1rem;
+        font-size: 1.3rem;
+    }
+    
+    .stat-number {
+        font-size: 1.6rem;
+    }
+}

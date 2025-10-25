@@ -226,6 +226,8 @@
     <Content Include="App_Data\LMS_DB_log.ldf">
       <DependentUpon>LMS_DB.mdf</DependentUpon>
     </Content>
+    <Content Include="Content\adminCourse.css" />
+    <Content Include="Content\adminDashboard.css" />
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
     <Content Include="Content\bootstrap-grid.rtl.css" />
@@ -263,12 +265,12 @@
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include=".env" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
+    <Content Include="Scripts\Custom\adminCourse.js" />
+    <Content Include="Scripts\Custom\adminDashboard.js" />
     <Content Include="Scripts\Custom\calendar.js" />
     <Content Include="Scripts\Custom\deleteModalHandler.js" />
     <Content Include="Scripts\Custom\improvedExcelProgress.js" />
     <Content Include="Scripts\Custom\index.js" />
-    <Content Include="Scripts\Custom\loading-demo.html" />
-    <Content Include="Scripts\Custom\loadingUtils.js" />
     <Content Include="Scripts\Custom\manageUser.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -305,6 +307,7 @@
     <Content Include="Views\Teacher\Notification.cshtml" />
     <Content Include="Views\Teacher\Profile.cshtml" />
     <Content Include="Views\Admin\Calendar.cshtml" />
+    <Content Include="Views\Admin\Course.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202510231406342_InitialCreate.resx">
