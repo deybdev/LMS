@@ -1,0 +1,152 @@
+﻿@{
+    ViewBag.Title = "System Logs";
+}
+
+@model IEnumerable<LMS.Models.AuditLog>
+
+
+<link rel="stylesheet" href="~/Content/adminLogs.css" />
+
+<div class="admin-container">
+    <div class="page-header">
+        <h1>System Logs</h1>
+        <p class="subtitle">Monitor system activities, errors, and user actions</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="admin-content">
+        <!-- Filter and Search Section -->
+        <div class="logs-filter-section">
+            <div class="filter-controls">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search logs by message, user, or IP address..." disabled/>
+
+                <div class="filter-dropdowns">
+                    <select class="filter-select" id="logCategoryFilter">
+                        <option value="">All Categories</option>
+                        <option value="authentication">Authentication</option>
+                        <option value="system">System</option>
+                        <option value="user">User Actions</option>
+                        <option value="course">Course Management</option>
+                        <option value="database">Database</option>
+                    </select>
+
+                    <select class="filter-select" id="timeRangeFilter">
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="week">Last 7 Days</option>
+                        <option value="month">Last 30 Days</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+
+                    <div class="date-range" id="customDateRange" style="display: none;">
+                        <input type="date" id="startDate" class="date-input">
+                        <span>to</span>
+                        <input type="date" id="endDate" class="date-input">
+                    </div>
+
+                    @*<button class="btn-export" onclick="exportLogs()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <button class="btn-clear" onclick="clearLogs()">
+                        <i class="fas fa-trash"></i> Clear All
+                    </button>*@
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs Table -->
+        <div class="logs-table-container">
+            <table class="logs-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Category</th>
+                        <th>Message</th>
+                        <th>User</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    @foreach (var log in Model)
+                    {
+                        <tr class="user-row" data-log-id="@log.Id">
+                            <td class="timestamp">
+                                <div class="time-main">@log.Timestamp.ToString("yyyy-MM-dd")</div>
+                                <div class="time-relative">@log.Timestamp.ToString("HH:mm:ss")</div>
+                            </td>
+                            <td>
+                                <span class="category-tag @log.Category.ToLower()">
+                                    @System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(log.Category.Replace("-", " "))
+                                </span>
+                            </td>
+                            <td class="message">
+                                <div class="message-preview">@log.Message</div>
+                                <div class="message-full" style="display:none;">@log.Message</div>
+                            </td>
+                            <td class="user-info">
+                                @if (log.Role?.ToLower() == "admin")
+                                {
+                                    <div class="user-role">Admin</div>
+                                }
+                                else
+                                {
+                                    <div class="user-name">@log.UserName</div>
+                                    <div class="user-role">@log.Role</div>
+                                }
+                            </td>
+    
+
+                            <td class="actions">
+                                <button type="button" class="action-btn delete-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-item-id="@log.Id"
+                                        data-item-name="@log.Category"
+                                        data-target-remove=".user-row"
+                                        data-url="@Url.Action("DeleteLogs", "Admin")"
+                                        title="Delete">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    <tr id="noUsersRow" style="display:none">
+                        <td colspan="5">No users found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <style>
+            .category-tag.event {
+                background: #ede9fe;
+                color: #7c3aed;
+            }
+        </style>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <span id="paginationInfo">Showing 1-5 of 0 entries</span>
+                <span id="currentPageInfo" class="ms-3">Page 1 of 1</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" id="prevBtn">
+                    <i class="fa-solid fa-chevron-left"></i> Previous
+                </button>
+                <div class="pagination-numbers" id="paginationNumbers">
+                    <!-- Page numbers will be generated here -->
+                </div>
+                <button class="pagination-btn" id="nextBtn">
+                    Next <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    @section scripts {
+        <script src="~/Scripts/Custom/index.js"></script>
+        <script src="~/Scripts/Custom/deleteHandler.js"></script>
+    }
+

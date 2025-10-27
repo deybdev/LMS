@@ -1,4 +1,6 @@
-﻿@{
+﻿@model LMS.Models.AdminDashboardViewModel
+
+@{
     ViewBag.Title = "Admin Dashboard";
 }
 
@@ -6,25 +8,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <div class="admin-dashboard">
-
-    <!-- Header -->
-    <div class="dashboard-header d-flex justify-content-between align-items-center">
-        <div>
-            <h1>Admin Dashboard</h1>
-            <p>System Overview and Management Controls</p>
-        </div>
-        <div class="date-time">
-            <div id="currentTime" class="current-time"></div>
-            <div id="currentDate" class="current-date"></div>
-        </div>
-    </div>
-
     <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-card students">
             <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
             <div class="stat-content">
-                <p class="stat-number" data-target="1247">1,247</p>
+                <p class="stat-number" data-target="@Model.TotalStudents">@Model.TotalStudents</p>
                 <p class="stat-label">Students</p>
             </div>
         </div>
@@ -32,7 +21,7 @@
         <div class="stat-card teachers">
             <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
             <div class="stat-content">
-                <p class="stat-number" data-target="89">89</p>
+                <p class="stat-number" data-target="@Model.TotalTeachers">@Model.TotalTeachers</p>
                 <p class="stat-label">Teachers</p>
             </div>
         </div>
@@ -40,78 +29,164 @@
         <div class="stat-card courses">
             <div class="stat-icon"><i class="fas fa-book-open"></i></div>
             <div class="stat-content">
-                <p class="stat-number" data-target="156">156</p>
+                <p class="stat-number" data-target="@Model.TotalCourses">@Model.TotalCourses</p>
                 <p class="stat-label">Courses</p>
             </div>
         </div>
     </div>
 
-    <!-- Quick Actions and Upcoming Events -->
-    <div class="dashboard-grid">
-        <!-- Quick Actions -->
-        <div class="dashboard-card">
-            <div class="card-header">
-                <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+
+        <div class="dashboard-grid">
+            <!-- Recent Activities -->
+            <div class="dashboard-card">
+                <div class="card-header"><h3><i class="fas fa-clipboard-list"></i> Recent Activities</h3></div>
+                <div class="card-content">
+                    <div class="activity-list">
+                        @foreach (var log in Model.AuditLogs)
+                        {
+                            string iconClass = "";
+                            string badgeClass = "";
+
+                            switch (log.Category)
+                            {
+                                case "Authentication":
+                                    iconClass = "fas fa-user-lock";
+                                    badgeClass = "auth";
+                                    break;
+                                case "System":
+                                    iconClass = "fas fa-cogs";
+                                    badgeClass = "system";
+                                    break;
+                                case "User Actions":
+                                    iconClass = "fas fa-users";
+                                    badgeClass = "user";
+                                    break;
+                                case "Course Management":
+                                    iconClass = "fas fa-chalkboard-teacher";
+                                    badgeClass = "course";
+                                    break;
+                                case "Database":
+                                    iconClass = "fas fa-database";
+                                    badgeClass = "db";
+                                    break;
+                                default:
+                                    iconClass = "fas fa-info-circle";
+                                    badgeClass = "info";
+                                    break;
+                            }
+
+                            <div class="activity-item">
+                                <div class="activity-icon"><i class="@iconClass"></i></div>
+                                <div class="activity-details">
+                                    <p class="activity-text">@Html.Raw(log.Message)</p>
+                                    <p class="activity-time">@log.Timestamp.ToString("MMM dd, yyyy hh:mm tt")</p>
+                                </div>
+                                <div class="activity-type">
+                                    <span class="type-badge @badgeClass">@log.Category</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
-            <div class="card-content">
-                <div class="action-buttons">
-                    <a href="#" class="action-btn"><i class="fas fa-bullhorn"></i><span>Send Announcement</span></a>
-                    <a href="#" class="action-btn"><i class="fas fa-chart-line"></i><span>Generate Report</span></a>
-                    <a href="#" class="action-btn"><i class="fas fa-cog"></i><span>System Settings</span></a>
-                    <a href="#" class="action-btn"><i class="fas fa-database"></i><span>Backup Data</span></a>
+
+            <!-- Upcoming Events -->
+            <div class="dashboard-card upcoming-events">
+                <div class="card-header"><h3><i class="fas fa-calendar-alt"></i> Upcoming Events</h3></div>
+                <div class="card-content">
+                    <div class="events-container">
+                        @if (Model.UpcomingEvents.Any())
+                        {
+                            foreach (var e in Model.UpcomingEvents)
+                            {
+                                <div class="event-item">
+                                    <div class="event-date-section">
+                                        <div class="event-day">@e.StartDate.ToString("dd")</div>
+                                        <div class="event-month">@e.StartDate.ToString("MMM")</div>
+                                        <div class="event-year">@e.StartDate.ToString("yyyy")</div>
+                                    </div>
+                                    <div class="event-details">
+                                        <div class="event-title">@e.Title</div>
+                                        <div class="event-description">
+                                            @(!string.IsNullOrEmpty(e.Description) ? e.Description : "No description provided")
+                                        </div>
+                                        <div class="event-meta">
+                                            <span class="event-type @e.Type.ToLower()">
+                                                @(
+                                                    string.IsNullOrEmpty(e.Type) 
+                                                        ? "" 
+                                                        : System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(e.Type.Replace("-", " "))
+                                                )
+                                            </span>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="no-events">No upcoming events available.</p>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
-
-        <!-- Upcoming Events -->
-        <div class="dashboard-card upcoming-events">
-            <div class="card-header">
-                <h3><i class="fas fa-calendar-alt"></i> Upcoming Events</h3>
-            </div>
-            <div class="card-content">
-                <table class="events-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Event</th>
-                            <th>Type</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Oct 28, 2025</td>
-                            <td>Midterm Exams</td>
-                            <td>Academic</td>
-                        </tr>
-                        <tr>
-                            <td>Nov 15, 2025</td>
-                            <td>Faculty Meeting</td>
-                            <td>Administrative</td>
-                        </tr>
-                        <tr>
-                            <td>Dec 20, 2025</td>
-                            <td>Christmas Break Starts</td>
-                            <td>Holiday</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </div>
 
-    <!-- Recent Activities -->
-    <div class="dashboard-card full-width">
-        <div class="card-header">
-            <h3><i class="fas fa-clipboard-list"></i> Recent Activities</h3>
-        </div>
-        <div class="card-content">
-            <div class="activity-list"></div>
-        </div>
-    </div>
+    @section scripts {
+        <script>
+            // Admin Dashboard JavaScript
+            $(document).ready(function () {
+                initializeDashboard();
+            });
 
-</div>
+            function initializeDashboard() {
+                updateDateTime();
 
-@section scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="~/Scripts/Custom/adminDashboard.js"></script>
-}
+                // Delay a bit before starting counters
+                setTimeout(function () {
+                    animateCounters();
+                }, 100);
+
+                // Update time every second
+                setInterval(updateDateTime, 1000);
+            }
+
+            // Update current date and time
+            function updateDateTime() {
+                const now = new Date();
+                const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+
+                $('#currentDate').text(now.toLocaleDateString('en-US', dateOptions));
+                $('#currentTime').text(now.toLocaleTimeString('en-US', timeOptions));
+            }
+
+            // ✅ Simple counter animation
+            function animateCounters() {
+                $('.stat-number').each(function () {
+                    const $this = $(this);
+                    const target = parseInt($this.data('target')) || 0;
+                    const duration = 2000; // 2 seconds
+                    const stepTime = 20; // update every 20ms
+                    const steps = duration / stepTime;
+                    let count = 0;
+
+                    const increment = target / steps;
+
+                    const counter = setInterval(() => {
+                        count += increment;
+                        if (count >= target) {
+                            $this.text(target);
+                            clearInterval(counter);
+                        } else {
+                            $this.text(Math.floor(count));
+                        }
+                    }, stepTime);
+                });
+            }
+
+        </script>
+
+    }

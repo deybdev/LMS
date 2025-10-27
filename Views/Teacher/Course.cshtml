@@ -1,7 +1,105 @@
-﻿
-@{
-    ViewBag.Title = "Course";
+﻿@model IEnumerable<LMS.Models.Course>
+
+<link rel="stylesheet" href="~/Content/teacherCourse.css" />
+
+<div class="admin-container">
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1>My Courses</h1>
+                <p class="subtitle">View and manage your assigned courses.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-actions">
+        <button class="btn-create-class" onclick="window.location.href='@Url.Action("CreateCourse", "Teacher")'">
+            <i class="fas fa-plus"></i> Create Class
+        </button>
+    </div>
+
+    <div class="courses-container">
+        <div class="courses-grid" id="coursesGrid">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var course in Model)
+                {
+                    <div class="course-card ongoing">
+                        <div class="course-header">
+                            <span class="course-code">@course.CourseCode</span>
+                        </div>
+
+                        <div class="teacher-section">
+                            <div class="teacher-avatar">
+                                <span>@course.Section</span>
+                            </div>
+                            <div class="course-info">
+                                <h4>@course.CourseTitle</h4>
+                                <p>
+                                    <i class="fa-regular fa-calendar"></i>
+                                    @{
+                                        string dayAbbr = course.Day != null
+                                            ? course.Day.Substring(0, 3).ToUpper()
+                                            : "N/A";
+                                        TimeSpan start, end;
+                                        bool startParsed = TimeSpan.TryParse(course.StartTime, out start);
+                                        bool endParsed = TimeSpan.TryParse(course.EndTime, out end);
+
+                                        string formattedTime = "N/A";
+                                        if (startParsed && endParsed)
+                                        {
+                                            DateTime startDT = DateTime.Today.Add(start);
+                                            DateTime endDT = DateTime.Today.Add(end);
+                                            formattedTime = $"{startDT: h:mm tt} - {endDT: h:mm tt}";
+                                        }
+                                    }
+                                    @dayAbbr - @formattedTime
+
+
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="course-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-users"></i>
+                                <span>
+                                    @{
+                                        var studentCounts = ViewBag.StudentCounts as Dictionary<int, int>;
+                                        var count = studentCounts != null && studentCounts.ContainsKey(course.Id)
+                                            ? studentCounts[course.Id]
+                                            : 0;
+                                    }
+                                    @(count > 0 ? $"{count} Students" : "No students yet")
+                                </span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-clock"></i>
+                                <span>@DateTime.Now.Year - @(DateTime.Now.Year + 1)</span>
+                            </div>
+                        </div>
+
+                        <div class="course-footer">
+                            <button class="btn-view-course"
+                                    onclick="window.location.href='@Url.Action("ViewCourse", "Teacher", new { id = course.Id })'">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="no-courses">
+                    <i class="fas fa-book"></i>
+                    <p>No courses found.</p>
+                    <small>Create a class to get started.</small>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/Scripts/Custom/teacherCourse.js"></script>
 }
-
-<h2>Course</h2>
-

@@ -179,6 +179,7 @@ footer {
 .admin-container {
     background-color: var(--light-gray);
     padding: 1rem 3.5rem;
+    min-height: 100vh;
 }
 
 .admin-header {
@@ -293,15 +294,19 @@ footer {
 }
 
 .modal-footer .btn{
-    padding: 8px 20px;
+    padding: 7px 13px;
     background: var(--primary-color);
     color: white;
     border: none;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     transition: all .3s;
     min-width: 100px;
+}
+
+.modal-footer .btn i{
+    margin-right: 6px;
 }
 
 .modal-footer .btn:hover {
@@ -378,3 +383,29 @@ footer {
 }
 
 /* MODAL GLOBAL END*/
+
+.dashboard-header {
+    margin-bottom: 2rem;
+    margin-top: 1rem;
+    padding: 2rem 2.5rem;
+    background: #ffffff;
+    border-radius: 12px;
+    color: var(--dark-primary-color);
+    box-shadow: 0 4px 15px rgba(24, 82, 172, 0.1);
+    border: 1px solid var(--border-color);
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    font-size: 2.2rem;
+    font-weight: 600;
+    font-family: var(--archivo-black-font);
+    line-height: 1.2;
+}
+
+.dashboard-header p {
+    margin: 0.5rem 0 0 0;
+    opacity: 0.8;
+    font-family: var(--archivo-plain-font);
+    font-size: 1rem;
+}

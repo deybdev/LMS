@@ -1,15 +1,13 @@
 ﻿@{
     ViewBag.Title = "Course Management";
+    var studentCounts = ViewBag.StudentCounts as Dictionary<int, int>;
 }
+
+@model IEnumerable<LMS.Models.Course>
 
 <link rel="stylesheet" href="~/Content/adminCourse.css" />
 
 <div class="admin-container">
-    <!-- Header with Back button and Logout -->
-    <div class="admin-header">
-        <button class="back-btn" onclick="history.back()"><i class="fa-solid fa-arrow-left"></i> Back</button>
-        <button class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log out</button>
-    </div>
 
     <div class="page-header">
         <h1>Course Management</h1>
@@ -19,7 +17,7 @@
     <div class="admin-content">
         <!-- Filter and Search Section -->
         <div class="course-filter-section">
-            
+
 
             <div class="filter-controls">
                 <input type="text" id="courseSearchInput" class="search-input" placeholder="Search courses by title, teacher, or department..." />
@@ -53,256 +51,106 @@
 
         <!-- Courses Grid - 2 Cards Per Row -->
         <div class="courses-grid-container">
-            <div class="courses-row">
-                <!-- Course Card 1 -->
-                <div class="course-card" data-course-id="1" onclick="openCourseModal(1)">
-                    <div class="course-header">
-                        <div class="course-main-info">
-                            <h3 class="course-title">Advanced Web Development</h3>
-                            <div class="course-meta-row">
-                                <span class="course-code">CS401</span>
-                                <span class="department-tag">Computer Studies</span>
-                                <span class="status-badge status-active">
-                                    <i class="fas fa-circle"></i> Active
-                                </span>
-                            </div>
-                            <p class="course-description">Learn modern web technologies including React, Node.js, and database integration</p>
+            @{
+                var courseList = Model.ToList();
+                for (int i = 0; i < courseList.Count; i += 2)
+                {
+                    <div class="courses-row">
+                        @foreach (var course in courseList.Skip(i).Take(2))
+                        {
+                            
+                            <div class="course-card" data-course-id="@course.Id" onclick="loadCourseDetails(@course.Id)">
+                                <div class="course-header">
+                                    <div class="course-main-info">
+                                        <h3 class="course-title">@course.CourseTitle - @course.Section</h3>
+                                        <div class="course-meta-row">
+                                            <span class="course-code">@course.CourseCode</span>
+                                            <span class="department-tag">@course.Teacher.Department</span>
+                                            <span class="status-badge status-active">
+                                                <i class="fas fa-circle"></i> Active
+                                            </span>
+                                        </div>
+                                        <p class="course-description">
+                                            @(string.IsNullOrWhiteSpace(course.Description) ? "No description provided" : course.Description)
+                                        </p>
+                                    </div>
 
+                                    <div class="course-actions">
+                                        <button class="action-btn more-btn" title="More Options" onclick="event.stopPropagation(); showMoreOptions(@course.Id)">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                    </div>
+                                </div>
 
+                                <div class="course-stats-row">
+                                    <div class="stat-item">
+                                        <div class="teacher-info">
+                                            <i class="fas fa-user-tie"></i>
+                                            <div class="teacher-details">
+                                                <div class="teacher-name">
+                                                    @if (course.Teacher != null)
+                                                    {
+                                                        @($"{course.Teacher.FirstName} {course.Teacher.LastName}")
+                                                    }
+                                                    else
+                                                    {
+                                                        @("Unknown Teacher")
+                                                    }
+                                                </div>
+                                                <div class="teacher-email">@course.Teacher.Email</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="enrollment-info">
+                                            <i class="fas fa-users"></i>
+                                            <div class="enrollment-details">
+                                                <div class="enrollment-count">
+                                                    @course.CourseUsers.Count
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
-                        </div>
-
-                        <div class="course-actions">
-                            <button class="action-btn status-btn" title="Change Status" onclick="event.stopPropagation(); toggleStatus(1)">
-                                <i class="fas fa-toggle-on"></i>
-                            </button>
-                            <button class="action-btn more-btn" title="More Options" onclick="event.stopPropagation(); showMoreOptions(1)">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="course-stats-row">
-                        <div class="stat-item">
-                            <div class="teacher-info">
-                                <i class="fas fa-user-tie"></i>
-                                <div class="teacher-details">
-                                    <div class="teacher-name">Dr. Sarah Johnson</div>
-                                    <div class="teacher-email">sarah.johnson@g2academy.edu</div>
+                                <div class="course-footer">
+                                    <div class="material-info">
+                                        <i class="fas fa-file-alt"></i>
+                                        <span class="material-count">
+                                            @(course.Materials != null && course.Materials.Any()
+                                            ? $"{course.Materials.Count()} materials"
+                                            : "No materials")
+                                        </span>
+                                    </div>
+                                    <div class="created-date">
+                                        <i class="fas fa-calendar"></i>
+                                        <span>Created @course.DateCreated.ToString("MMM dd, yyyy")</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="enrollment-info">
-                                <i class="fas fa-users"></i>
-                                <div class="enrollment-details">
-                                    <div class="enrollment-count">45 students</div>
-                                </div>
-                            </div>
-                        </div>
+                        }
                     </div>
-
-                    <div class="course-footer">
-                        <div class="material-info">
-                            <i class="fas fa-file-alt"></i>
-                            <span class="material-count">24 materials</span>
-                        </div>
-                        <div class="created-date">
-                            <i class="fas fa-calendar"></i>
-                            <span>Created Sep 15, 2024</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Course Card 2 -->
-                <div class="course-card" data-course-id="2" onclick="openCourseModal(2)">
-                    <div class="course-header">
-                        <div class="course-main-info">
-                            <h3 class="course-title">Database Management Systems</h3>
-                            <div class="course-meta-row">
-                                <span class="course-code">CS302</span>
-                                <span class="department-tag">Information Technology</span>
-                                
-                            </div>
-                            <p class="course-description">Comprehensive course on SQL, NoSQL databases, and data modeling principles</p>
-                        </div>
-                        <div class="course-actions">
-                           
-                            <button class="action-btn status-btn" title="Change Status" onclick="event.stopPropagation(); toggleStatus(2)">
-                                <i class="fas fa-toggle-on"></i>
-                            </button>
-                            <button class="action-btn more-btn" title="More Options" onclick="event.stopPropagation(); showMoreOptions(2)">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="course-stats-row">
-                        <div class="stat-item">
-                            <div class="teacher-info">
-                                <i class="fas fa-user-tie"></i>
-                                <div class="teacher-details">
-                                    <div class="teacher-name">Prof. Michael Chen</div>
-                                    <div class="teacher-email">michael.chen@g2academy.edu</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="enrollment-info">
-                                <i class="fas fa-users"></i>
-                                <div class="enrollment-details">
-                                    <div class="enrollment-count">38 students</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="course-footer">
-                        <div class="material-info">
-                            <i class="fas fa-file-alt"></i>
-                            <span class="material-count">18 materials</span>
-                        </div>
-                        <div class="created-date">
-                            <i class="fas fa-calendar"></i>
-                            <span>Created Aug 28, 2024</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="courses-row">
-                <!-- Course Card 3 -->
-                <div class="course-card" data-course-id="3" onclick="openCourseModal(3)">
-                    <div class="course-header">
-                        <div class="course-main-info">
-                            <h3 class="course-title">Mobile App Development</h3>
-                            <div class="course-meta-row">
-                                <span class="course-code">CS450</span>
-                                <span class="department-tag">Computer Studies</span>
-                                <span class="status-badge status-active">
-                                    <i class="fas fa-circle"></i> Active
-                                </span>
-                            </div>
-                            <p class="course-description">Build native and cross-platform mobile applications using React Native and Flutter</p>
-                        </div>
-                        <div class="course-actions">
-                            <button class="action-btn status-btn" title="Change Status" onclick="event.stopPropagation(); toggleStatus(3)">
-                                <i class="fas fa-toggle-on"></i>
-                            </button>
-                            <button class="action-btn more-btn" title="More Options" onclick="event.stopPropagation(); showMoreOptions(3)">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="course-stats-row">
-                        <div class="stat-item">
-                            <div class="teacher-info">
-                                <i class="fas fa-user-tie"></i>
-                                <div class="teacher-details">
-                                    <div class="teacher-name">Dr. Emily Rodriguez</div>
-                                    <div class="teacher-email">emily.rodriguez@g2academy.edu</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="enrollment-info">
-                                <i class="fas fa-users"></i>
-                                <div class="enrollment-details">
-                                    <div class="enrollment-count">52 students</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="course-footer">
-                        <div class="material-info">
-                            <i class="fas fa-file-alt"></i>
-                            <span class="material-count">31 materials</span>
-                        </div>
-                        <div class="created-date">
-                            <i class="fas fa-calendar"></i>
-                            <span>Created Sep 22, 2024</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Course Card 4 -->
-                <div class="course-card" data-course-id="4" onclick="openCourseModal(4)">
-                    <div class="course-header">
-                        <div class="course-main-info">
-                            <h3 class="course-title">Artificial Intelligence</h3>
-                            <div class="course-meta-row">
-                                <span class="course-code">CS501</span>
-                                <span class="department-tag">Computer Studies</span>
-                                <span class="status-badge status-active">
-                                    <i class="fas fa-circle"></i> Active
-                                </span>
-                            </div>
-                            <p class="course-description">Introduction to AI concepts, machine learning algorithms, and neural networks</p>
-                        </div>
-                        <div class="course-actions">
-                            <button class="action-btn status-btn" title="Change Status" onclick="event.stopPropagation(); toggleStatus(4)">
-                                <i class="fas fa-toggle-on"></i>
-                            </button>
-                            <button class="action-btn more-btn" title="More Options" onclick="event.stopPropagation(); showMoreOptions(4)">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="course-stats-row">
-                        <div class="stat-item">
-                            <div class="teacher-info">
-                                <i class="fas fa-user-tie"></i>
-                                <div class="teacher-details">
-                                    <div class="teacher-name">Dr. Robert Kim</div>
-                                    <div class="teacher-email">robert.kim@g2academy.edu</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="enrollment-info">
-                                <i class="fas fa-users"></i>
-                                <div class="enrollment-details">
-                                    <div class="enrollment-count">29 students</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="course-footer">
-                        <div class="material-info">
-                            <i class="fas fa-file-alt"></i>
-                            <span class="material-count">15 materials</span>
-                        </div>
-                        <div class="created-date">
-                            <i class="fas fa-calendar"></i>
-                            <span>Created Oct 1, 2024</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                }
+            }
         </div>
 
-        <!-- Pagination -->
+
+
+        <!-- Pagination Controls -->
         <div class="pagination-container">
             <div class="pagination-info">
-                <span>Showing 1-4 of 156 courses</span>
+                <span id="paginationInfo">Showing 1-5 of 0 entries</span>
+                <span id="currentPageInfo" class="ms-3">Page 1 of 1</span>
             </div>
             <div class="pagination-controls">
-                <button class="pagination-btn" disabled>
-                    <i class="fas fa-chevron-left"></i> Previous
+                <button class="pagination-btn" id="prevBtn">
+                    <i class="fa-solid fa-chevron-left"></i> Previous
                 </button>
-                <div class="pagination-numbers">
-                    <button class="pagination-number active">1</button>
-                    <button class="pagination-number">2</button>
-                    <button class="pagination-number">3</button>
-                    <span class="pagination-ellipsis">...</span>
-                    <button class="pagination-number">39</button>
+                <div class="pagination-numbers" id="paginationNumbers">
+                    <!-- Page numbers will be generated here -->
                 </div>
-                <button class="pagination-btn">
-                    Next <i class="fas fa-chevron-right"></i>
+                <button class="pagination-btn" id="nextBtn">
+                    Next <i class="fa-solid fa-chevron-right"></i>
                 </button>
             </div>
         </div>
@@ -402,15 +250,91 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="generateCourseReport()">
-                    <i class="fas fa-download"></i> Generate Report
-                </button>
             </div>
         </div>
     </div>
 </div>
 
 @section scripts {
-    <script src="~/Scripts/Custom/adminCourse.js"></script>
+    <!-- Add jQuery before other scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+function loadCourseDetails(courseId) {
+    // Clear previous modal content
+    $('#modalCourseTitle').text('Loading...');
+    $('#modalCourseCode').text('-');
+    $('#modalDepartment').text('Unknown');
+    $('#modalCourseDescription').text('Loading...');
+    $('#modalTeacherName').text('Unknown Teacher');
+    $('#modalTeacherEmail').text('N/A');
+    $('#modalStudentCount').text('0');
+    $('#modalMaterialCount').text('0');
+    $('#modalEngagementRate').text('-');
+
+    // Show the modal
+    var modalEl = document.getElementById('courseDetailsModal');
+    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+
+    $.ajax({
+        url: '@Url.Action("GetCourseDetails", "Admin")',
+        type: 'GET',
+        data: { id: courseId },
+        dataType: 'json',
+        success: function(response) {
+            if (!response || !response.success) return;
+
+            // Populate modal
+            $('#modalCourseTitle').text(response.title || 'No title');
+            $('#modalCourseCode').text(response.code || '-');
+            $('#modalDepartment').text(response.department || 'Unknown');
+            $('#modalCourseDescription').text(response.description || 'No description provided');
+            $('#modalTeacherName').text(response.teacherName || 'Unknown Teacher');
+            $('#modalTeacherEmail').text(response.teacherEmail || 'N/A');
+            $('#modalStudentCount').text(response.studentCount ?? 0);
+            $('#modalMaterialCount').text(response.materialCount ?? 0);
+
+            // Render students
+            var studentsHtml = '<p class="text-muted">No students enrolled in this course.</p>';
+            if (response.students?.length > 0) {
+                studentsHtml = response.students.map(student => `
+                    <div class="student-item">
+                        <div class="student-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="student-info">
+                            <div class="student-name">${student.firstName} ${student.lastName}</div>
+                            <div class="student-id"> ${student.userId} - ${student.email}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            $('#modalStudentsList').html(studentsHtml);
+        },
+        error: function(xhr) {
+            $('#modalCourseTitle').text('Error loading course');
+            $('#modalCourseDescription').text('Please try again later.');
+            alert('An error occurred while fetching course details.');
+        }
+    });
 }
 
+function showModalTab(tabName) {
+    $('.tab-btn').removeClass('active');
+    $('.tab-pane').removeClass('active');
+
+    $(`button[onclick="showModalTab('${tabName}')"]`).addClass('active');
+    $(`#modal-${tabName}-tab`).addClass('active');
+}
+
+$(document).ready(function() {
+    if (typeof bootstrap === 'undefined') {
+        console.warn('Bootstrap is NOT loaded');
+    }
+});
+
+    </script>
+}

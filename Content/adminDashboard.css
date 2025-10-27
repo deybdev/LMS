@@ -166,91 +166,156 @@
     justify-content: center;
 }
 
-/* ========== Upcoming Events ========== */
-.events-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
-    font-family: var(--archivo-plain-font);
+.btn-refresh:hover {
+    background: var(--light-blue);
+    color: var(--primary-color);
 }
 
-.events-table th, .events-table td {
-    padding: 0.875rem 1rem;
-    text-align: left;
-    border-bottom: 1px solid var(--border-color);
+/* ========== Upcoming Events - New Design ========== */
+.events-container {
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
 }
 
-.events-table th {
-    background-color: #f8f9fa;
-    color: var(--dark-primary-color);
-    font-weight: 600;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.events-container::-webkit-scrollbar {
+    width: 6px;
 }
 
-.events-table td {
-    color: var(--dark-primary-color);
-    font-weight: 500;
+.events-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
 }
 
-.events-table tr:hover {
-    background-color: rgba(24, 82, 172, 0.05);
+.events-container::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
 }
 
-.events-table tr:last-child td {
+.events-container::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-text);
+}
+
+.event-item {
+    display: flex;
+    align-items: center;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid #f1f3f4;
+    transition: background-color 0.2s ease;
+}
+
+.event-item:last-child {
     border-bottom: none;
 }
 
-/* ========== Quick Actions ========== */
-.action-buttons {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+.event-item:hover {
+    background-color: rgba(24, 82, 172, 0.02);
+    border-radius: 8px;
+    margin: 0 -0.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
 }
 
-.action-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1.25rem 1rem;
-    background: #f8f9fa;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    text-decoration: none;
-    color: var(--dark-primary-color);
-    transition: all 0.2s ease;
+.event-date-section {
+    background: var(--primary-color);
+    color: white;
+    padding: 1rem;
+    border-radius: 12px;
     text-align: center;
+    margin-right: 1.5rem;
+    min-width: 70px;
+    flex-shrink: 0;
+}
+
+.event-day {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    font-family: var(--archivo-black-font);
+}
+
+.event-month {
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-top: 0.25rem;
     font-family: var(--archivo-plain-font);
 }
 
-.action-btn:hover {
-    background: var(--primary-color);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(24, 82, 172, 0.2);
-    text-decoration: none;
+.event-year {
+    font-size: 0.7rem;
+    opacity: 0.8;
+    font-family: var(--archivo-plain-font);
 }
 
-.action-btn i { 
-    font-size: 1.5rem; 
-    margin-bottom: 0.5rem;
+.event-details {
+    flex: 1;
+    min-width: 0;
 }
 
-.action-btn span {
+.event-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--dark-primary-color);
+    margin: 0 0 0.3rem 0;
+    font-family: var(--archivo-black-font);
+}
+
+.event-description {
     font-size: 0.85rem;
-    font-weight: 500;
-    line-height: 1.2;
+    color: var(--gray-text);
+    margin: 0 0 0.5rem 0;
+    line-height: 1.4;
+    font-family: var(--archivo-plain-font);
 }
 
-/* ========== Recent Activities ========== */
+.event-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.event-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-family: var(--archivo-plain-font);
+}
+
+.event-type.school-events {
+    background: #ede7f6;
+    color: #6a1b9a; 
+}
+
+.event-type.academic { 
+    background: #e3f2fd; 
+    color: #1565c0; 
+}
+
+
+.event-type.holidays {
+    background: #ffebee;
+    color: #c62828;
+}
+
+
+.event-type.examinations {
+    background: #fff8e1;
+    color: #ef6c00;
+}
+
+/* ========== Recent Activities - Enhanced Design ========== */
 .full-width { 
     grid-column: 1 / -1; 
     margin-top: 0.5rem;
 }
 
 .activity-list {
-    max-height: 350px;
+    max-height: 400px;
     overflow-y: auto;
     padding-right: 0.5rem;
 }
@@ -276,8 +341,9 @@
 .activity-item {
     display: flex;
     align-items: center;
-    padding: 1rem 0;
+    padding: 1.25rem 0;
     border-bottom: 1px solid #f1f3f4;
+    transition: background-color 0.2s ease;
 }
 
 .activity-item:last-child { 
@@ -286,21 +352,21 @@
 
 .activity-item:hover {
     background-color: rgba(24, 82, 172, 0.02);
-    border-radius: 6px;
+    border-radius: 8px;
     margin: 0 -0.5rem;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
 }
 
 .activity-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 1rem;
-    font-size: 0.9rem;
+    margin-right: 1.25rem;
+    font-size: 1rem;
     flex-shrink: 0;
     background: rgba(24, 82, 172, 0.1);
     color: var(--primary-color);
@@ -312,11 +378,16 @@
 }
 
 .activity-text {
-    margin: 0 0 0.25rem 0;
+    margin: 0 0 0.5rem 0;
     font-size: 0.9rem;
     color: var(--dark-primary-color);
     font-family: var(--archivo-plain-font);
     line-height: 1.4;
+}
+
+.activity-text strong {
+    color: var(--primary-color);
+    font-weight: 600;
 }
 
 .activity-time {
@@ -324,6 +395,61 @@
     color: var(--gray-text);
     font-family: var(--archivo-plain-font);
     margin: 0;
+}
+
+.activity-type {
+    margin-left: 1rem;
+    flex-shrink: 0;
+}
+
+.type-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: var(--archivo-plain-font);
+}
+
+.type-badge.enrollment {
+    background: #e8f5e8;
+    color: var(--success-color);
+}
+
+.type-badge.course {
+    background: var(--light-blue);
+    color: var(--primary-color);
+}
+
+.type-badge.schedule {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.type-badge.submission {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.type-badge.material {
+    background: #e0f2f1;
+    color: #00695c;
+}
+
+.type-badge.staff {
+    background: #fff8e1;
+    color: #ef6c00;
+}
+
+.type-badge.system {
+    background: #fce4ec;
+    color: #c2185b;
+}
+
+.type-badge.certificate {
+    background: #e8eaf6;
+    color: #3f51b5;
 }
 
 /* ========== Responsive Design ========== */
@@ -385,6 +511,38 @@
     .card-header {
         padding: 1.25rem 1.5rem;
     }
+    
+    .event-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .event-date-section {
+        margin-right: 0;
+        align-self: flex-start;
+    }
+    
+    .event-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .activity-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .activity-icon {
+        margin-right: 0;
+    }
+    
+    .activity-type {
+        margin-left: 0;
+        align-self: flex-start;
+    }
 }
 
 @media (max-width: 480px) {
@@ -409,5 +567,14 @@
     
     .stat-number {
         font-size: 1.6rem;
+    }
+    
+    .event-date-section {
+        padding: 0.75rem;
+        min-width: 60px;
+    }
+    
+    .event-day {
+        font-size: 1.2rem;
     }
 }

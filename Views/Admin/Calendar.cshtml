@@ -1,18 +1,10 @@
 ﻿@{
     ViewBag.Title = "Academic Calendar";
-    @Styles.Render("~/Content/calendar.css")
 }
 
-<link rel="stylesheet" href="~/Content/Site.css" />
-
-
+<link rel="stylesheet" href="~/Content/calendar.css" />
 
 <div class="admin-container">
-    <!-- Header with Back button and Logout -->
-    <div class="admin-header">
-        <button class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
-        <button class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log out</button>
-    </div>
 
     <div class="page-header">
         <h1>Academic Calendar</h1>
@@ -25,7 +17,7 @@
             <div class="legend-items">
                 <div class="legend-item">
                     <span class="legend-color academic"></span>
-                    <span>Academic</span>
+                    <span>Academic Events</span>
                 </div>
                 <div class="legend-item">
                     <span class="legend-color holidays"></span>
@@ -45,7 +37,7 @@
                 <button class="nav-btn" id="prevMonth">
                     <i class="fa-solid fa-caret-left"></i>
                 </button>
-                <span id="currentMonth">October 2025</span>
+                <span id="currentMonth">October 2024</span>
                 <button class="nav-btn" id="nextMonth">
                     <i class="fa-solid fa-caret-right"></i>
                 </button>
@@ -88,17 +80,20 @@
 
             <div class="modal-body">
                 <form id="eventForm">
+                    @Html.AntiForgeryToken()
                     <!-- Hidden field for event ID when editing -->
                     <input type="hidden" id="eventId" name="eventId" />
 
                     <div class="row">
                         <div class="col-md-8 mb-3">
-                            <label for="eventTitle" class="form-label">Event Title</label>
-                            <input type="text" id="eventTitle" name="eventTitle" class="form-control" required>
+                            <label for="eventTitle" class="form-label">Event Title *</label>
+                            <input type="text" id="eventTitle" name="eventTitle" class="form-control"
+                                   aria-describedby="eventTitleHelp" required>
+                            <div id="eventTitleHelp" class="form-text">Enter a unique title for the event.</div>
                         </div>
 
                         <div class="col-md-4 mb-3">
-                            <label for="eventType" class="form-label">Event Type</label>
+                            <label for="eventType" class="form-label">Event Type *</label>
                             <select id="eventType" name="eventType" class="form-select" required>
                                 <option value="">Choose Type</option>
                                 <option value="academic">Academic Events</option>
@@ -111,18 +106,24 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="startDate" class="form-label">From Date</label>
-                            <input type="date" id="startDate" name="startDate" class="form-control" required>
+                            <label for="startDate" class="form-label">From Date *</label>
+                            <input type="date" id="startDate" name="startDate" class="form-control"
+                                   aria-describedby="startDateHelp" required>
+                            <div id="startDateHelp" class="form-text">Select the start date of the event.</div>
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label for="endDate" class="form-label">To Date</label>
-                            <input type="date" id="endDate" name="endDate" class="form-control" required>
+                            <label for="endDate" class="form-label">To Date *</label>
+                            <input type="date" id="endDate" name="endDate" class="form-control"
+                                   aria-describedby="endDateHelp" required>
+                            <div id="endDateHelp" class="form-text">Select the end date of the event.</div>
                         </div>
                     </div>
+
                     <div class="mb-3">
                         <label for="eventDescription" class="form-label">Description</label>
-                        <textarea id="eventDescription" name="eventDescription" class="form-control" rows="3" placeholder="Enter event description..."></textarea>
+                        <textarea id="eventDescription" name="eventDescription" class="form-control" rows="3"
+                                  placeholder="Enter event description..."></textarea>
                     </div>
                 </form>
             </div>
@@ -140,43 +141,43 @@
     </div>
 </div>
 
-<!-- Event Details Modal -->
+<!-- View Event Details Modal -->
 <div class="modal fade" id="eventDetailsModal" tabindex="-1" aria-labelledby="eventDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="eventDetailsModalLabel">
-                    <i class="fa-solid fa-calendar-check"></i> Event Details
+                    <i class="fa-solid fa-circle-info"></i> Event Details
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
-                <div class="event-detail-content">
-                    <h6 id="detailTitle"></h6>
-                    <div class="detail-row">
-                        <strong>Type:</strong> <span id="detailType" class="event-badge"></span>
-                    </div>
-                    <div class="detail-row">
-                        <strong>Date:</strong> <span id="detailDate"></span>
-                    </div>
-                    <div class="detail-row">
-                        <strong>Description:</strong> <p id="detailDescription"></p>
-                    </div>
-                </div>
+                <h4 id="detailTitle"></h4>
+                <span id="detailType" class="event-badge mb-3 d-inline-block"></span>
+                <p><strong>Date:</strong> <span id="detailDate"></span></p>
+                <p><strong>Description:</strong></p>
+                <p id="detailDescription" class="mb-0"></p>
             </div>
 
             <div class="modal-footer">
                 <button type="button" class="btn cancel-btn" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn" id="editEventBtn">
-                    <i class="fa-solid fa-edit"></i> Edit Event
+                <button type="button" id="editEventBtn" class="btn">
+                    <i class="fa-solid fa-pen"></i> Edit
                 </button>
             </div>
         </div>
     </div>
 </div>
 
+
+
 @section scripts {
-    <script src="~/Scripts/Custom/calendar.js"></script>
+    <script src="~/Scripts/Custom/schoolCalendar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            calendar = new SchoolCalendar('admin');
+        });
+    </script>
 }
 

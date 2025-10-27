@@ -36,9 +36,11 @@
                                 var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
                                 var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
 
-                                Func<string, string, string> isActive = (controller, action) =>
+                                Func<string, string[], string> isActive = (controller, actions) =>
                                 {
-                                    return (currentController == controller && currentAction == action) ? "active" : "";
+                                    if (currentController != controller) return "";
+                                    if (actions == null || actions.Length == 0) return "active";
+                                    return actions.Contains(currentAction) ? "active" : "";
                                 };
                             }
 
@@ -50,31 +52,64 @@
                             }
                             else if (Session["Role"].ToString() == "Admin")
                             {
-                                <a href="@Url.Action("Index", "Admin")" class="nav-link @(isActive("Admin", "Index"))">Home</a>
-                                <a href="@Url.Action("ManageUsers", "Admin")" class="nav-link @(isActive("Admin", "ManageUsers"))">User's Account</a>
-                                <a href="@Url.Action("Calendar", "Admin")" class="nav-link @(isActive("Admin", "Calendar"))">Calendar</a>
-                                <a href="@Url.Action("Course", "Admin")" class="nav-link @(isActive("Admin", "Course"))">Courses</a>
+                                {
+                                    <a href="@Url.Action("Index", "Admin")" class="nav-link @(isActive("Admin", new string[] { "Index" }))">Home</a>
+                                    <a href="@Url.Action("ManageUsers", "Admin")" class="nav-link @(isActive("Admin", new string[] { "ManageUsers"}))">User's Account</a>
+                                    <a href="@Url.Action("Calendar", "Admin")" class="nav-link @(isActive("Admin", new string[] { "Calendar" }))">Calendar</a>
+                                    <a href="@Url.Action("Course", "Admin")" class="nav-link @(isActive("Admin", new string[] { "Course"}))">Courses</a>
+                                    <a href="@Url.Action("Logs", "Admin")" class="nav-link @(isActive("Admin", new string[] { "Logs" }))">Logs</a>
+                                }
+
                             }
                             else if (Session["Role"].ToString() == "Teacher")
                             {
-                                <a href="@Url.Action("Index", "Teacher")" class="nav-link @(isActive("Teacher", "Index"))">Home</a>
-                                <a href="@Url.Action("Course", "Teacher")" class="nav-link @(isActive("Teacher", "Course"))">Course</a>
-                                <a href="@Url.Action("Notification", "Teacher")" class="nav-link  @(isActive("Teacher", "Notification"))">Notification</a>
-                                <a href="@Url.Action("Profile", "Teacher")" class="nav-link @(isActive("Teacher", "Profile"))">Profile</a>
+                                <a href="@Url.Action("Index", "Teacher")" class="nav-link @(isActive("Teacher", new string[] { "Index" }))">Home</a>
+                                <a href="@Url.Action("Course", "Teacher")" class="nav-link @(isActive("Teacher", new string[] { "Course", "CreateCourse", "ViewCourse" }))">Course</a>
+                                <a href="@Url.Action("Notification", "Teacher")" class="nav-link @(isActive("Teacher", new string[] { "Notification" }))">Notification</a>
+                                <a href="@Url.Action("Profile", "Teacher")" class="nav-link @(isActive("Teacher", new string[] { "Profile" }))">Profile</a>
+
                             }
                             else if (Session["Role"].ToString() == "Student")
                             {
-                                <a href="@Url.Action("Index", "Student")" class="nav-link @(isActive("Student", "Index"))">Home</a>
-                                <a href="@Url.Action("Course", "Student")" class="nav-link @(isActive("Student", "Course"))">Course</a>
-                                <a href="@Url.Action("TodoList", "Student")" class="nav-link @(isActive("Student", "TodoList"))">To-Do List</a>
-                                <a href="@Url.Action("Notification", "Student")" class="nav-link @(isActive("Student", "Notification"))">Notification</a>
-                                <a href="@Url.Action("Profile", "Student")" class="nav-link @(isActive("Student", "Profile"))">Profile</a>
+                                <a href="@Url.Action("Index", "Student")" class="nav-link @(isActive("Student", new string[] { "Index" }))">Home</a>
+                                <a href="@Url.Action("Course", "Student")" class="nav-link @(isActive("Student", new string[] { "Course"}))">Course</a>
+                                <a href="@Url.Action("TodoList", "Student")" class="nav-link @(isActive("Student", new string[] { "TodoList" }))">To-Do List</a>
+                                <a href="@Url.Action("Notification", "Student")" class="nav-link @(isActive("Student", new string[] { "Notification" }))">Notification</a>
+                                <a href="@Url.Action("Profile", "Student")" class="nav-link @(isActive("Student", new string[] { "Profile" }))">Profile</a>
                             }
                         </div>
                     </div>
                 </div>
             </div>
         </nav>
+
+        <!-- Delete Confirmation Modal -->
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 rounded-3 shadow-sm">
+                    <div class="modal-header p-3">
+                        <h6 class="modal-title" id="deleteModalLabel">
+                            <i class="fa-solid fa-triangle-exclamation me-2"></i> Confirm Deletion
+                        </h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body text-center p-4">
+                        <p class="mb-1">Are you sure you want to delete</p>
+                        <strong id="deleteItemName" class="text-danger"></strong>?
+                    </div>
+
+                    <div class="modal-footer d-flex justify-content-end">
+                        <form id="deleteForm" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" id="deleteItemId" />
+                            <button type="button" class="btn cancel-btn" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn delete-btn">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </header>
 
     <!--

@@ -215,10 +215,43 @@
     <Compile Include="Migrations\202510231406342_InitialCreate.Designer.cs">
       <DependentUpon>202510231406342_InitialCreate.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202510260243269_InitialCreate1.cs" />
+    <Compile Include="Migrations\202510260243269_InitialCreate1.Designer.cs">
+      <DependentUpon>202510260243269_InitialCreate1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202510260451431_AddCourseUserTable.cs" />
+    <Compile Include="Migrations\202510260451431_AddCourseUserTable.Designer.cs">
+      <DependentUpon>202510260451431_AddCourseUserTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202510261328195_AddMaterialDB.cs" />
+    <Compile Include="Migrations\202510261328195_AddMaterialDB.Designer.cs">
+      <DependentUpon>202510261328195_AddMaterialDB.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202510261619380_FixRelationships.cs" />
+    <Compile Include="Migrations\202510261619380_FixRelationships.Designer.cs">
+      <DependentUpon>202510261619380_FixRelationships.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202510261635430_UpdateDecimalInMaterialFIle.cs" />
+    <Compile Include="Migrations\202510261635430_UpdateDecimalInMaterialFIle.Designer.cs">
+      <DependentUpon>202510261635430_UpdateDecimalInMaterialFIle.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202510270533028_NavigateTeacherToCourse.cs" />
+    <Compile Include="Migrations\202510270533028_NavigateTeacherToCourse.Designer.cs">
+      <DependentUpon>202510270533028_NavigateTeacherToCourse.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202510271516532_IAddAuditTable.cs" />
+    <Compile Include="Migrations\202510271516532_IAddAuditTable.Designer.cs">
+      <DependentUpon>202510271516532_IAddAuditTable.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Models\AuditLog.cs" />
+    <Compile Include="Models\Course.cs" />
+    <Compile Include="Models\CourseUser.cs" />
     <Compile Include="Models\Event.cs" />
     <Compile Include="Models\LMSContext.cs" />
+    <Compile Include="Models\Material.cs" />
     <Compile Include="Models\User.cs" />
+    <Compile Include="Models\AdminDashboardViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -228,6 +261,7 @@
     </Content>
     <Content Include="Content\adminCourse.css" />
     <Content Include="Content\adminDashboard.css" />
+    <Content Include="Content\adminLogs.css" />
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
     <Content Include="Content\bootstrap-grid.rtl.css" />
@@ -248,6 +282,9 @@
     <Content Include="Content\index.css" />
     <Content Include="Content\manageUser.css" />
     <Content Include="Content\Site.css" />
+    <Content Include="Content\teacherCourse.css" />
+    <Content Include="Content\teacherCreateCourse.css" />
+    <Content Include="Content\teacherViewCourse.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Images\logo-no-text.png" />
@@ -266,12 +303,13 @@
     <Content Include=".env" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\Custom\adminCourse.js" />
-    <Content Include="Scripts\Custom\adminDashboard.js" />
-    <Content Include="Scripts\Custom\calendar.js" />
-    <Content Include="Scripts\Custom\deleteModalHandler.js" />
+    <Content Include="Scripts\Custom\adminLogs.js" />
+    <Content Include="Scripts\Custom\deleteHandler.js" />
     <Content Include="Scripts\Custom\improvedExcelProgress.js" />
     <Content Include="Scripts\Custom\index.js" />
     <Content Include="Scripts\Custom\manageUser.js" />
+    <Content Include="Scripts\Custom\schoolCalendar.js" />
+    <Content Include="Scripts\Custom\teacherCourse.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
     <Content Include="Scripts\jquery-3.7.0.slim.js" />
@@ -282,6 +320,8 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\Teacher\teacherViewCourse.js" />
+    <Content Include="Scripts\Teacher\teacherCreateCourse.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -308,10 +348,34 @@
     <Content Include="Views\Teacher\Profile.cshtml" />
     <Content Include="Views\Admin\Calendar.cshtml" />
     <Content Include="Views\Admin\Course.cshtml" />
+    <Content Include="Views\Admin\Logs.cshtml" />
+    <Content Include="Views\Teacher\CreateCourse.cshtml" />
+    <Content Include="Views\Teacher\ViewCourse.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202510231406342_InitialCreate.resx">
       <DependentUpon>202510231406342_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202510260243269_InitialCreate1.resx">
+      <DependentUpon>202510260243269_InitialCreate1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202510260451431_AddCourseUserTable.resx">
+      <DependentUpon>202510260451431_AddCourseUserTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202510261328195_AddMaterialDB.resx">
+      <DependentUpon>202510261328195_AddMaterialDB.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202510261619380_FixRelationships.resx">
+      <DependentUpon>202510261619380_FixRelationships.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202510261635430_UpdateDecimalInMaterialFIle.resx">
+      <DependentUpon>202510261635430_UpdateDecimalInMaterialFIle.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202510270533028_NavigateTeacherToCourse.resx">
+      <DependentUpon>202510270533028_NavigateTeacherToCourse.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202510271516532_IAddAuditTable.resx">
+      <DependentUpon>202510271516532_IAddAuditTable.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -340,6 +404,9 @@
     <Content Include="Scripts\bootstrap.bundle.js.map" />
     <Content Include="Scripts\jquery-3.7.0.slim.min.map" />
     <Content Include="Scripts\jquery-3.7.0.min.map" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Uploads\Materials\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

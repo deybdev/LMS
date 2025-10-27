@@ -1,0 +1,485 @@
+/* Admin Logs Management Styles - Consistent with Other Admin Pages */
+
+/* ========== Admin Content ========== */
+.admin-content {
+    padding: 20px 30px;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-top: 20px;
+    min-height: 100vh;
+}
+
+/* ========== Filter Section ========== */
+.logs-filter-section {
+    margin-bottom: 2rem;
+}
+
+.filter-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 300px;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background-color: #fff;
+    font-family: var(--archivo-plain-font);
+}
+
+.search-input::placeholder {
+    color: var(--gray-text);
+}
+
+.filter-dropdowns {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.filter-select {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background-color: white;
+    cursor: pointer;
+    min-width: 140px;
+    font-family: var(--archivo-plain-font);
+}
+
+.date-range {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.date-input {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background-color: white;
+    font-family: var(--archivo-plain-font);
+}
+
+/* Action Buttons */
+.btn-export, .btn-refresh, .btn-clear {
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--archivo-plain-font);
+    font-weight: 500;
+}
+
+.btn-export {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-refresh {
+    background: var(--success-color);
+    color: white;
+}
+
+.btn-clear {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-export:hover, .btn-refresh:hover, .btn-clear:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+}
+
+/* ========== Logs Table ========== */
+.logs-table-container {
+    background: white;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.logs-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.logs-table th {
+    padding: 1rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 1.1rem;
+    font-family: var(--archivo-plain-font);
+}
+
+.logs-table td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 1rem;
+}
+
+.log-row:hover {
+    background-color: #f8f9fa;
+}
+
+
+/* ========== Category Tags ========== */
+.category-tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: capitalize;
+    font-family: var(--archivo-plain-font);
+}
+
+.category-tag.authentication {
+    background: #fef3e2;
+    color: #b45309;
+}
+
+.category-tag.system {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.category-tag.user {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.category-tag.event {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+
+.category-tag.course {
+    background: var(--light-blue);
+    color: var(--primary-color);
+}
+
+.category-tag.database {
+    background: #fce7f3;
+    color: #be185d;
+}
+
+/* ========== Timestamp Column ========== */
+.timestamp {
+    white-space: nowrap;
+}
+
+.time-main {
+    font-weight: 500;
+    font-size: 0.9rem;
+    font-family: var(--archivo-plain-font);
+}
+
+.time-relative {
+    font-size: 0.8rem;
+    color: var(--gray-text);
+    margin-top: 0.2rem;
+    font-family: var(--archivo-plain-font);
+}
+
+/* ========== Message Column ========== */
+.message {
+    max-width: 300px;
+}
+
+.message-preview {
+    font-size: .9rem;
+    line-height: 1.4;
+    font-family: var(--archivo-plain-font);
+}
+
+.message-full {
+    color: var(--gray-text);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    margin-top: 0.5rem;
+    font-family: var(--archivo-plain-font);
+}
+
+/* ========== User Info Column ========== */
+.user-info {
+    white-space: nowrap;
+}
+
+.user-name {
+    font-weight: 500;
+    font-size: 1rem;
+    font-family: var(--archivo-plain-font);
+}
+
+.user-role {
+    font-size: 0.8rem;
+    color: var(--gray-text);
+    margin-top: 0.2rem;
+    font-family: var(--archivo-plain-font);
+}
+
+/* ========== Action Buttons ========== */
+.actions {
+    white-space: nowrap;
+}
+
+.action-btn {
+    background: #f8f9fa;
+    border: 1px solid var(--border-color);
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    color: var(--gray-text);
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+}
+
+.action-btn:hover {
+    transform: translateY(-1px);
+}
+
+.view-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.delete-btn:hover {
+    background: var(--danger-color);
+    color: white;
+    border-color: var(--danger-color);
+}
+
+/* ========== Pagination ========== */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--border-color);
+    margin-top: 2rem;
+}
+
+.pagination-info {
+    color: var(--gray-text);
+    font-size: 0.9rem;
+    font-family: var(--archivo-plain-font);
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.pagination-btn {
+    background-color: white;
+    border: 1px solid var(--border-color);
+    color: var(--gray-text);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--archivo-plain-font);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.pagination-btn:disabled {
+    background-color: #f8f9fa;
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+.pagination-numbers {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.pagination-number {
+    background-color: white;
+    border: 1px solid var(--border-color);
+    color: var(--gray-text);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    min-width: 40px;
+    text-align: center;
+    transition: all 0.2s;
+    font-family: var(--archivo-plain-font);
+}
+
+.pagination-number:hover {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.pagination-number.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.pagination-ellipsis {
+    padding: 0.5rem 0.25rem;
+    color: var(--gray-text);
+    font-size: 0.9rem;
+}
+
+/* ========== Modal Styles (Using Global Styles from Site.css) ========== */
+.log-detail-content {
+    padding: 1rem 0;
+}
+
+.detail-section {
+    margin-bottom: 2rem;
+}
+
+.detail-section h6 {
+    color: var(--dark-primary-color);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    font-family: var(--archivo-black-font);
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.detail-item label {
+    font-weight: 600;
+    color: var(--gray-text);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: var(--archivo-plain-font);
+}
+
+.detail-item span {
+    color: var(--dark-primary-color);
+    font-size: 0.9rem;
+    font-family: var(--archivo-plain-font);
+}
+
+.message-content {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--dark-primary-color);
+    font-family: var(--archivo-plain-font);
+}
+
+.stack-trace {
+    background: #2d3748;
+    color: #e2e8f0;
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    overflow-x: auto;
+}
+
+/* ========== Responsive Design ========== */
+@media (max-width: 768px) {
+    .admin-content {
+        padding: 1rem;
+    }
+    
+    .filter-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .search-input {
+        min-width: auto;
+        margin-bottom: 1rem;
+    }
+    
+    .filter-dropdowns {
+        flex-wrap: wrap;
+    }
+    
+    .logs-table-container {
+        overflow-x: auto;
+    }
+    
+    .logs-table {
+        min-width: 800px;
+    }
+    
+    .pagination-container {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .filter-dropdowns {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    
+    .btn-export, .btn-refresh, .btn-clear {
+        justify-content: center;
+    }
+    
+    .logs-table th, .logs-table td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
+    }
+}
