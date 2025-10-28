@@ -675,7 +675,7 @@ namespace LMS.Controllers
                 // Get course including teacher and materials
                 var course = db.Courses
                     .Include("Teacher")
-                    .Include("Materials")
+                    .Include("Materials.MaterialFiles")
                     .FirstOrDefault(c => c.Id == id);
 
                 if (course == null)
@@ -683,7 +683,7 @@ namespace LMS.Controllers
                     return Json(new { success = false, message = "Course not found" }, JsonRequestBehavior.AllowGet);
                 }
 
-                // Directly fetch students by joining CourseUsers
+                // Get students
                 var studentsList = (from cu in db.CourseUsers
                                     join u in db.Users on cu.StudentId equals u.Id
                                     where cu.CourseId == id
@@ -697,13 +697,23 @@ namespace LMS.Controllers
                                         department = u.Department ?? "N/A"
                                     }).ToList();
 
-                System.Diagnostics.Debug.WriteLine($"Students found: {studentsList.Count}");
-                foreach (var s in studentsList)
+                // Get materials along with their files
+                var materialsList = course.Materials?.Select(m => new
                 {
-                    System.Diagnostics.Debug.WriteLine($"Student: {s.firstName} {s.lastName}");
-                }
+                    id = m.Id,
+                    title = m.Title,
+                    type = m.Type,
+                    description = m.Description,
+                    uploadedAt = m.UploadedAt.ToString("MMM dd, yyyy"),
+                    files = m.MaterialFiles.Select(f => new
+                    {
+                        id = f.Id,
+                        fileName = f.FileName,
+                        filePath = f.FilePath,
+                        sizeInMB = f.SizeInMB
+                    }).ToList()
+                }).ToList();
 
-                // Prepare response
                 var responseData = new
                 {
                     success = true,
@@ -715,7 +725,8 @@ namespace LMS.Controllers
                     teacherEmail = course.Teacher?.Email ?? "N/A",
                     studentCount = studentsList.Count,
                     materialCount = course.Materials?.Count ?? 0,
-                    students = studentsList
+                    students = studentsList,
+                    materials = materialsList
                 };
 
                 return Json(responseData, JsonRequestBehavior.AllowGet);

@@ -76,7 +76,7 @@
                                     </div>
 
                                     <div class="course-actions">
-                                        <button class="action-btn more-btn" title="More Options" onclick="event.stopPropagation(); showMoreOptions(@course.Id)">
+                                        <button class="action-btn more-btn" title="More Options">
                                             <i class="fas fa-ellipsis-v"></i>
                                         </button>
                                     </div>
@@ -283,10 +283,10 @@ function loadCourseDetails(courseId) {
         type: 'GET',
         data: { id: courseId },
         dataType: 'json',
-        success: function(response) {
+        success: function (response) {
             if (!response || !response.success) return;
 
-            // Populate modal
+            // Populate course info
             $('#modalCourseTitle').text(response.title || 'No title');
             $('#modalCourseCode').text(response.code || '-');
             $('#modalDepartment').text(response.department || 'Unknown');
@@ -300,20 +300,43 @@ function loadCourseDetails(courseId) {
             var studentsHtml = '<p class="text-muted">No students enrolled in this course.</p>';
             if (response.students?.length > 0) {
                 studentsHtml = response.students.map(student => `
-                    <div class="student-item">
-                        <div class="student-avatar">
-                            <i class="fas fa-user-circle"></i>
-                        </div>
-                        <div class="student-info">
-                            <div class="student-name">${student.firstName} ${student.lastName}</div>
-                            <div class="student-id"> ${student.userId} - ${student.email}</div>
-                        </div>
-                    </div>
-                `).join('');
+            <div class="student-item">
+                <div class="student-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="student-info">
+                    <div class="student-name">${student.firstName} ${student.lastName}</div>
+                    <div class="student-id">${student.userId} - ${student.email}</div>
+                </div>
+            </div>
+        `).join('');
             }
-
             $('#modalStudentsList').html(studentsHtml);
+
+            // Render materials
+            // Render materials
+            var materialsHtml = '<p class="text-muted">No materials available for this course.</p>';
+            if (response.materials?.length > 0) {
+                materialsHtml = response.materials.map(mat => `
+        <div class="material-item">
+            <div class="material-left">
+                <i class="fas fa-file-alt"></i>
+                <div class="material-modal-info">
+                    <div class="material-name">${mat.title || 'Untitled Material'}</div>
+                    <div class="material-type">${mat.type || 'File'}</div>
+                </div>
+            </div>
+            <div class="material-actions">
+                <a href="${mat.files?.[0]?.filePath || '#'}" target="_blank" class="view-btn">View</a>
+                <a href="${mat.files?.[0]?.filePath || '#'}" download class="download-btn">Download</a>
+            </div>
+        </div>
+    `).join('');
+            }
+            $('#modalMaterialsList').html(materialsHtml);
+
         },
+
         error: function(xhr) {
             $('#modalCourseTitle').text('Error loading course');
             $('#modalCourseDescription').text('Please try again later.');
@@ -338,3 +361,106 @@ $(document).ready(function() {
 
     </script>
 }
+
+<style>
+/* Material List Styles */
+.materials-list {
+    display: flex;
+    flex-direction: column;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.material-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.material-item:hover {
+    background-color: #fff;
+}
+
+.material-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.material-left i.fa-file-alt {
+    font-size: 28px;
+    color: #1852AC;
+    flex-shrink: 0;
+}
+
+.material-modal-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.material-name {
+    font-weight: 600;
+    font-size: .85rem;
+    color: #333;
+}
+
+.material-type {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.material-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.material-actions a {
+    font-size: 0.875rem;
+    padding: 4px 8px;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #fff;
+    transition: background 0.2s;
+}
+
+.view-btn {
+    background-color: #949494;
+    cursor: pointer;
+}
+
+.view-btn:hover {
+    background-color: #6f6f6f;
+    cursor: pointer;
+
+}
+
+.download-btn {
+    background-color: #1852AC;
+}
+
+.download-btn:hover {
+    background-color: #064B7A;
+}
+
+
+/* Scrollbar */
+.materials-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.materials-list::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 123, 255, 0.5);
+    border-radius: 3px;
+}
+
+.materials-list::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+}
+
+</style>
