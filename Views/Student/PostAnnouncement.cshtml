@@ -1,0 +1,173 @@
+@{
+    ViewData["Title"] = "Post Announcement - Computer Programming";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="container-fluid" style="background-color: #f1f5f9; min-height: 100vh; padding: 20px;">
+    
+    <!-- Course Header Card -->
+    <div class="card mb-4" style="border: 1px solid #e2e8f0; border-radius: 16px; background-color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 16px 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <!-- Left Side - Course Info with Avatar (moved up and left) -->
+            <div style="display: flex; align-items: flex-start; margin-top: -4px;">
+                <div style="width: 80px; height: 80px; background-color: #1e3a8a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                    <span style="color: white; font-weight: 700; font-size: 1.5rem;">CP</span>
+                </div>
+                <div style="margin-top: 4px;">
+                    <h2 style="color: #1e293b; font-weight: 700; font-size: 1.75rem; margin-bottom: 4px; line-height: 1.2;">Computer Programming</h2>
+                    <p style="color: #64748b; font-size: 1rem; margin: 0; line-height: 1.3;">SBIT-3R | Tuesday | 3:00 - 6:00 PM</p>
+                </div>
+            </div>
+            
+            <!-- Right Side - Professor Info (moved slightly left with wider backgrounds) -->
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-right: 16px;">
+                <div style="background-color: #f8fafc; border-radius: 8px; padding: 12px 32px; min-width: 220px; text-align: right;">
+                    <h3 style="color: #2563eb; font-weight: 700; font-size: 1.25rem; margin-bottom: 4px;">Dr. Sarah Johnson</h3>
+                    <p style="color: #64748b; font-size: 0.9rem; margin: 0;">Professor</p>
+                </div>
+                <div style="background-color: #f8fafc; border-radius: 8px; padding: 12px 32px; text-align: center; min-width: 220px;">
+                    <div style="color: #1e293b; font-weight: 700; font-size: 1.5rem; line-height: 1;">50</div>
+                    <p style="color: #64748b; font-size: 0.85rem; margin: 0;">Students</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Pills - Same width as container -->
+    <div style="margin-bottom: 32px;">
+        <div style="display: flex; gap: 0px; background-color: #cbd5e1; border-radius: 50px; padding: 4px; width: 100%;">
+            <a href="@Url.Action("ViewCourseAnnouncements", "Student", new { id = 1 })" style="background-color: white; color: #1e293b; border: none; border-radius: 50px; padding: 8px 0; font-weight: 600; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; flex: 1; text-align: center; text-decoration: none; display: block;">
+                Announcements
+            </a>
+            <a href="@Url.Action("ViewCourse", "Student", new { id = 1 })" style="background-color: #cbd5e1; color: #475569; border: none; border-radius: 50px; padding: 8px 0; font-weight: 600; font-size: 0.9rem; cursor: pointer; flex: 1; text-align: center; text-decoration: none; display: block;">
+                Learning Materials
+            </a>
+            <a href="@Url.Action("ViewCourseClasswork", "Student", new { id = 1 })" style="background-color: #cbd5e1; color: #475569; border: none; border-radius: 50px; padding: 8px 0; font-weight: 600; font-size: 0.9rem; cursor: pointer; flex: 1; text-align: center; text-decoration: none; display: block;">
+                Classwork
+            </a>
+        </div>
+    </div>
+
+    <!-- Post Announcement Section -->
+    <div style="background-color: white; border-radius: 16px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;">
+        
+        <!-- Section Header -->
+        <div style="display: flex; align-items: center; margin-bottom: 24px;">
+            <i class="fas fa-bullhorn" style="color: #64748b; font-size: 1.2rem; margin-right: 12px;"></i>
+            <h3 style="color: #64748b; font-weight: 600; font-size: 1.2rem; margin: 0;">Announce something to class</h3>
+        </div>
+
+        <!-- Post Form -->
+        <div style="border: 1px solid #d1d5db; border-radius: 12px; background-color: white; padding: 0; overflow: hidden;">
+            <!-- Text Area -->
+            <div style="padding: 20px; border-bottom: 1px solid #e5e7eb;">
+                <textarea placeholder="Share with your class" style="width: 100%; border: none; outline: none; resize: none; font-size: 0.95rem; color: #374151; min-height: 120px; font-family: inherit; line-height: 1.5;">Hello, here's our report for Group 1 on the assigned topic. We've uploaded the file for review and feedback. Thank you!</textarea>
+                
+                <!-- Attached Files -->
+                <div style="margin-top: 16px; display: flex; gap: 12px;">
+                    <!-- File 1 -->
+                    <div style="display: flex; align-items: center; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; position: relative;">
+                        <i class="fas fa-file-pdf" style="color: #dc2626; font-size: 1rem; margin-right: 8px;"></i>
+                        <div>
+                            <div style="font-size: 0.8rem; font-weight: 500; color: #374151;">Doe_project-requirements.pdf</div>
+                            <div style="font-size: 0.7rem; color: #6b7280;">PDF</div>
+                        </div>
+                        <button style="position: absolute; top: -4px; right: -4px; background-color: #6b7280; color: white; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                            ×
+                        </button>
+                    </div>
+                    
+                    <!-- File 2 -->
+                    <div style="display: flex; align-items: center; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; position: relative;">
+                        <i class="fas fa-file-pdf" style="color: #dc2626; font-size: 1rem; margin-right: 8px;"></i>
+                        <div>
+                            <div style="font-size: 0.8rem; font-weight: 500; color: #374151;">Doe_project-requirements.pdf</div>
+                            <div style="font-size: 0.7rem; color: #6b7280;">PDF</div>
+                        </div>
+                        <button style="position: absolute; top: -4px; right: -4px; background-color: #6b7280; color: white; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                            ×
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Toolbar -->
+            <div style="padding: 12px 20px; background-color: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; gap: 12px;">
+                    <button style="background: none; border: none; color: #4b5563; font-size: 1rem; font-weight: 600; cursor: pointer; padding: 4px;">
+                        B
+                    </button>
+                    <button style="background: none; border: none; color: #4b5563; font-size: 1rem; font-style: italic; cursor: pointer; padding: 4px;">
+                        I
+                    </button>
+                    <button style="background: none; border: none; color: #4b5563; font-size: 1rem; text-decoration: underline; cursor: pointer; padding: 4px;">
+                        U
+                    </button>
+                    <button style="background: none; border: none; color: #4b5563; font-size: 1rem; cursor: pointer; padding: 4px;">
+                        <i class="fas fa-list-ul"></i>
+                    </button>
+                    <button style="background: none; border: none; color: #4b5563; font-size: 1rem; cursor: pointer; padding: 4px;">
+                        <i class="fas fa-link"></i>
+                    </button>
+                    <button style="background: none; border: none; color: #4b5563; font-size: 1rem; cursor: pointer; padding: 4px;">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                </div>
+                
+                <div style="display: flex; gap: 8px;">
+                    <a href="@Url.Action("ViewCourseAnnouncements", "Student", new { id = 1 })" style="background-color: #9ca3af; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 500; font-size: 0.85rem; cursor: pointer; text-decoration: none; display: inline-block;">
+                        Cancel
+                    </a>
+                    <button id="postButton" style="background-color: #2563eb; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 500; font-size: 0.85rem; cursor: pointer;" onclick="showSuccessModal()">
+                        Post
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div id="successModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 9999;">
+    <div style="background-color: white; border-radius: 12px; padding: 32px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);">
+        <!-- Success Icon -->
+        <div style="margin-bottom: 16px;">
+            <div style="width: 60px; height: 60px; background-color: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                <i class="fas fa-check" style="color: white; font-size: 1.5rem;"></i>
+            </div>
+        </div>
+        
+        <!-- Modal Content -->
+        <h3 style="color: #1e293b; font-weight: 700; font-size: 1.25rem; margin-bottom: 8px;">Announcement Posted</h3>
+        <p style="color: #64748b; font-size: 0.95rem; line-height: 1.5; margin-bottom: 24px;">Your announcement has been successfully posted and is now visible to all users.</p>
+        
+        <!-- Okay Button -->
+        <button onclick="closeModalAndRedirect()" style="background-color: #2563eb; color: white; border: none; border-radius: 6px; padding: 10px 24px; font-weight: 600; font-size: 0.9rem; cursor: pointer; min-width: 80px;">
+            Okay
+        </button>
+    </div>
+</div>
+
+<script>
+function showSuccessModal() {
+    document.getElementById('successModal').style.display = 'flex';
+}
+
+function closeModalAndRedirect() {
+    document.getElementById('successModal').style.display = 'none';
+    // Get the announcement data
+    const announcementText = document.querySelector('textarea').value;
+    const attachedFiles = document.querySelectorAll('[style*="file-pdf"], [style*="file-image"], [style*="file-word"]');
+    
+    // Redirect to announcements page with success flag
+    const url = '@Url.Action("ViewCourseAnnouncements", "Student", new { id = 1 })' + '?posted=true&text=' + encodeURIComponent(announcementText);
+    window.location.href = url;
+}
+
+// Close modal when clicking outside of it
+document.getElementById('successModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeModalAndRedirect();
+    }
+});
+</script>

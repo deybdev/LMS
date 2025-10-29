@@ -1,0 +1,880 @@
+/* CSS Variables for Design System */
+:root {
+  --primary-color: #1e40af;
+  --primary-dark: #1e3a8a;
+  --text-dark: #1a365d;
+  --text-muted: #6c757d;
+  --text-light: #9ca3af;
+  --border-color: #d1d5db;
+  --border-light: #e5e7eb;
+  --bg-gray: #f8f9fa;
+  --bg-white: #ffffff;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+  
+  /* Spacing Scale */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 50px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15);
+  
+  /* Typography Scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+  --text-4xl: 2.5rem;
+  
+  /* Font Weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+}
+
+html {
+  font-size: 14px;
+  font-family: 'Archivo', sans-serif;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+body {
+  font-family: 'Archivo', sans-serif;
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+}
+
+/* Use Archivo Black for headings */
+h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4 {
+  font-family: 'Archivo Black', sans-serif;
+}
+
+/* Footer styling */
+.footer-dark {
+  background: #0d1b2a !important;
+  background: linear-gradient(135deg, #0d1b2a, #1e3a8a) !important;
+  margin-top: auto;
+  width: 100% !important;
+  position: relative;
+  bottom: 0;
+}
+
+/* Ensure body takes full height */
+html, body {
+  height: 100%;
+}
+
+/* Custom styles for G2 Academy LMS */
+.hero-section {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+}
+
+.text-primary {
+  color: #1e40af !important;
+}
+
+.bg-primary {
+  background-color: #1e40af !important;
+}
+
+.btn-primary {
+  background-color: #1e40af;
+  border-color: #1e40af;
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 14px 28px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #1e3a8a;
+  border-color: #1e3a8a;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(30, 64, 175, 0.3);
+}
+
+.btn-outline-primary {
+  color: #1e40af;
+  border-color: #1e40af;
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 14px 28px;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+  background-color: #1e40af;
+  border-color: #1e40af;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(30, 64, 175, 0.3);
+}
+
+.card {
+  border: none;
+  border-radius: 12px;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.12) !important;
+}
+
+.shadow {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+
+.shadow-sm {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12) !important;
+}
+
+/* Rounded corners */
+.rounded-2 {
+  border-radius: 8px !important;
+}
+
+.rounded-3 {
+  border-radius: 12px !important;
+}
+
+.rounded-4 {
+  border-radius: 16px !important;
+}
+
+.rounded-pill {
+  border-radius: 50rem !important;
+}
+
+/* Card specific styling */
+.card-img-top {
+  border-top-left-radius: 16px !important;
+  border-top-right-radius: 16px !important;
+}
+
+/* Better typography */
+.small {
+  font-size: 0.875rem;
+}
+
+h6.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Card enhancements */
+.card {
+  border-radius: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+/* Ensure headings use Archivo Black */
+.display-4, h1, h2, h3 {
+  font-family: 'Archivo Black', sans-serif !important;
+}
+
+/* Text color utilities */
+.text-white-75 {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* Ensure proper image fit */
+.card img.card-img-top {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+}
+
+.bg-primary {
+  background-color: #1e40af !important;
+}
+
+.border-primary {
+  border-color: #1e40af !important;
+}
+
+/* News cards specific styling */
+.card-img-top {
+  border-radius: 12px 12px 0 0;
+  min-height: 200px;
+}
+
+/* Ensure all cards have equal height */
+.card.h-100 {
+  height: 100% !important;
+}
+
+/* Footer styling */
+footer {
+  background-color: #1e293b !important;
+}
+
+/* Logo styling */
+.navbar-brand img {
+  border-radius: 4px;
+}
+
+/* Section spacing */
+section {
+  scroll-margin-top: 80px;
+}
+
+/* Text color variations */
+.text-white-50 {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.text-white-75 {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* Additional styling for better visual hierarchy */
+
+/* Global font family override - excluding icons */
+*:not([class*="fa-"]):not([class*="fas"]):not([class*="far"]):not([class*="fab"]):not([class*="fal"]):not(i[class*="fa"]) {
+  font-family: 'Archivo', sans-serif !important;
+}
+
+/* Titles use Archivo Black */
+h1, h2, h3, h4, h5, h6, .title, .card-title, .fw-bold {
+  font-family: 'Archivo Black', sans-serif !important;
+}
+
+/* Regular text elements use Archivo */
+p, span, a, .nav-link, .btn:not(.fw-bold), label, input, textarea, .text-muted, .card-text {
+  font-family: 'Archivo', sans-serif !important;
+  font-weight: 400;
+}
+
+/* Navigation and button text */
+.navbar-brand, .nav-link, .btn {
+  font-family: 'Archivo', sans-serif !important;
+}
+
+/* Ensure icons use their proper font families */
+.fa, .fas, .far, .fab, .fal, [class*="fa-"] {
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "Font Awesome 6 Brands" !important;
+}
+
+/* ===== COMPONENT SYSTEM ===== */
+
+/* Button Components */
+.btn-custom {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  font-family: 'Archivo', sans-serif;
+  font-weight: var(--font-semibold);
+  border: none;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-sm {
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--text-sm);
+}
+
+.btn-md {
+  padding: var(--space-md) var(--space-lg);
+  font-size: var(--text-base);
+}
+
+.btn-lg {
+  padding: var(--space-lg) var(--space-xl);
+  font-size: var(--text-lg);
+}
+
+.btn-primary-custom {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary-custom:hover {
+  background-color: var(--primary-dark);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary-custom {
+  background-color: var(--bg-gray);
+  color: var(--text-dark);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary-custom:hover {
+  background-color: var(--border-light);
+  color: var(--text-dark);
+}
+
+.btn-outline-custom {
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+}
+
+.btn-outline-custom:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Card Components */
+.card-custom {
+  background-color: var(--bg-white);
+  border-radius: var(--radius-lg);
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.card-flat {
+  box-shadow: none;
+  border: 1px solid var(--border-light);
+}
+
+.card-elevated {
+  box-shadow: var(--shadow-md);
+}
+
+.card-floating {
+  box-shadow: var(--shadow-lg);
+}
+
+.card-custom:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Assignment Card Component */
+.assignment-card {
+  border-radius: var(--radius-md);
+  width: 100%;
+  max-width: 1235px;
+  margin: 0 auto;
+  transition: all 0.2s ease;
+}
+
+.assignment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Status-based assignment card colors */
+.assignment-card.current {
+  background-color: #E0F2FE; /* Light blue for current/assigned */
+}
+
+.assignment-card.overdue {
+  background-color: #FCE7E6; /* Light red for overdue/missing */
+}
+
+.assignment-card.completed {
+  background-color: #D1FAE5; /* Light green for finished */
+}
+
+/* Responsive Container */
+.container-responsive {
+  width: 100%;
+  max-width: 1322px;
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+/* Typography Components */
+.text-heading-xl {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  color: var(--text-dark);
+  line-height: 1.1;
+}
+
+.text-heading-lg {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--text-dark);
+  line-height: 1.2;
+}
+
+.text-heading-md {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-dark);
+  line-height: 1.3;
+}
+
+.text-body-lg {
+  font-size: var(--text-lg);
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.text-body {
+  font-size: var(--text-base);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.text-caption {
+  font-size: var(--text-sm);
+  color: var(--text-light);
+  line-height: 1.4;
+}
+
+/* Loading States */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-light);
+  border-radius: 50%;
+  border-top-color: var(--primary-color);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--border-light) 25%, var(--border-color) 50%, var(--border-light) 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Navbar Components */
+.navbar-elevated, .app-navbar {
+  border-bottom: 2px solid #000 !important;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.9) !important;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Large Tablets */
+@media (max-width: 1200px) {
+  .container-responsive {
+    max-width: 960px;
+    padding: 0 var(--space-lg);
+  }
+  
+  .assignment-card {
+    max-width: 100%;
+  }
+  
+  .text-heading-xl {
+    font-size: var(--text-3xl);
+  }
+}
+
+/* Tablets */
+@media (max-width: 992px) {
+  .container-responsive {
+    max-width: 720px;
+    padding: 0 var(--space-md);
+  }
+  
+  .btn-group .btn {
+    font-size: var(--text-sm);
+    padding: var(--space-sm) var(--space-md);
+  }
+  
+  .text-heading-xl {
+    font-size: var(--text-2xl);
+  }
+  
+  .text-heading-lg {
+    font-size: var(--text-xl);
+  }
+}
+
+/* Mobile Landscape */
+@media (max-width: 768px) {
+  .container-responsive {
+    max-width: 540px;
+    padding: 0 var(--space-md);
+  }
+  
+  .assignment-card {
+    padding: var(--space-md);
+  }
+  
+  .d-flex.gap-5 {
+    flex-direction: column;
+    gap: var(--space-md) !important;
+  }
+  
+  .assignment-actions {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  
+  .assignment-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Mobile Portrait */
+@media (max-width: 576px) {
+  .container-responsive {
+    padding: 0 var(--space-sm);
+  }
+  
+  .btn-group {
+    flex-direction: column;
+    border-radius: var(--radius-md) !important;
+  }
+  
+  .btn-group .btn {
+    border-radius: var(--radius-md) !important;
+    margin-bottom: var(--space-xs);
+  }
+  
+  .text-heading-xl {
+    font-size: var(--text-xl);
+  }
+  
+  .card-body {
+    padding: var(--space-md) !important;
+  }
+  
+  .py-4 {
+    padding-top: var(--space-md) !important;
+    padding-bottom: var(--space-md) !important;
+  }
+}
+
+/* ===== FORM VALIDATION STYLES ===== */
+.is-invalid {
+  border-color: var(--danger-color) !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.invalid-feedback {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-xs);
+  font-size: var(--text-sm);
+  color: var(--danger-color);
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+.btn-custom:focus,
+.form-control:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .btn-custom {
+    border: 2px solid currentColor;
+  }
+  
+  .card-custom {
+    border: 1px solid var(--text-dark);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== LOGIN PAGE RESPONSIVE STYLES ===== */
+@media (max-width: 768px) {
+  .login-card {
+    padding: 30px 20px !important;
+    width: 95% !important;
+    min-height: auto !important;
+  }
+  
+  .home-link {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    margin-bottom: 20px !important;
+    align-self: flex-start !important;
+  }
+  
+  .login-container {
+    padding: 10px !important;
+    flex-direction: column !important;
+  }
+  
+  .title {
+    font-size: 1.8rem !important;
+  }
+}
+
+.fw-bold {
+  font-weight: 700 !important;
+}
+
+.fw-semibold {
+  font-weight: 600 !important;
+}
+
+.lh-lg {
+  line-height: 1.7 !important;
+}
+
+/* News cards specific enhancements */
+.card-img-top {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-body {
+  background: white;
+}
+
+/* Enhanced navbar */
+.navbar {
+  backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* Hero section enhancements */
+.display-3 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* Section spacing */
+section {
+  position: relative;
+}
+
+/* Enhanced button styles */
+.btn-lg {
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+}
+
+/* Card content spacing */
+.card-body h5 {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.card-body .text-muted {
+  color: #6b7280 !important;
+}
+
+/* Footer enhancements */
+footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Login Modal Styling */
+#loginModal .modal-dialog {
+  max-width: 450px;
+}
+
+#loginModal .modal-content {
+  border-radius: 20px !important;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  border: none;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Login Modal Full Screen */
+#loginModal .modal-content {
+  background: url('/images/loginbackground.png') center/cover no-repeat !important;
+  background-size: cover !important;
+  border: none !important;
+  position: relative !important;
+}
+
+/* Transparent form elements */
+.transparent-input {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 10px !important;
+  color: #333 !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.transparent-input:focus {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(30, 64, 175, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1) !important;
+  outline: none !important;
+}
+
+.transparent-input::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+.transparent-btn {
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.transparent-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Hide default form styling for invisible form */
+.invisible-form .form-label {
+  display: none !important;
+}
+
+/* Close button enhancement */
+#loginModal .btn-close {
+  filter: invert(1);
+  opacity: 0.8;
+}
+
+#loginModal .btn-close:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Close button styling */
+#loginModal .btn-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+}
+
+/* Modal animation */
+#loginModal.fade .modal-dialog {
+  transition: transform 0.3s ease-out;
+  transform: scale(0.8);
+}
+
+#loginModal.show .modal-dialog {
+  transform: scale(1);
+}
+
+/* Prevent body scroll when modal is open */
+body.modal-open {
+  overflow: hidden !important;
+}
+
+/* Enhanced modal backdrop blur effect */
+#loginModal.show {
+  backdrop-filter: blur(5px);
+}
+
+/* Loading state for login button */
+#loginModal .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-section {
+    min-height: 400px;
+    padding: 3rem 0;
+  }
+  
+  .display-4 {
+    font-size: 2rem;
+  }
+  
+  .btn-lg {
+    padding: 10px 20px;
+    font-size: 1rem;
+  }
+  
+  .d-flex.gap-3 {
+    flex-direction: column;
+    gap: 1rem !important;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+}

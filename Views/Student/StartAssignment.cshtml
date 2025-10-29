@@ -1,0 +1,388 @@
+@{
+    ViewData["Title"] = "Arrays and Loops Quiz - Start Assignment";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="container-fluid" style="background-color: #f8f9fa; min-height: 100vh; padding: 40px 80px;">
+    <!-- Page Header -->
+    <div class="mb-5">
+        <h1 class="fw-bold mb-2" style="font-size: 2.5rem; color: #1a365d;">Arrays and Loops Quiz</h1>
+        <p class="mb-0" style="font-size: 1.1rem; color: #6c757d;">Computer Programming • Dr. Sarah Johnson</p>
+    </div>
+
+    <div class="row">
+        <!-- Main Quiz Content -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm" style="border-radius: 12px; background-color: white;">
+                <div class="card-body p-4">
+                    <!-- Question Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold mb-0" style="font-size: 1.5rem; color: #1852AC;" id="questionHeader">Question 1</h3>
+                        <span class="badge" style="background-color: #f8f9fa; color: #6c757d; padding: 8px 16px; border-radius: 8px; font-size: 0.9rem; border: 1px solid #dee2e6;">2 pts</span>
+                    </div>
+
+                    <!-- Question Text -->
+                    <div class="mb-4">
+                        <h4 class="fw-normal mb-4" style="font-size: 1.25rem; color: #333; line-height: 1.6;" id="questionText">Which loop is guaranteed to execute at least once?</h4>
+                    </div>
+
+                    <!-- Answer Options -->
+                    <div class="quiz-options" id="quizOptions">
+                        <div class="form-check mb-3" style="padding: 16px; border: 2px solid #e9ecef; border-radius: 8px; transition: all 0.2s;">
+                            <input class="form-check-input" type="radio" name="currentQuestion" id="optionA" value="A" style="margin-top: 6px;">
+                            <label class="form-check-label ms-3" for="optionA" style="font-size: 1rem; color: #333; cursor: pointer;">
+                                A. for loop
+                            </label>
+                        </div>
+                        <div class="form-check mb-3" style="padding: 16px; border: 2px solid #e9ecef; border-radius: 8px; transition: all 0.2s;">
+                            <input class="form-check-input" type="radio" name="currentQuestion" id="optionB" value="B" style="margin-top: 6px;">
+                            <label class="form-check-label ms-3" for="optionB" style="font-size: 1rem; color: #333; cursor: pointer;">
+                                B. while loop
+                            </label>
+                        </div>
+                        <div class="form-check mb-3" style="padding: 16px; border: 2px solid #e9ecef; border-radius: 8px; transition: all 0.2s;">
+                            <input class="form-check-input" type="radio" name="currentQuestion" id="optionC" value="C" style="margin-top: 6px;">
+                            <label class="form-check-label ms-3" for="optionC" style="font-size: 1rem; color: #333; cursor: pointer;">
+                                C. do-while loop
+                            </label>
+                        </div>
+                        <div class="form-check mb-4" style="padding: 16px; border: 2px solid #e9ecef; border-radius: 8px; transition: all 0.2s;">
+                            <input class="form-check-input" type="radio" name="currentQuestion" id="optionD" value="D" style="margin-top: 6px;">
+                            <label class="form-check-label ms-3" for="optionD" style="font-size: 1rem; color: #333; cursor: pointer;">
+                                D. foreach loop
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <button class="btn btn-outline-secondary" style="border-radius: 8px; padding: 10px 20px; border-color: #dee2e6; color: #6c757d;" id="prevBtn" onclick="previousQuestion()">
+                            Previous
+                        </button>
+                        <button class="btn btn-primary" style="border-radius: 8px; padding: 10px 24px; background-color: #1852AC; border: none;" id="nextBtn" onclick="nextQuestion()">
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quiz Info Card -->
+            <div class="card border-0 shadow-sm mb-3" style="border-radius: 12px; background-color: white;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span style="color: #6c757d; font-size: 0.9rem;">Questions:</span>
+                        <span style="color: #333; font-weight: 600; font-size: 0.9rem;">10 Questions</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span style="color: #6c757d; font-size: 0.9rem;">Points:</span>
+                        <span style="color: #333; font-weight: 600; font-size: 0.9rem;">20 Points</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span style="color: #6c757d; font-size: 0.9rem;">Time Remaining:</span>
+                        <span style="color: #333; font-weight: 600; font-size: 0.9rem;">45 mins</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span style="color: #6c757d; font-size: 0.9rem;">Attempts:</span>
+                        <span style="color: #333; font-weight: 600; font-size: 0.9rem;">1 out of 2</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Questions Navigation Card -->
+            <div class="card border-0 shadow-sm" style="border-radius: 12px; background-color: white;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0" style="color: #333; font-size: 1rem;">Questions</h5>
+                        <i class="fas fa-chevron-up" style="color: #6c757d; font-size: 0.8rem;"></i>
+                    </div>
+                    <div class="question-nav" style="max-height: 400px; overflow-y: auto; padding-right: 5px;" id="questionNav">
+                        <div class="question-nav-item d-flex align-items-center mb-2 p-2" data-question="1" style="border-radius: 6px; background-color: #1852AC; color: white; cursor: pointer;" onclick="goToQuestion(1)">
+                            <div class="rounded-circle me-3" style="width: 8px; height: 8px; background-color: white;"></div>
+                            <span style="font-size: 0.9rem;">Question 1</span>
+                        </div>
+                        <div class="question-nav-item d-flex align-items-center mb-2 p-2" data-question="2" style="border-radius: 6px; cursor: pointer;" onclick="goToQuestion(2)">
+                            <div class="rounded-circle me-3" style="width: 8px; height: 8px; background-color: #dee2e6;"></div>
+                            <span style="font-size: 0.9rem; color: #6c757d;">Question 2</span>
+                        </div>
+                        <div class="question-nav-item d-flex align-items-center mb-2 p-2" data-question="3" style="border-radius: 6px; cursor: pointer;" onclick="goToQuestion(3)">
+                            <div class="rounded-circle me-3" style="width: 8px; height: 8px; background-color: #dee2e6;"></div>
+                            <span style="font-size: 0.9rem; color: #6c757d;">Question 3</span>
+                        </div>
+                        <div class="question-nav-item d-flex align-items-center mb-2 p-2" data-question="4" style="border-radius: 6px; cursor: pointer;" onclick="goToQuestion(4)">
+                            <div class="rounded-circle me-3" style="width: 8px; height: 8px; background-color: #dee2e6;"></div>
+                            <span style="font-size: 0.9rem; color: #6c757d;">Question 4</span>
+                        </div>
+                        <div class="question-nav-item d-flex align-items-center mb-2 p-2" data-question="5" style="border-radius: 6px; cursor: pointer;" onclick="goToQuestion(5)">
+                            <div class="rounded-circle me-3" style="width: 8px; height: 8px; background-color: #dee2e6;"></div>
+                            <span style="font-size: 0.9rem; color: #6c757d;">Question 5</span>
+                        </div>
+                        <div class="question-nav-item d-flex align-items-center mb-2 p-2" data-question="6" style="border-radius: 6px; cursor: pointer;" onclick="goToQuestion(6)">
+                            <div class="rounded-circle me-3" style="width: 8px; height: 8px; background-color: #dee2e6;"></div>
+                            <span style="font-size: 0.9rem; color: #6c757d;">Question 6</span>
+                        </div>
+                        <div class="question-nav-item d-flex align-items-center mb-2 p-2" data-question="7" style="border-radius: 6px; cursor: pointer;" onclick="goToQuestion(7)">
+                            <div class="rounded-circle me-3" style="width: 8px; height: 8px; background-color: #dee2e6;"></div>
+                            <span style="font-size: 0.9rem; color: #6c757d;">Question 7</span>
+                        </div>
+                        <div class="question-nav-item d-flex align-items-center mb-2 p-2" data-question="8" style="border-radius: 6px; cursor: pointer;" onclick="goToQuestion(8)">
+                            <div class="rounded-circle me-3" style="width: 8px; height: 8px; background-color: #dee2e6;"></div>
+                            <span style="font-size: 0.9rem; color: #6c757d;">Question 8</span>
+                        </div>
+                        <div class="question-nav-item d-flex align-items-center mb-2 p-2" data-question="9" style="border-radius: 6px; cursor: pointer;" onclick="goToQuestion(9)">
+                            <div class="rounded-circle me-3" style="width: 8px; height: 8px; background-color: #dee2e6;"></div>
+                            <span style="font-size: 0.9rem; color: #6c757d;">Question 9</span>
+                        </div>
+                        <div class="question-nav-item d-flex align-items-center mb-2 p-2" data-question="10" style="border-radius: 6px; cursor: pointer;" onclick="goToQuestion(10)">
+                            <div class="rounded-circle me-3" style="width: 8px; height: 8px; background-color: #dee2e6;"></div>
+                            <span style="font-size: 0.9rem; color: #6c757d;">Question 10</span>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <i class="fas fa-chevron-down" style="color: #6c757d; font-size: 0.8rem;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="mt-3">
+                <button class="btn btn-primary w-100" style="border-radius: 8px; padding: 12px; background-color: #1852AC; border: none; font-weight: 600;" onclick="showSubmitModal()">
+                    Submit
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-check:hover {
+        border-color: #1852AC !important;
+        background-color: #f8f9ff !important;
+    }
+    
+    .form-check-input:checked {
+        background-color: #1852AC;
+        border-color: #1852AC;
+    }
+    
+    .question-nav::-webkit-scrollbar {
+        width: 4px;
+    }
+    
+    .question-nav::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 2px;
+    }
+    
+    .question-nav::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 2px;
+    }
+    
+    .question-nav::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+</style>
+
+<script>
+    let currentQuestionIndex = 1;
+    let userAnswers = {};
+    
+    const questions = [
+        {
+            id: 1,
+            text: "Which loop is guaranteed to execute at least once?",
+            options: [
+                { id: "A", text: "for loop" },
+                { id: "B", text: "while loop" },
+                { id: "C", text: "do-while loop" },
+                { id: "D", text: "foreach loop" }
+            ]
+        },
+        {
+            id: 2,
+            text: "How do you access the third element of an array arr in C++?",
+            options: [
+                { id: "A", text: "arr[3]" },
+                { id: "B", text: "arr[2]" },
+                { id: "C", text: "arr(3)" },
+                { id: "D", text: "arr.get(3)" }
+            ]
+        },
+        {
+            id: 3,
+            text: "What is the time complexity of searching in an unsorted array?",
+            options: [
+                { id: "A", text: "O(1)" },
+                { id: "B", text: "O(log n)" },
+                { id: "C", text: "O(n)" },
+                { id: "D", text: "O(n²)" }
+            ]
+        },
+        {
+            id: 4,
+            text: "Which of the following is NOT a valid loop in C++?",
+            options: [
+                { id: "A", text: "for loop" },
+                { id: "B", text: "while loop" },
+                { id: "C", text: "repeat loop" },
+                { id: "D", text: "do-while loop" }
+            ]
+        },
+        {
+            id: 5,
+            text: "What happens when you access an array index that is out of bounds in C++?",
+            options: [
+                { id: "A", text: "Compilation error" },
+                { id: "B", text: "Runtime error" },
+                { id: "C", text: "Undefined behavior" },
+                { id: "D", text: "Returns null" }
+            ]
+        }
+    ];
+
+    function loadQuestion(questionIndex) {
+        const question = questions[questionIndex - 1];
+        if (!question) return;
+
+        // Update question header and text
+        document.getElementById('questionHeader').textContent = `Question ${questionIndex}`;
+        document.getElementById('questionText').textContent = question.text;
+
+        // Update options
+        const optionsContainer = document.getElementById('quizOptions');
+        optionsContainer.innerHTML = '';
+        
+        question.options.forEach(option => {
+            const isChecked = userAnswers[questionIndex] === option.id ? 'checked' : '';
+            optionsContainer.innerHTML += `
+                <div class="form-check mb-3" style="padding: 16px; border: 2px solid #e9ecef; border-radius: 8px; transition: all 0.2s;">
+                    <input class="form-check-input" type="radio" name="currentQuestion" id="option${option.id}" value="${option.id}" style="margin-top: 6px;" ${isChecked} onchange="saveAnswer(${questionIndex}, '${option.id}')">
+                    <label class="form-check-label ms-3" for="option${option.id}" style="font-size: 1rem; color: #333; cursor: pointer;">
+                        ${option.id}. ${option.text}
+                    </label>
+                </div>
+            `;
+        });
+
+        // Update navigation buttons
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        
+        if (questionIndex === 1) {
+            prevBtn.disabled = true;
+            prevBtn.style.opacity = '0.5';
+        } else {
+            prevBtn.disabled = false;
+            prevBtn.style.opacity = '1';
+        }
+        
+        if (questionIndex === questions.length) {
+            nextBtn.textContent = 'Finish';
+        } else {
+            nextBtn.textContent = 'Next';
+        }
+
+        // Update sidebar highlighting
+        updateQuestionNavigation(questionIndex);
+    }
+
+    function updateQuestionNavigation(currentQuestion) {
+        const navItems = document.querySelectorAll('.question-nav-item');
+        navItems.forEach(item => {
+            const questionNum = parseInt(item.getAttribute('data-question'));
+            const dot = item.querySelector('.rounded-circle');
+            const text = item.querySelector('span');
+            
+            if (questionNum === currentQuestion) {
+                // Current question - highlighted in blue
+                item.style.backgroundColor = '#1852AC';
+                item.style.color = 'white';
+                dot.style.backgroundColor = 'white';
+                text.style.color = 'white';
+            } else {
+                // Other questions - default style
+                item.style.backgroundColor = 'transparent';
+                item.style.color = '#6c757d';
+                dot.style.backgroundColor = '#dee2e6';
+                text.style.color = '#6c757d';
+            }
+        });
+    }
+
+    function saveAnswer(questionIndex, answer) {
+        userAnswers[questionIndex] = answer;
+    }
+
+    function nextQuestion() {
+        if (currentQuestionIndex < questions.length) {
+            currentQuestionIndex++;
+            loadQuestion(currentQuestionIndex);
+        }
+    }
+
+    function previousQuestion() {
+        if (currentQuestionIndex > 1) {
+            currentQuestionIndex--;
+            loadQuestion(currentQuestionIndex);
+        }
+    }
+
+    function goToQuestion(questionIndex) {
+        currentQuestionIndex = questionIndex;
+        loadQuestion(currentQuestionIndex);
+    }
+
+    // Initialize the quiz
+    document.addEventListener('DOMContentLoaded', function() {
+        loadQuestion(1);
+    });
+
+    // Submit Modal Functions
+    function showSubmitModal() {
+        document.getElementById('submitModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function hideSubmitModal() {
+        document.getElementById('submitModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    function submitAssignment() {
+        // Here you would typically send the data to the server
+        alert('Assignment submitted successfully!');
+        hideSubmitModal();
+        // Optionally redirect to a success page or back to todo list
+        // window.location.href = '/Student/TodoList';
+    }
+</script>
+
+<!-- Submit Confirmation Modal -->
+<div id="submitModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="modal-content" style="background-color: white; border-radius: 12px; padding: 30px; width: 90%; max-width: 450px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); position: relative;">
+        <!-- Modal Header -->
+        <div class="modal-header mb-3">
+            <h4 class="fw-bold mb-0" style="color: #333; font-size: 1.25rem;">Submit Confirmation</h4>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="modal-body mb-4">
+            <p style="color: #6c757d; font-size: 1rem; line-height: 1.5; margin: 0;">
+                Are you sure you want to submit this? You won't be able to make any changes after submission.
+            </p>
+        </div>
+        
+        <!-- Modal Footer -->
+        <div class="modal-footer d-flex justify-content-end gap-3">
+            <button class="btn" style="background-color: #e9ecef; color: #6c757d; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 500;" onclick="hideSubmitModal()">
+                Cancel
+            </button>
+            <button class="btn" style="background-color: #1852AC; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600;" onclick="submitAssignment()">
+                Submit
+            </button>
+        </div>
+    </div>
+</div>

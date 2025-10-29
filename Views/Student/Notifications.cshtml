@@ -1,0 +1,81 @@
+@{
+    ViewData["Title"] = "Notifications";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="notifications-container" style="background-color: #f5f5f5; min-height: 100vh; padding: 20px;">
+    <!-- Notifications Header Section (No Background) -->
+    <div class="notifications-header mb-4" style="padding: 20px;">
+        <h1 class="fw-bold text-dark mb-2" style="font-size: 2.5rem; color: #1a365d !important;">Notifications</h1>
+        <p class="text-muted mb-0" style="font-size: 1rem;">Get instant updates on announcements, classes, and messages.</p>
+    </div>
+
+    <!-- Notifications Container Card -->
+    <div class="card border-0 shadow-sm" style="border-radius: 12px; background-color: white;">
+        <div class="card-body p-4">
+            <!-- Notifications Header -->
+            <div class="notifications-card-header d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-bell me-2" style="font-size: 1.2rem; color: #007bff !important;"></i>
+                    <h5 class="fw-bold text-dark mb-0" style="font-size: 1.25rem;">Notifications</h5>
+                </div>
+                <button class="btn btn-link text-muted p-0" style="text-decoration: none; font-size: 0.9rem; color: #6c757d !important;">
+                    Mark all as read
+                </button>
+            </div>
+
+            <!-- Notifications List -->
+            <div class="notifications-list">
+                <!-- Assignment Due Tomorrow Notification -->
+                <div class="notification-item-card mb-3" style="background-color: #e8f2ff; border-radius: 8px; padding: 16px; position: relative;">
+                    <div class="d-flex align-items-start">
+                        <div class="notification-icon me-3">
+                            <div class="icon-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: #dc3545; border-radius: 50%;">
+                                <i class="fas fa-clock" style="color: white; font-size: 1rem;"></i>
+                            </div>
+                        </div>
+                        <div class="notification-content flex-grow-1">
+                            <h6 class="fw-bold text-dark mb-2" style="font-size: 1.1rem;">Assignment Due Tomorrow</h6>
+                            <p class="text-muted mb-1" style="font-size: 0.95rem;">Quiz in Computer Programming is due tomorrow at 11:59 PM</p>
+                            <small class="text-muted" style="font-size: 0.85rem;">10/1/2025</small>
+                        </div>
+                        <!-- Unread indicator -->
+                        <div class="unread-indicator" style="width: 8px; height: 8px; background-color: #007bff; border-radius: 50%; margin-top: 5px;"></div>
+                    </div>
+                </div>
+
+                <!-- Grade Posted Notification -->
+                <div class="notification-item-card mb-3" style="background-color: #f8f9fa; border-radius: 8px; padding: 16px;">
+                    <div class="d-flex align-items-start">
+                        <div class="notification-icon me-3">
+                            <div class="icon-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: #007bff; border-radius: 50%;">
+                                <i class="fas fa-graduation-cap" style="color: white; font-size: 1rem;"></i>
+                            </div>
+                        </div>
+                        <div class="notification-content flex-grow-1">
+                            <h6 class="fw-bold text-dark mb-2" style="font-size: 1.1rem;">Grade Posted</h6>
+                            <p class="text-muted mb-1" style="font-size: 0.95rem;">Your grade for Computer Programming Activity has been posted: 92/100</p>
+                            <small class="text-muted" style="font-size: 0.85rem;">10/1/2025</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Message Notification -->
+                <div class="notification-item-card" style="background-color: #f8f9fa; border-radius: 8px; padding: 16px;">
+                    <div class="d-flex align-items-start">
+                        <div class="notification-icon me-3">
+                            <div class="icon-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: #007bff; border-radius: 50%;">
+                                <i class="fas fa-envelope" style="color: white; font-size: 1rem;"></i>
+                            </div>
+                        </div>
+                        <div class="notification-content flex-grow-1">
+                            <h6 class="fw-bold text-dark mb-2" style="font-size: 1.1rem;">Message</h6>
+                            <p class="text-muted mb-1" style="font-size: 0.95rem;">You have a new message from Dr. Sarah Johnson</p>
+                            <small class="text-muted" style="font-size: 0.85rem;">10/1/2025</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

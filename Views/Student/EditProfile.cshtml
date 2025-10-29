@@ -1,0 +1,245 @@
+@{
+    ViewData["Title"] = "Edit Profile";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="edit-profile-container" style="background-color: #f5f5f5; min-height: 100vh; padding: 20px;">
+    <!-- Edit Profile Header Section -->
+    <div class="edit-profile-header mb-4">
+        <h1 class="fw-bold text-dark mb-2" style="font-size: 2.5rem; color: #1a365d !important;">Edit Profile</h1>
+        <p class="text-muted mb-0" style="font-size: 1rem;">Update your personal information and settings</p>
+    </div>
+
+    <!-- Upload New Picture Section -->
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <div class="profile-picture" style="width: 100px; height: 100px; background-color: #1a365d; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <span style="color: white; font-size: 2.5rem; font-weight: bold;">JD</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <h5 class="fw-bold text-dark mb-2">Upload New Picture</h5>
+                    <p class="text-muted mb-3" style="font-size: 0.9rem;">Choose a clear photo of yourself. Recommended size: 400x400px, max 5MB. Supported formats: JPG, PNG, GIF.</p>
+                    <button class="btn btn-outline-secondary" style="border-radius: 8px; padding: 8px 16px;">
+                        <i class="fas fa-upload me-2"></i>Choose New Photo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Personal Information Section -->
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-4">
+                <i class="fas fa-user text-muted me-2" style="font-size: 1.2rem;"></i>
+                <h5 class="fw-bold text-dark mb-0">Personal Information</h5>
+            </div>
+            
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label for="firstName" class="form-label fw-bold text-dark">First Name</label>
+                    <input type="text" class="form-control" id="firstName" value="John" style="border-radius: 8px; padding: 12px;">
+                </div>
+                <div class="col-md-4">
+                    <label for="lastName" class="form-label fw-bold text-dark">Last Name</label>
+                    <input type="text" class="form-control" id="lastName" value="Doe" style="border-radius: 8px; padding: 12px;">
+                </div>
+                <div class="col-md-4">
+                    <label for="dateOfBirth" class="form-label fw-bold text-dark">Date of Birth</label>
+                    <input type="text" class="form-control" id="dateOfBirth" value="01/01/01" style="border-radius: 8px; padding: 12px;">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="aboutMe" class="form-label fw-bold text-dark">About Me</label>
+                <textarea class="form-control" id="aboutMe" rows="3" style="border-radius: 8px; padding: 12px;" placeholder="Aspiring computer scientist with a passion for mathematics and technology."></textarea>
+            </div>
+            
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="studentId" class="form-label fw-bold text-dark">Student ID</label>
+                    <input type="text" class="form-control" id="studentId" value="STU-2024-001" readonly style="border-radius: 8px; padding: 12px; background-color: #e9ecef;">
+                </div>
+                <div class="col-md-4">
+                    <label for="yearLevel" class="form-label fw-bold text-dark">Year Level</label>
+                    <input type="text" class="form-control" id="yearLevel" value="3rd Year" readonly style="border-radius: 8px; padding: 12px; background-color: #e9ecef;">
+                </div>
+                <div class="col-md-4">
+                    <label for="course" class="form-label fw-bold text-dark">Course</label>
+                    <input type="text" class="form-control" id="course" value="Bachelor of Science in Information Technology" readonly style="border-radius: 8px; padding: 12px; background-color: #e9ecef;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Primary Contact Information Section -->
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-4">
+                <i class="fas fa-envelope text-muted me-2" style="font-size: 1.2rem;"></i>
+                <h5 class="fw-bold text-dark mb-0">Primary Contact Information</h5>
+            </div>
+            
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label for="emailAddress" class="form-label fw-bold text-dark">Email Address</label>
+                    <input type="email" class="form-control" id="emailAddress" value="jdoe2024@student.g2university.edu" style="border-radius: 8px; padding: 12px;">
+                </div>
+                <div class="col-md-6">
+                    <label for="phoneNumber" class="form-label fw-bold text-dark">Phone Number</label>
+                    <input type="tel" class="form-control" id="phoneNumber" value="+1 (555) 123-4567" style="border-radius: 8px; padding: 12px;">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="homeAddress" class="form-label fw-bold text-dark">Home Address</label>
+                <input type="text" class="form-control" id="homeAddress" value="23 Main St, Anytown, Street 12345" style="border-radius: 8px; padding: 12px;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Contact Information Section -->
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-3">
+                <i class="fas fa-exclamation-triangle text-muted me-2" style="font-size: 1.2rem;"></i>
+                <h5 class="fw-bold text-dark mb-0">Emergency Contact Information</h5>
+            </div>
+            <div class="alert alert-danger d-flex align-items-center mb-4" style="background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px;">
+                <i class="fas fa-info-circle me-2"></i>
+                <small>Emergency contact information is required for school safety protocols.</small>
+            </div>
+            
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="emergencyContactName" class="form-label fw-bold text-dark">Emergency Contact Name</label>
+                    <input type="text" class="form-control" id="emergencyContactName" value="Jane Doe (Mother)" style="border-radius: 8px; padding: 12px;">
+                </div>
+                <div class="col-md-6">
+                    <label for="emergencyPhoneNumber" class="form-label fw-bold text-dark">Phone Number</label>
+                    <input type="tel" class="form-control" id="emergencyPhoneNumber" value="+1 (555) 123-4567" style="border-radius: 8px; padding: 12px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Section -->
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-4">
+                <i class="fas fa-lock text-muted me-2" style="font-size: 1.2rem;"></i>
+                <h5 class="fw-bold text-dark mb-0">Change Password</h5>
+            </div>
+            
+            <div class="mb-3">
+                <label for="currentPassword" class="form-label fw-bold text-dark">Current Password</label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="currentPassword" style="border-radius: 8px 0 0 8px; padding: 12px;">
+                    <button class="btn btn-outline-secondary" type="button" style="border-radius: 0 8px 8px 0;">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label for="newPassword" class="form-label fw-bold text-dark">New Password</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="newPassword" style="border-radius: 8px 0 0 8px; padding: 12px;">
+                        <button class="btn btn-outline-secondary" type="button" style="border-radius: 0 8px 8px 0;">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <small class="form-text text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Create a strong password with at least 8 characters, including uppercase, lowercase, numbers, and special characters.
+                    </small>
+                </div>
+                <div class="col-md-6">
+                    <label for="confirmPassword" class="form-label fw-bold text-dark">Confirm New Password</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="confirmPassword" style="border-radius: 8px 0 0 8px; padding: 12px;">
+                        <button class="btn btn-outline-secondary" type="button" style="border-radius: 0 8px 8px 0;">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Changes Button -->
+    <div class="d-flex justify-content-end mb-4">
+        <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#saveChangesModal" style="background-color: #3366cc; border: none; border-radius: 8px; padding: 12px 30px;">
+            Save Changes
+        </button>
+    </div>
+</div>
+
+<!-- Save Changes Modal -->
+<div class="modal fade" id="saveChangesModal" tabindex="-1" aria-labelledby="saveChangesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+            <div class="modal-header border-0 pb-0" style="padding: 20px 20px 0 20px;">
+                <h5 class="modal-title fw-bold text-dark" id="saveChangesModalLabel" style="font-size: 1.25rem;">Save Changes</h5>
+            </div>
+            <div class="modal-body" style="padding: 10px 20px 20px 20px;">
+                <p class="text-muted mb-0" style="font-size: 0.95rem;">Are you sure you want to save the changes made to your profile?</p>
+            </div>
+            <div class="modal-footer border-0 pt-0" style="padding: 0 20px 20px 20px; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background-color: #6c757d; border: none; border-radius: 8px; padding: 8px 20px; font-weight: 500;">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="confirmSaveBtn" style="background-color: #3366cc; border: none; border-radius: 8px; padding: 8px 20px; font-weight: 600;">
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+            <div class="modal-body text-center p-4">
+                <!-- Success Icon -->
+                <div class="mb-3">
+                    <div class="success-icon mx-auto" style="width: 60px; height: 60px; background-color: #28a745; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-check" style="color: white; font-size: 1.5rem;"></i>
+                    </div>
+                </div>
+                
+                <!-- Modal Title -->
+                <h5 class="fw-bold text-dark mb-3" style="font-size: 1.3rem;">Profile Updated Successfully!</h5>
+                
+                <!-- Modal Message -->
+                <p class="text-muted mb-4" style="font-size: 0.95rem;">Your profile information has been updated and saved.</p>
+                
+                <!-- OK Button -->
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" style="background-color: #3366cc; border: none; border-radius: 8px; padding: 10px 30px; font-weight: 600;">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('confirmSaveBtn').addEventListener('click', function() {
+        // Hide the save changes modal
+        var saveModal = bootstrap.Modal.getInstance(document.getElementById('saveChangesModal'));
+        saveModal.hide();
+        
+        // Show the success modal after a short delay
+        setTimeout(function() {
+            var successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            successModal.show();
+        }, 300);
+    });
+});
+</script>

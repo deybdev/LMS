@@ -1,0 +1,296 @@
+@{
+    ViewData["Title"] = "Computer Programming - Announcements";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="container-fluid" style="background-color: #f1f5f9; min-height: 100vh; padding: 20px;">
+    
+    <!-- Course Header Card -->
+    <div class="card mb-4" style="border: 1px solid #e2e8f0; border-radius: 16px; background-color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 16px 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <!-- Left Side - Course Info with Avatar (moved up and left) -->
+            <div style="display: flex; align-items: flex-start; margin-top: -4px;">
+                <div style="width: 80px; height: 80px; background-color: #1e3a8a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                    <span style="color: white; font-weight: 700; font-size: 1.5rem;">CP</span>
+                </div>
+                <div style="margin-top: 4px;">
+                    <h2 style="color: #1e293b; font-weight: 700; font-size: 1.75rem; margin-bottom: 4px; line-height: 1.2;">Computer Programming</h2>
+                    <p style="color: #64748b; font-size: 1rem; margin: 0; line-height: 1.3;">SBIT-3R | Tuesday | 3:00 - 6:00 PM</p>
+                </div>
+            </div>
+            
+            <!-- Right Side - Professor Info (moved slightly left with wider backgrounds) -->
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-right: 16px;">
+                <div style="background-color: #f8fafc; border-radius: 8px; padding: 12px 32px; min-width: 220px; text-align: right;">
+                    <h3 style="color: #2563eb; font-weight: 700; font-size: 1.25rem; margin-bottom: 4px;">Dr. Sarah Johnson</h3>
+                    <p style="color: #64748b; font-size: 0.9rem; margin: 0;">Professor</p>
+                </div>
+                <div style="background-color: #f8fafc; border-radius: 8px; padding: 12px 32px; text-align: center; min-width: 220px;">
+                    <div style="color: #1e293b; font-weight: 700; font-size: 1.5rem; line-height: 1;">50</div>
+                    <p style="color: #64748b; font-size: 0.85rem; margin: 0;">Students</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Pills - Same width as container -->
+    <div style="margin-bottom: 32px;">
+        <div style="display: flex; gap: 0px; background-color: #cbd5e1; border-radius: 50px; padding: 4px; width: 100%;">
+            <a href="@Url.Action("ViewCourseAnnouncements", "Student", new { id = 1 })" style="background-color: white; color: #1e293b; border: none; border-radius: 50px; padding: 8px 0; font-weight: 600; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; flex: 1; text-align: center; text-decoration: none; display: block;">
+                Announcements
+            </a>
+            <a href="@Url.Action("ViewCourse", "Student", new { id = 1 })" style="background-color: #cbd5e1; color: #475569; border: none; border-radius: 50px; padding: 8px 0; font-weight: 600; font-size: 0.9rem; cursor: pointer; flex: 1; text-align: center; text-decoration: none; display: block;">
+                Learning Materials
+            </a>
+            <a href="@Url.Action("ViewCourseClasswork", "Student", new { id = 1 })" style="background-color: #cbd5e1; color: #475569; border: none; border-radius: 50px; padding: 8px 0; font-weight: 600; font-size: 0.9rem; cursor: pointer; flex: 1; text-align: center; text-decoration: none; display: block;">
+                Classwork
+            </a>
+        </div>
+    </div>
+
+    <!-- Announcements and Discussions Section -->
+    <div style="background-color: white; border-radius: 16px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;">
+        
+        <!-- Section Header with Post Button -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div style="display: flex; align-items: center;">
+                <i class="fas fa-bullhorn" style="color: #64748b; font-size: 1.2rem; margin-right: 12px;"></i>
+                <h3 style="color: #64748b; font-weight: 600; font-size: 1.2rem; margin: 0;">Announcements and Discussions</h3>
+            </div>
+            <a href="@Url.Action("PostAnnouncement", "Student", new { id = 1 })" style="background-color: #2563eb; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none;">
+                <i class="fas fa-pen"></i>Post Something
+            </a>
+        </div>
+
+        <!-- Announcement 1 - Professor Post -->
+        <div style="border: 2px solid #d1d5db; border-radius: 12px; background-color: white; margin-bottom: 16px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: between; align-items: flex-start;">
+                <!-- Left Side - Avatar and Content -->
+                <div style="display: flex; align-items: flex-start; flex: 1;">
+                    <div style="margin-right: 16px; margin-top: 2px;">
+                        <div style="width: 40px; height: 40px; background-color: #1e3a8a; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <span style="color: white; font-weight: 600; font-size: 0.9rem;">SJ</span>
+                        </div>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="margin-bottom: 8px;">
+                            <div style="color: #1e293b; font-weight: 600; font-size: 0.95rem;">Dr. Sarah Johnson</div>
+                            <small style="color: #64748b; font-size: 0.8rem;">Computer Programming</small>
+                        </div>
+                        
+                        <h5 style="color: #1e293b; font-weight: 600; font-size: 1rem; margin-bottom: 8px;">Important: Midterm Exam Schedule Change</h5>
+                        
+                        <div style="margin-bottom: 8px;">
+                            <p style="color: #374151; font-size: 0.9rem; margin-bottom: 4px;">Dear Students,</p>
+                            <p style="color: #374151; font-size: 0.9rem; margin: 0;">I hope this message finds you well. I am writing to inform you of an important update regarding our midterm......</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Side - Date and Action Button -->
+                <div style="text-align: right; margin-left: 20px; display: flex; flex-direction: column; align-items: flex-end;">
+                    <div style="color: #9ca3af; font-size: 0.8rem; margin-bottom: 16px;">10/15/2024</div>
+                    <a href="@Url.Action("ViewAnnouncementDetails", "Student", new { id = 1, announcementId = 1 })" style="background-color: #f8fafc; border: 1px solid #e2e8f0; color: #475569; border-radius: 6px; padding: 6px 12px; font-weight: 500; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none;">
+                        <i class="fas fa-eye"></i>View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Announcement 2 - Student Post -->
+        <div style="border: 2px solid #d1d5db; border-radius: 12px; background-color: white; margin-bottom: 16px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: between; align-items: flex-start;">
+                <div style="display: flex; align-items: flex-start; flex: 1;">
+                    <div style="margin-right: 16px; margin-top: 2px;">
+                        <div style="width: 40px; height: 40px; background-color: #1e3a8a; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <span style="color: white; font-weight: 600; font-size: 0.9rem;">JD</span>
+                        </div>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="margin-bottom: 8px;">
+                            <div style="color: #1e293b; font-weight: 600; font-size: 0.95rem;">John Doe</div>
+                            <small style="color: #64748b; font-size: 0.8rem;">Student</small>
+                        </div>
+                        
+                        <div style="margin-bottom: 8px;">
+                            <p style="color: #374151; font-size: 0.9rem; margin: 0;">FYI, lab activity submission is extended until Oct. 12. Upload your files before midnight!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: right; margin-left: 20px; display: flex; flex-direction: column; align-items: flex-end;">
+                    <div style="color: #9ca3af; font-size: 0.8rem; margin-bottom: 16px;">10/15/2024</div>
+                    <a href="@Url.Action("ViewAnnouncementDetails", "Student", new { id = 1, announcementId = 2 })" style="background-color: #f8fafc; border: 1px solid #e2e8f0; color: #475569; border-radius: 6px; padding: 6px 12px; font-weight: 500; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none;">
+                        <i class="fas fa-eye"></i>View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Announcement 3 - Student Post -->
+        <div style="border: 2px solid #d1d5db; border-radius: 12px; background-color: white; margin-bottom: 16px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: between; align-items: flex-start;">
+                <div style="display: flex; align-items: flex-start; flex: 1;">
+                    <div style="margin-right: 16px; margin-top: 2px;">
+                        <div style="width: 40px; height: 40px; background-color: #1e3a8a; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <span style="color: white; font-weight: 600; font-size: 0.9rem;">JD</span>
+                        </div>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="margin-bottom: 8px;">
+                            <div style="color: #1e293b; font-weight: 600; font-size: 0.95rem;">John Doe</div>
+                            <small style="color: #64748b; font-size: 0.8rem;">Student</small>
+                        </div>
+                        
+                        <div style="margin-bottom: 8px;">
+                            <p style="color: #374151; font-size: 0.9rem; margin: 0;">FYI, lab activity submission is extended until Oct. 12. Upload your files before midnight!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: right; margin-left: 20px; display: flex; flex-direction: column; align-items: flex-end;">
+                    <div style="color: #9ca3af; font-size: 0.8rem; margin-bottom: 16px;">10/15/2024</div>
+                    <a href="@Url.Action("ViewAnnouncementDetails", "Student", new { id = 1, announcementId = 3 })" style="background-color: #f8fafc; border: 1px solid #e2e8f0; color: #475569; border-radius: 6px; padding: 6px 12px; font-weight: 500; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; text-decoration: none;">
+                        <i class="fas fa-eye"></i>View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div id="successModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 10000;">
+    <div style="background-color: white; border-radius: 12px; padding: 32px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);">
+        <!-- Success Icon -->
+        <div style="margin-bottom: 16px;">
+            <div style="width: 60px; height: 60px; background-color: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                <i class="fas fa-check" style="color: white; font-size: 1.5rem;"></i>
+            </div>
+        </div>
+        
+        <!-- Modal Content -->
+        <h3 style="color: #1e293b; font-weight: 700; font-size: 1.25rem; margin-bottom: 8px;">Announcement Posted</h3>
+        <p style="color: #64748b; font-size: 0.95rem; line-height: 1.5; margin-bottom: 24px;">Your announcement has been successfully posted and is now visible to all users.</p>
+        
+        <!-- Okay Button -->
+        <button onclick="closeSuccessModal()" style="background-color: #2563eb; color: white; border: none; border-radius: 6px; padding: 10px 24px; font-weight: 600; font-size: 0.9rem; cursor: pointer; min-width: 80px;">
+            Okay
+        </button>
+    </div>
+</div>
+
+<script>
+// Check if we're coming back from posting
+window.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isPosted = urlParams.get('posted');
+    const announcementText = urlParams.get('text');
+    
+    if (isPosted === 'true') {
+        // Show success modal
+        document.getElementById('successModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        // Add new announcement to the top of the list if there's text
+        if (announcementText) {
+            addNewAnnouncement(announcementText);
+        }
+        
+        // Clean URL by removing query parameters
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, '', cleanUrl);
+    }
+});
+
+function addNewAnnouncement(text) {
+    // Create new announcement element
+    const now = new Date();
+    const timeAgo = "1 min ago";
+    
+    const newAnnouncementHTML = `
+        <div style="border: 2px solid #d1d5db; border-radius: 12px; background-color: white; margin-bottom: 16px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: between; align-items: flex-start;">
+                <div style="display: flex; align-items: flex-start; flex: 1;">
+                    <div style="margin-right: 16px; margin-top: 2px;">
+                        <div style="width: 40px; height: 40px; background-color: #1e3a8a; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <span style="color: white; font-weight: 600; font-size: 0.9rem;">JD</span>
+                        </div>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="margin-bottom: 8px;">
+                            <div style="color: #1e293b; font-weight: 600; font-size: 0.95rem;">John Doe</div>
+                            <small style="color: #64748b; font-size: 0.8rem;">Student</small>
+                        </div>
+                        
+                        <div style="margin-bottom: 8px;">
+                            <p style="color: #374151; font-size: 0.9rem; margin: 0;">${text}</p>
+                        </div>
+                        
+                        <!-- Attached Files (if any from the PostAnnouncement page) -->
+                        <div style="margin-top: 16px; display: flex; gap: 12px;">
+                            <!-- File 1 -->
+                            <div style="display: flex; align-items: center; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px;">
+                                <i class="fas fa-file-pdf" style="color: #dc2626; font-size: 1rem; margin-right: 8px;"></i>
+                                <div>
+                                    <div style="font-size: 0.8rem; font-weight: 500; color: #374151;">Group1_Report.pdf</div>
+                                    <div style="font-size: 0.7rem; color: #6b7280;">1.3 MB</div>
+                                </div>
+                                <button style="margin-left: 8px; background: none; border: none; color: #6b7280; cursor: pointer;">
+                                    <i class="fas fa-download" style="font-size: 0.8rem;"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- File 2 -->
+                            <div style="display: flex; align-items: center; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px;">
+                                <i class="fas fa-file-pdf" style="color: #dc2626; font-size: 1rem; margin-right: 8px;"></i>
+                                <div>
+                                    <div style="font-size: 0.8rem; font-weight: 500; color: #374151;">Group1_Report.pdf</div>
+                                    <div style="font-size: 0.7rem; color: #6b7280;">1.3 MB</div>
+                                </div>
+                                <button style="margin-left: 8px; background: none; border: none; color: #6b7280; cursor: pointer;">
+                                    <i class="fas fa-download" style="font-size: 0.8rem;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: right; margin-left: 20px; display: flex; flex-direction: column; align-items: flex-end;">
+                    <div style="color: #9ca3af; font-size: 0.8rem; margin-bottom: 16px;">${timeAgo}</div>
+                    <button style="background-color: #f8fafc; border: 1px solid #e2e8f0; color: #475569; border-radius: 6px; padding: 6px 12px; font-weight: 500; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-eye"></i>View Details
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Insert the new announcement at the top of the announcements list
+    const announcementsSection = document.querySelector('[style*="Announcements and Discussions"]').closest('div').parentElement;
+    const firstAnnouncement = announcementsSection.querySelector('[style*="border: 2px solid #d1d5db"]');
+    
+    if (firstAnnouncement) {
+        firstAnnouncement.insertAdjacentHTML('beforebegin', newAnnouncementHTML);
+    }
+}
+
+function closeSuccessModal() {
+    document.getElementById('successModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Close modal when clicking outside
+document.getElementById('successModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeSuccessModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.getElementById('successModal').style.display === 'flex') {
+        closeSuccessModal();
+    }
+});
+</script>

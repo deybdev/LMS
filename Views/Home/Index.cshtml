@@ -1,0 +1,158 @@
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<!-- Hero Section -->
+<section class="hero-section py-3" style="background-color: var(--bg-gray); min-height: 40vh;">
+    <div class="container-responsive">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8 col-xl-7">
+                <h1 class="text-heading-xl mb-3" style="color: var(--primary-color);">
+                    Excellence in Innovation<br>and Learning
+                </h1>
+                <p class="text-body-lg mb-3 mx-auto" style="max-width: 600px;">
+                    G2 Academy University provides world-class education that empowers students with 
+                    innovation, technical expertise, and strong values – preparing future leaders to excel in a 
+                    rapidly evolving digital world.
+                </p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="#courses" class="btn-custom btn-lg btn-primary-custom">Make Inquiry</a>
+                    <a href="#about" class="btn-custom btn-lg btn-outline-custom">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- News & Announcements Section -->
+<section class="py-3" id="news">
+    <div class="container-responsive">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex align-items-center mb-3">
+                    <div style="width: 4px; height: 40px; margin-right: var(--space-md); border-radius: var(--radius-sm); background-color: var(--primary-color);"></div>
+                    <h2 class="text-heading-lg mb-0" style="color: var(--primary-color);">News & Announcements</h2>
+                </div>
+            </div>
+        </div>
+        <div class="row g-4">
+            <!-- School Admission Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card-custom card-elevated h-100 overflow-hidden">
+                    <img src="~/images/school-admission.jpg" alt="School Admission" class="card-img-top" style="height: 240px; object-fit: cover;" loading="lazy" />
+                    <div class="card-body p-4">
+                        <small class="text-caption">October 1, 2025</small>
+                        <h6 class="text-heading-md mt-2 mb-3" style="font-size: var(--text-lg);">New Semester Registration Opens</h6>
+                        <p class="text-body">Registration for Spring 2026 semester is now open. Enroll through the student portal until October 15th.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Fair Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 rounded-4 overflow-hidden" style="box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <img src="~/images/job-fair.jpg" alt="Job Fair Career Expo" class="card-img-top" style="height: 240px; object-fit: cover;" />
+                    <div class="card-body p-4">
+                        <small class="text-muted" style="font-size: 0.85rem;">September 28, 2025</small>
+                        <h6 class="card-title mt-2 mb-3 fw-bold" style="color: #1e293b; font-size: 1.1rem;">Annual Career Fair</h6>
+                        <p class="card-text text-muted" style="font-size: 0.9rem; line-height: 1.5;">Join us on October 20th. Over 100 companies recruiting for internships and positions.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Research Grant Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 rounded-4 overflow-hidden" style="box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <img src="~/images/research-grant.jpg" alt="Research Grant Awardees" class="card-img-top" style="height: 240px; object-fit: cover;" />
+                    <div class="card-body p-4">
+                        <small class="text-muted" style="font-size: 0.85rem;">September 28, 2025</small>
+                        <h6 class="card-title mt-2 mb-3 fw-bold" style="color: #1e293b; font-size: 1.1rem;">Research Grant Awarded</h6>
+                        <p class="card-text text-muted" style="font-size: 0.9rem; line-height: 1.5;">Science Department received $2M grant for renewable energy research.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- School Description Section -->
+<section class="py-4" id="about" style="background-color: var(--bg-white);">
+    <div class="container-responsive">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <h2 class="text-heading-lg mb-3">School Description</h2>
+                <p class="text-body mb-3">
+                    Our university is a leading institution dedicated to academic excellence and innovation. With state-of-the-art facilities and world-class faculty, we provide students with comprehensive education that prepares them for success in their chosen fields.
+                </p>
+                
+                <h3 class="h4 text-dark mb-3 fw-bold" style="color: #1e293b !important;">Core Values</h3>
+                <ul class="list-unstyled">
+                    <li class="mb-3 d-flex align-items-start">
+                        <span class="me-3" style="color: #1e40af; font-size: 1.2rem;">•</span>
+                        <div>
+                            <strong class="text-dark" style="color: #1e293b !important;">Excellence:</strong>
+                            <span class="text-muted ms-1">Pursuing the highest standards.</span>
+                        </div>
+                    </li>
+                    <li class="mb-3 d-flex align-items-start">
+                        <span class="me-3" style="color: #1e40af; font-size: 1.2rem;">•</span>
+                        <div>
+                            <strong class="text-dark" style="color: #1e293b !important;">Integrity:</strong>
+                            <span class="text-muted ms-1">Upholding ethical principles.</span>
+                        </div>
+                    </li>
+                    <li class="mb-3 d-flex align-items-start">
+                        <span class="me-3" style="color: #1e40af; font-size: 1.2rem;">•</span>
+                        <div>
+                            <strong class="text-dark" style="color: #1e293b !important;">Innovation:</strong>
+                            <span class="text-muted ms-1">Embracing creativity.</span>
+                        </div>
+                    </li>
+                    <li class="mb-3 d-flex align-items-start">
+                        <span class="me-3" style="color: #1e40af; font-size: 1.2rem;">•</span>
+                        <div>
+                            <strong class="text-dark" style="color: #1e293b !important;">Inclusivity:</strong>
+                            <span class="text-muted ms-1">Celebrating diversity.</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-lg-6">
+                <div class="position-relative">
+                    <img src="~/images/university-building.jpg" alt="G2 Academy University Building" class="img-fluid rounded-4 w-100" style="height: 400px; object-fit: cover; box-shadow: 0 8px 25px rgba(0,0,0,0.15);" />
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Vision & Mission Section -->
+<section class="py-4" style="background-color: #f8f9fa;">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2 class="h2 text-primary fw-bold" style="color: #1e40af !important; font-size: 1.8rem;">Our Vision & Mission</h2>
+        </div>
+        <div class="row g-4 justify-content-center">
+            <div class="col-lg-5">
+                <div class="card h-100 border-0 rounded-4" style="box-shadow: 0 4px 15px rgba(0,0,0,0.1); background: white;">
+                    <div class="card-body text-center p-5">
+                        <h3 class="h3 text-dark mb-4 fw-bold" style="color: #1e293b !important;">Vision</h3>
+                        <p class="text-muted" style="line-height: 1.7; font-size: 1rem;">
+                            To be a globally recognized institution that transforms lives through quality education, fostering innovation, leadership, and sustainable development for a better future.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="card h-100 border-0 rounded-4" style="box-shadow: 0 4px 15px rgba(0,0,0,0.1); background: white;">
+                    <div class="card-body text-center p-5">
+                        <h3 class="h3 text-dark mb-4 fw-bold" style="color: #1e293b !important;">Mission</h3>
+                        <p class="text-muted" style="line-height: 1.7; font-size: 1rem;">
+                            To provide accessible, inclusive, and excellence-driven education that empowers students with knowledge, skills, and values to become responsible global citizens.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

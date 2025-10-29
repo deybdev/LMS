@@ -1,0 +1,244 @@
+@{
+    ViewData["Title"] = "Student Grades";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="profile-container" style="background-color: #f5f5f5; padding: 20px; overflow-x: hidden;">
+    <!-- Profile Header Section -->
+    <div class="profile-header-section mb-4">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; background-color: #e8e9ea;">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <h1 class="fw-bold text-dark mb-2" style="font-size: 2.5rem; color: #1a365d !important;">Student Profile</h1>
+                        <p class="text-muted mb-0" style="font-size: 1rem;">View and manage your academic information</p>
+                    </div>
+                    <div class="col text-end">
+                        <a href="@Url.Action("EditProfile", "Student")" class="btn btn-primary" style="background-color: #3366cc; border: none; border-radius: 8px; padding: 10px 20px; text-decoration: none;">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Profile Content -->
+    <div class="row g-4">
+        <!-- Left Column - Profile Info -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                <div class="card-body p-4 text-center">
+                    <!-- Profile Picture -->
+                    <div class="profile-picture mb-3" style="width: 120px; height: 120px; background-color: #1a365d; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                        <span style="color: white; font-size: 3rem; font-weight: bold;">JD</span>
+                    </div>
+                    
+                    <!-- Name and Student Number -->
+                    <h3 class="fw-bold text-dark mb-2">John Doe</h3>
+                    <p class="text-muted mb-3">Student Number: 2024-001</p>
+                    
+                    <!-- Year Badge -->
+                    <div class="mb-4 text-start">
+                        <span class="badge" style="background-color: #1a365d; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">3rd Year</span>
+                    </div>
+                    
+                    <!-- Contact Information -->
+                    <div class="contact-info text-start">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-envelope text-muted me-3" style="width: 20px;"></i>
+                            <span class="text-dark">jdoe2024@student.g2university.edu</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-phone text-muted me-3" style="width: 20px;"></i>
+                            <span class="text-dark">+1 (555) 123-4567</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-map-marker-alt text-muted me-3" style="width: 20px;"></i>
+                            <span class="text-dark">23 Main St, Anytown, Street 12345</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-calendar text-muted me-3" style="width: 20px;"></i>
+                            <span class="text-dark">5/15/2005</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-4">
+                            <i class="fas fa-user-graduate text-muted me-3" style="width: 20px;"></i>
+                            <span class="text-dark">Enrolled since 8/15/2023</span>
+                        </div>
+                    </div>
+                    
+                    <!-- GPA Section -->
+                    <div class="gpa-section text-center pt-3" style="border-top: 1px solid #e9ecef;">
+                        <div class="d-flex align-items-center justify-content-center mb-2">
+                            <i class="fas fa-chart-line text-primary me-2"></i>
+                            <small class="text-muted fw-bold">Current GPA</small>
+                        </div>
+                        <h2 class="fw-bold text-primary mb-1" style="font-size: 3rem; color: #1a365d !important;">1.75</h2>
+                        <small class="text-muted">3rd Year, 1st Semester</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Grades Content -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                <div class="card-body p-0">
+                    <!-- Tab Navigation -->
+                    <div class="profile-tabs" style="padding: 20px 20px 0 20px;">
+                        <ul class="nav nav-pills" style="background-color: #f8f9fa; border-radius: 25px; padding: 5px;">
+                            <li class="nav-item flex-fill">
+                                <a class="nav-link text-center" href="@Url.Action("Profile", "Student")" style="color: #6c757d; border-radius: 20px; font-weight: 500; padding: 12px;">Courses</a>
+                            </li>
+                            <li class="nav-item flex-fill">
+                                <a class="nav-link active text-center" href="#" style="background-color: white; color: #333; border-radius: 20px; font-weight: 600; padding: 12px;">Grades</a>
+                            </li>
+                            <li class="nav-item flex-fill">
+                                <a class="nav-link text-center" href="@Url.Action("Attendance", "Student")" style="color: #6c757d; border-radius: 20px; font-weight: 500; padding: 12px;">Attendance</a>
+                            </li>
+                            <li class="nav-item flex-fill">
+                                <a class="nav-link text-center" href="@Url.Action("Achievements", "Student")" style="color: #6c757d; border-radius: 20px; font-weight: 500; padding: 12px;">Achievements</a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Grades Content -->
+                    <div class="tab-content p-4">
+                        <!-- Header with Semester Dropdown -->
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-book text-primary me-2" style="font-size: 1.2rem;"></i>
+                                <h4 class="fw-bold text-dark mb-0" style="font-size: 1.25rem;">Subject Grades</h4>
+                            </div>
+                            <div class="dropdown">
+                                <select class="form-select" style="border-radius: 8px; border: 1px solid #ddd; padding: 8px 12px; font-size: 0.85rem; width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    <option selected>A.Y 2025-2026 1st Semester</option>
+                                    <option>A.Y 2024-2025 2nd Semester</option>
+                                    <option>A.Y 2024-2025 1st Semester</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- GPA Summary Cards -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="card border-0" style="background-color: #e9ecef !important; border-radius: 8px; box-shadow: none;">
+                                    <div class="card-body text-center p-3" style="background-color: #e9ecef !important;">
+                                        <h2 class="fw-bold mb-1" style="font-size: 2rem; color: #28a745;">1.75</h2>
+                                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Grade Point Average (GPA)</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-0" style="background-color: #e9ecef !important; border-radius: 8px; box-shadow: none;">
+                                    <div class="card-body text-center p-3" style="background-color: #e9ecef !important;">
+                                        <h2 class="fw-bold mb-1" style="font-size: 2rem; color: #28a745;">92%</h2>
+                                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Average Grade</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Semester Header -->
+                        <div class="mb-3">
+                            <p class="text-muted fw-bold mb-3" style="font-size: 0.9rem;">A.Y 2025-2026 1st Semester</p>
+                        </div>
+                        
+                        <!-- Grades List -->
+                        <div class="grades-list">
+                            <!-- Course 1 -->
+                            <div class="course-grade-item mb-3 p-3" style="background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #3366cc;">
+                                <div class="row align-items-center">
+                                    <div class="col-8">
+                                        <h6 class="fw-bold text-dark mb-1">Computer Programming</h6>
+                                        <p class="text-muted mb-1" style="font-size: 0.9rem;">CC101 • Dr. Sarah Johnson</p>
+                                        <small class="text-muted">Units: 3</small>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="d-flex flex-column align-items-end">
+                                            <h4 class="fw-bold mb-1" style="color: #28a745; font-size: 1.5rem;">92%</h4>
+                                            <span class="badge bg-primary" style="padding: 6px 12px; border-radius: 15px; font-size: 0.8rem;">In Progress</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Course 2 -->
+                            <div class="course-grade-item mb-3 p-3" style="background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #3366cc;">
+                                <div class="row align-items-center">
+                                    <div class="col-8">
+                                        <h6 class="fw-bold text-dark mb-1">Computer Programming</h6>
+                                        <p class="text-muted mb-1" style="font-size: 0.9rem;">CC101 • Dr. Sarah Johnson</p>
+                                        <small class="text-muted">Units: 3</small>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="d-flex flex-column align-items-end">
+                                            <h4 class="fw-bold mb-1" style="color: #28a745; font-size: 1.5rem;">92%</h4>
+                                            <span class="badge bg-primary" style="padding: 6px 12px; border-radius: 15px; font-size: 0.8rem;">In Progress</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Course 3 -->
+                            <div class="course-grade-item mb-3 p-3" style="background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #3366cc;">
+                                <div class="row align-items-center">
+                                    <div class="col-8">
+                                        <h6 class="fw-bold text-dark mb-1">Computer Programming</h6>
+                                        <p class="text-muted mb-1" style="font-size: 0.9rem;">CC101 • Dr. Sarah Johnson</p>
+                                        <small class="text-muted">Units: 3</small>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="d-flex flex-column align-items-end">
+                                            <h4 class="fw-bold mb-1" style="color: #28a745; font-size: 1.5rem;">92%</h4>
+                                            <span class="badge bg-primary" style="padding: 6px 12px; border-radius: 15px; font-size: 0.8rem;">In Progress</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Course 4 -->
+                            <div class="course-grade-item mb-3 p-3" style="background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #3366cc;">
+                                <div class="row align-items-center">
+                                    <div class="col-8">
+                                        <h6 class="fw-bold text-dark mb-1">Computer Programming</h6>
+                                        <p class="text-muted mb-1" style="font-size: 0.9rem;">CC101 • Dr. Sarah Johnson</p>
+                                        <small class="text-muted">Units: 3</small>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="d-flex flex-column align-items-end">
+                                            <h4 class="fw-bold mb-1" style="color: #28a745; font-size: 1.5rem;">92%</h4>
+                                            <span class="badge bg-primary" style="padding: 6px 12px; border-radius: 15px; font-size: 0.8rem;">In Progress</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Semester Navigation -->
+                        <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+                            <button class="btn btn-outline-secondary" style="border-radius: 8px; padding: 8px 16px;">
+                                <i class="fas fa-chevron-left me-2"></i>Previous Semester
+                            </button>
+                            <button class="btn btn-outline-secondary" style="border-radius: 8px; padding: 8px 16px;">
+                                Next Semester<i class="fas fa-chevron-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Logout Button - Bottom Left Corner -->
+    <div class="row">
+        <div class="col-lg-4 position-relative">
+            <div class="position-absolute" style="bottom: 20px; left: 20px;">
+                <button class="btn btn-primary" style="background-color: #3366cc; border: none; border-radius: 25px; padding: 8px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 0.9rem;">
+                    Log out
+                </button>
+            </div>
+        </div>
+        <div class="col-lg-8"></div>
+    </div>
+</div>

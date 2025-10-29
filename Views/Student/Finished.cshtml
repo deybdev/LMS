@@ -1,0 +1,161 @@
+@{
+    ViewData["Title"] = "My Assignments - Finished";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="container-fluid" style="background-color: #f8f9fa; min-height: 100vh; padding: 40px 80px;">
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h1 class="fw-bold mb-2" style="font-size: 2.5rem; color: #1a365d;">My Assignments</h1>
+        <p class="mb-0" style="font-size: 1.1rem; color: #6c757d;">Track your assignments and submissions</p>
+    </div>
+
+    <!-- Assignment Tabs -->
+    <div class="assignment-tabs mb-4 d-flex justify-content-center">
+        <div class="btn-group" style="width: 100%; max-width: 1322px; border-radius: 25px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <a href="@Url.Action("TodoList", "Student")" class="btn flex-fill" style="border: 1px solid #ddd; padding: 12px 24px; font-weight: 500; color: #6c757d; background-color: #e9ecef; text-decoration: none; border-radius: 25px 0 0 25px;">
+                Assigned/Current (2)
+            </a>
+            <a href="@Url.Action("OverdueMissing", "Student")" class="btn flex-fill" style="border: 1px solid #ddd; border-left: none; border-right: none; padding: 12px 24px; font-weight: 500; color: #6c757d; background-color: #e9ecef; text-decoration: none;">
+                Overdue/Missing (2)
+            </a>
+            <button class="btn flex-fill" style="background-color: white; border: 1px solid #ddd; border-left: none; padding: 12px 24px; font-weight: 600; color: #333; border-radius: 0 25px 25px 0;">
+                Finished (3)
+            </button>
+        </div>
+    </div>
+
+    <!-- White Container Card -->
+    <div class="d-flex justify-content-center">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; background-color: white; width: 1322px; min-height: 670px;">
+            <div class="card-body p-4">
+                <!-- Section Header -->
+                <div class="section-header mb-4">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-check-circle me-2" style="font-size: 1.2rem; color: #28a745;"></i>
+                        <h4 class="fw-normal mb-0" style="font-size: 1.1rem; color: #6c757d;">Finished Activities</h4>
+                    </div>
+                </div>
+
+                <!-- Assignment Cards -->
+                <div class="assignments-list d-flex flex-column align-items-center">
+                    <!-- Data Structures Implementation Project Assignment -->
+                    <div class="assignment-card mb-3" style="background-color: #d4edda; border-radius: 10px; width: 1235px;">
+                        <div class="row g-0 align-items-center" style="min-height: 85px;">
+                            <div class="col-auto ps-3">
+                                <div class="assignment-icon" style="width: 40px; height: 40px; background-color: #28a745; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-file-alt" style="color: white; font-size: 1rem;"></i>
+                                </div>
+                            </div>
+                            <div class="col ps-3">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h5 class="fw-bold mb-1" style="font-size: 1.2rem; color: #1a365d;">Data Structures Implementation Project</h5>
+                                        <p class="mb-0" style="font-size: 0.95rem; color: #6c757d;">Computer Programming</p>
+                                    </div>
+                                    <div class="text-end" style="margin-right: 15px;">
+                                        <div><small style="font-size: 0.75rem; color: #9CA3AF; font-style: italic; margin-bottom: 2px; display: block;">Homework</small></div>
+                                        <div><small style="font-size: 0.8rem; color: #9ca3af;">Created 9/15/2024</small></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr style="border: none; height: 2px; background-color: #b3d7b8; margin: 0; opacity: 1;">
+                        <div class="row g-0 align-items-center p-3">
+                            <div class="col-auto" style="width: 80px;"></div>
+                            <div class="col">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex gap-5">
+                                        <div>
+                                            <small class="d-block fw-normal" style="font-size: 0.8rem; color: #6c757d;">Due Date</small>
+                                            <span class="fw-bold" style="font-size: 0.9rem; color: #1a365d;">09/28/25</span>
+                                        </div>
+                                        <div>
+                                            <small class="d-block fw-normal" style="font-size: 0.8rem; color: #6c757d;">Submitted</small>
+                                            <span class="fw-bold" style="font-size: 0.9rem; color: #1a365d;">09/25/25</span>
+                                        </div>
+                                        <div>
+                                            <small class="d-block fw-normal" style="font-size: 0.8rem; color: #6c757d;">Points</small>
+                                            <span class="fw-bold" style="font-size: 0.9rem; color: #1a365d;">100 pts</span>
+                                        </div>
+                                        <div>
+                                            <small class="d-block fw-normal" style="font-size: 0.8rem; color: #6c757d;">Grade</small>
+                                            <span style="font-size: 0.9rem; color: #6c757d;">Pending Grade</span>
+                                        </div>
+                                    </div>
+                                    <div class="assignment-actions d-flex gap-2">
+                                        <a href="@Url.Action("ViewFinishedDetails", "Student")" class="btn" style="border-radius: 8px; padding: 8px 16px; font-size: 0.85rem; background-color: white; color: #6c757d; border: 1px solid #d1d5db; text-decoration: none;">
+                                            <i class="fas fa-eye me-1"></i>View Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Separator Line -->
+                    <hr style="border: none; height: 2px; background-color: #9CA3AF; margin: 25px 0; width: 100%; max-width: 1200px; opacity: 1;">
+
+                    <!-- Arrays and Loops Quiz Assignment -->
+                    <div class="assignment-card" style="background-color: #d4edda; border-radius: 10px; width: 1235px;">
+                        <div class="row g-0 align-items-center" style="min-height: 85px;">
+                            <div class="col-auto ps-3">
+                                <div class="assignment-icon" style="width: 40px; height: 40px; background-color: #28a745; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-file-alt" style="color: white; font-size: 1rem;"></i>
+                                </div>
+                            </div>
+                            <div class="col ps-3">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h5 class="fw-bold mb-1" style="font-size: 1.2rem; color: #1a365d;">Arrays and Loops Quiz</h5>
+                                        <p class="mb-0" style="font-size: 0.95rem; color: #6c757d;">Computer Programming</p>
+                                    </div>
+                                    <div class="text-end" style="margin-right: 15px;">
+                                        <div><small style="font-size: 0.75rem; color: #9CA3AF; font-style: italic; margin-bottom: 2px; display: block;">Homework</small></div>
+                                        <div><small style="font-size: 0.8rem; color: #9ca3af;">Created 9/15/2024</small></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr style="border: none; height: 2px; background-color: #b3d7b8; margin: 0; opacity: 1;">
+                        <div class="row g-0 align-items-center p-3">
+                            <div class="col-auto" style="width: 80px;"></div>
+                            <div class="col">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex gap-5">
+                                        <div>
+                                            <small class="d-block fw-normal" style="font-size: 0.8rem; color: #6c757d;">Due Date</small>
+                                            <span class="fw-bold" style="font-size: 0.9rem; color: #1a365d;">09/28/25</span>
+                                        </div>
+                                        <div>
+                                            <small class="d-block fw-normal" style="font-size: 0.8rem; color: #6c757d;">Submitted</small>
+                                            <span class="fw-bold" style="font-size: 0.9rem; color: #1a365d;">09/25/25</span>
+                                        </div>
+                                        <div>
+                                            <small class="d-block fw-normal" style="font-size: 0.8rem; color: #6c757d;">Points</small>
+                                            <span class="fw-bold" style="font-size: 0.9rem; color: #1a365d;">100 pts</span>
+                                        </div>
+                                        <div>
+                                            <small class="d-block fw-normal" style="font-size: 0.8rem; color: #6c757d;">Grade</small>
+                                            <div style="font-size: 0.9rem; color: #1a365d;">
+                                                <span class="fw-bold">95/100</span>
+                                                <div style="width: 60px; height: 4px; background-color: #e9ecef; border-radius: 2px; margin-top: 2px; overflow: hidden;">
+                                                    <div style="width: 95%; height: 100%; background-color: #1852AC; border-radius: 2px;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="assignment-actions d-flex gap-2">
+                                        <a href="@Url.Action("ViewFinishedDetails", "Student")" class="btn" style="border-radius: 8px; padding: 8px 16px; font-size: 0.85rem; background-color: white; color: #6c757d; border: 1px solid #d1d5db; text-decoration: none;">
+                                            <i class="fas fa-eye me-1"></i>View Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
