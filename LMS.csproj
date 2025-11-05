@@ -203,8 +203,11 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
+    <Compile Include="Controllers\CourseController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\ITController.cs" />
     <Compile Include="Controllers\StudentController.cs" />
     <Compile Include="Controllers\TeacherController.cs" />
     <Compile Include="Global.asax.cs">
@@ -243,6 +246,18 @@
     <Compile Include="Migrations\202510271516532_IAddAuditTable.Designer.cs">
       <DependentUpon>202510271516532_IAddAuditTable.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202511050327011_UpdateCourseModel.cs" />
+    <Compile Include="Migrations\202511050327011_UpdateCourseModel.Designer.cs">
+      <DependentUpon>202511050327011_UpdateCourseModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511050336380_CourseUpdate.cs" />
+    <Compile Include="Migrations\202511050336380_CourseUpdate.Designer.cs">
+      <DependentUpon>202511050336380_CourseUpdate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511050342045_UndoDescriptionCourse.cs" />
+    <Compile Include="Migrations\202511050342045_UndoDescriptionCourse.Designer.cs">
+      <DependentUpon>202511050342045_UndoDescriptionCourse.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AuditLog.cs" />
     <Compile Include="Models\Course.cs" />
@@ -259,7 +274,7 @@
     <Content Include="App_Data\LMS_DB_log.ldf">
       <DependentUpon>LMS_DB.mdf</DependentUpon>
     </Content>
-    <Content Include="Content\adminCourse.css" />
+    <Content Include="Content\itCourse.css" />
     <Content Include="Content\adminDashboard.css" />
     <Content Include="Content\adminLogs.css" />
     <Content Include="Content\bootstrap-grid.css" />
@@ -307,7 +322,6 @@
     <Content Include="Scripts\Custom\deleteHandler.js" />
     <Content Include="Scripts\Custom\improvedExcelProgress.js" />
     <Content Include="Scripts\Custom\index.js" />
-    <Content Include="Scripts\Custom\manageUser.js" />
     <Content Include="Scripts\Custom\schoolCalendar.js" />
     <Content Include="Scripts\Custom\teacherCourse.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
@@ -351,6 +365,14 @@
     <Content Include="Views\Admin\Logs.cshtml" />
     <Content Include="Views\Teacher\CreateCourse.cshtml" />
     <Content Include="Views\Teacher\ViewCourse.cshtml" />
+    <Content Include="Views\Admin\Programs.cshtml" />
+    <Content Include="Views\IT\Index.cshtml" />
+    <Content Include="Views\IT\Course.cshtml" />
+    <Content Include="Views\IT\CreateCourse.cshtml" />
+    <Content Include="Views\IT\EditCourse.cshtml" />
+    <Content Include="Views\IT\AssignCourse.cshtml" />
+    <Content Include="Views\IT\Schedule.cshtml" />
+    <Content Include="Views\IT\Profile.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202510231406342_InitialCreate.resx">
@@ -376,6 +398,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202510271516532_IAddAuditTable.resx">
       <DependentUpon>202510271516532_IAddAuditTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511050327011_UpdateCourseModel.resx">
+      <DependentUpon>202511050327011_UpdateCourseModel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511050336380_CourseUpdate.resx">
+      <DependentUpon>202511050336380_CourseUpdate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511050342045_UndoDescriptionCourse.resx">
+      <DependentUpon>202511050342045_UndoDescriptionCourse.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

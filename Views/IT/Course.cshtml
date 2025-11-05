@@ -1,0 +1,190 @@
+﻿@{
+    ViewBag.Title = "Course Management";
+    var studentCounts = ViewBag.StudentCounts as Dictionary<int, int>;
+}
+
+@model IEnumerable<LMS.Models.Course>
+
+<link rel="stylesheet" href="~/Content/itCourse.css" />
+<link rel="stylesheet" href="~/Content/manageUser.css" />
+
+<div class="admin-container">
+
+    <div class="page-header">
+        <h1>Course Management</h1>
+        <p class="subtitle">Monitor all courses, track enrollments, and manage course visibility</p>
+    </div>
+
+    <div class="header-actions">
+        <button class="btn-create-class" onclick="window.location.href='@Url.Action("CreateCourse", "IT")'">
+            <i class="fas fa-plus"></i> Create Course
+        </button>
+    </div>
+    <!-- Main Content -->
+    <div class="admin-content">
+        <!-- Filter and Search Section -->
+        <div class="course-filter-section">
+            <div class="filter-controls">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search courses by title, teacher, or department..." />
+
+                <div class="filter-dropdowns">
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="archived">Archived</option>
+                    </select>
+
+                    <select class="filter-select" id="departmentFilter">
+                        <option value="">All Departments</option>
+                        <option value="ComputerStudies">Computer Studies</option>
+                        <option value="InformationTechnology">Information Technology</option>
+                        <option value="BusinessAdministration">Business Administration</option>
+                        <option value="Engineering">Engineering</option>
+                    </select>
+
+                    <select class="filter-select" id="sortBy">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="name">Course Name</option>
+                        <option value="enrollments">Most Enrolled</option>
+                        <option value="teacher">Teacher Name</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Courses Table View -->
+        <div class="default-table-container">
+            <table class="default-table">
+                <thead>
+                    <tr>
+                        <th>Course Code</th>
+                        <th>Title</th>
+                        <th>Semester</th>
+                        <th>Date Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var course in Model)
+                        {
+                            <tr class="default-row">
+                                <td>@course.CourseCode</td>
+                                <td>
+                                    <p class="course-title-link">
+                                        @course.CourseTitle
+                                    </p>
+                                </td>
+                                <td>
+                                    @course.Semester
+                                </td>
+                                <td>@course.DateCreated.ToString("MMM dd, yyyy")</td>
+                                <td class="action-buttons">
+                                    <button class="action-btn view-btn">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn edit-btn">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="action-btn delete-btn"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteModal"
+                                            data-item-id="@course.Id"
+                                            data-item-name="@course.CourseTitle"
+                                            data-target-remove="tr"
+                                            data-url="@Url.Action("DeleteCourse", "Course")"
+                                            title="Delete">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr id="noDataRow">
+                            <td colspan="5" class="text-center border-bottom-0">No courses found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Container for stacked alerts -->
+        <div id="alertContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; max-width: 320px;"></div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <span id="paginationInfo">Showing 1-5 of 0 entries</span>
+                <span id="currentPageInfo" class="ms-3">Page 1 of 1</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" id="prevBtn">
+                    <i class="fa-solid fa-chevron-left"></i> Previous
+                </button>
+                <div class="pagination-numbers" id="paginationNumbers">
+                    <!-- Page numbers will be generated here -->
+                </div>
+                <button class="pagination-btn" id="nextBtn">
+                    Next <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section scripts {
+    <script src="~/Scripts/Custom/deleteHandler.js"></script>
+    <script src="~/Scripts/Custom/index.js"></script>
+
+    @* Server-side alert handling *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <script>
+            $(function() {
+                showAlert('success', '@TempData["SuccessMessage"]');
+            });
+        </script>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <script>
+            $(function() {
+                showAlert('danger', '@TempData["ErrorMessage"]');
+            });
+        </script>
+    }
+}
+
+<style>
+
+.btn-create-class {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    margin-left: auto;
+    padding: .75rem 2.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 20px;
+    font-family: var(--archivo-plain-font);
+}
+
+.btn-create-class:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+</style>

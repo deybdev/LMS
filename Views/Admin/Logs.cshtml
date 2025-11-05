@@ -69,7 +69,7 @@
                 <tbody id="userTableBody">
                     @foreach (var log in Model)
                     {
-                        <tr class="user-row" data-log-id="@log.Id">
+                        <tr class="default-row" data-log-id="@log.Id">
                             <td class="timestamp">
                                 <div class="time-main">@log.Timestamp.ToString("yyyy-MM-dd")</div>
                                 <div class="time-relative">@log.Timestamp.ToString("HH:mm:ss")</div>
@@ -102,7 +102,7 @@
                                         data-bs-target="#deleteModal"
                                         data-item-id="@log.Id"
                                         data-item-name="@log.Category"
-                                        data-target-remove=".user-row"
+                                        data-target-remove=".default-row"
                                         data-url="@Url.Action("DeleteLogs", "Admin")"
                                         title="Delete">
                                     <i class="fa-solid fa-trash"></i>
@@ -110,8 +110,8 @@
                             </td>
                         </tr>
                     }
-                    <tr id="noUsersRow" style="display:none">
-                        <td colspan="5">No users found.</td>
+                    <tr id="noDataRow" style="display:none">
+                        <td colspan="5">No Logs found.</td>
                     </tr>
                 </tbody>
             </table>

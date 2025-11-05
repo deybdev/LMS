@@ -18,7 +18,7 @@ namespace LMS.Models
         public string PhoneNumber { get; set; }
         public string Department { get; set; }
 
-        // Role: "Student", "Teacher", "Admin"
+        // Role: "Student", "Teacher", "IT", "Admin"
         public string Role { get; set; }
 
         // Login Info

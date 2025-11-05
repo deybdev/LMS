@@ -15,22 +15,49 @@
         <p>
             Enter your credentials to access the learning management system
         </p>
-        <form method="post" action="@Url.Action("Login", "Home")"">
+        <form method="post" action="@Url.Action("Login", "Account")" onsubmit="showLoading()">
             @if (ViewBag.Error != null)
             {
                 <div class="alert alert-danger small p-2 mt-3 mb-1">@ViewBag.Error</div>
             }
+
             <label class="w-100 mt-2 text-start">
                 Username
-                <input type="email" name="email" class="form-control mb-3 mt-2" />
-
+                <input type="email" name="email" class="form-control mb-3 mt-2" required />
             </label>
+
             <label class="w-100 text-start">
                 Password
-                <input type="password" name="password" class="form-control mt-2" />
+                <input type="password" name="password" class="form-control mt-2" required />
             </label>
+
             <a class="d-block my-3">Forgot Password?</a>
-            <button type="submit" class="login-form-btn w-100">Login</button>
+
+            <!-- Login Button with built-in spinner -->
+            <button type="submit" id="loginBtn" class="login-form-btn w-100 d-flex justify-content-center align-items-center" style="gap:8px;">
+                <div id="loginSpinner" class="spinner-border spinner-border-xs text-light" role="status" style="display:none;"></div>
+                <span id="loginText">Login</span>
+            </button>
         </form>
     </div>
 </div>
+
+<style>
+    .spinner-border {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+</style>
+
+<script>
+    function showLoading() {
+        const loginBtn = document.getElementById('loginBtn');
+        const loginText = document.getElementById('loginText');
+        const spinner = document.getElementById('loginSpinner');
+        loginBtn.disabled = true;
+        loginText.style.display = 'none';
+        spinner.style.display = 'inline-block';
+    }
+</script>
+
+

@@ -1,66 +1,82 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+﻿// Force remove any modal backdrops
+function forceRemoveBackdrop() {
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+}
+
+// Global alert function
+window.showAlert = (type, message) => {
+    const id = 'alert-' + Date.now();
+    const icons = {
+        success: 'check-circle',
+        danger: 'circle-exclamation',
+        warning: 'triangle-exclamation',
+        info: 'circle-info'
+    };
+
+    const html = `
+        <div id="${id}" class="alert alert-${type} alert-dismissible fade show mb-3" role="alert"
+             style="box-shadow:0 3px 10px rgba(0,0,0,0.2);">
+            <i class="fa-solid fa-${icons[type] || icons.info} me-1"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>`;
+
+    (document.getElementById('alertContainer') || document.body)
+        .insertAdjacentHTML('beforeend', html);
+
+    setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.classList.remove('show');
+            setTimeout(() => el.remove(), 300);
+        }
+    }, 5000);
+};
+
+// Delete handler
+document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('deleteModal');
     const form = document.getElementById('deleteForm');
-    const itemNameEl = document.getElementById('deleteItemName');
-    const itemIdEl = document.getElementById('deleteItemId');
+    const nameEl = document.getElementById('deleteItemName');
+    const idEl = document.getElementById('deleteItemId');
+    if (!modal || !form || !nameEl || !idEl) return;
 
-    let deleteUrl = '';
-    let targetEl = null;
+    let deleteUrl = '', targetEl = null;
 
-    // When delete button is clicked and modal opens
     modal.addEventListener('show.bs.modal', e => {
         const btn = e.relatedTarget;
-    const name = btn.dataset.itemName || 'this item';
-    const id = btn.dataset.itemId;
-    const baseUrl = btn.dataset.url;
-    const targetRemove = btn.dataset.targetRemove || '.material-card';
-
-    deleteUrl = `${baseUrl}?id=${id}`;
-    targetEl = btn.closest(targetRemove);
-
-    itemNameEl.textContent = name;
-    itemIdEl.value = id;
+        idEl.value = btn.dataset.itemId;
+        nameEl.textContent = btn.dataset.itemName || 'this item';
+        deleteUrl = `${btn.dataset.url}?id=${btn.dataset.itemId}`;
+        targetEl = btn.closest(btn.dataset.targetRemove || '.material-card');
     });
 
-    // Confirm delete
     form.addEventListener('submit', async e => {
         e.preventDefault();
-
-    const formData = new FormData(form);
-    formData.append('id', itemIdEl.value);
-
-    try {
+        try {
             const res = await fetch(deleteUrl, {
-        method: 'POST',
-    body: formData,
-    headers: {'X-Requested-With': 'XMLHttpRequest' }
+                method: 'POST',
+                body: new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
-    const data = await res.json();
+            const data = await res.json();
 
-    bootstrap.Modal.getInstance(modal).hide();
+            bootstrap.Modal.getInstance(modal)?.hide();
+            forceRemoveBackdrop();
 
-    if (data.success) {
-        targetEl?.remove();
-    showAlert('success', data.message);
-            } else {
-        showAlert('danger', data.message || 'Delete failed.');
-            }
+            if (data.success) {
+                targetEl?.remove();
+                showAlert('success', data.message);
+            } else showAlert('danger', data.message || 'Delete failed.');
         } catch {
-        showAlert('danger', 'An error occurred while deleting.');
+            bootstrap.Modal.getInstance(modal)?.hide();
+            forceRemoveBackdrop();
+            showAlert('danger', 'An error occurred while deleting.');
         }
     });
 
-    // Bootstrap-like alert
-    function showAlert(type, message) {
-        const el = document.createElement('div');
-    el.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3 shadow`;
-    el.style.zIndex = '2000';
-    el.innerHTML = `
-    <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'} me-2"></i>
-    ${message}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    document.body.appendChild(el);
-        setTimeout(() => el.remove(), 4000);
-    }
+    modal.addEventListener('hidden.bs.modal', forceRemoveBackdrop);
 });

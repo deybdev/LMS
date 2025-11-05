@@ -13,12 +13,7 @@ namespace LMS.Controllers
     {
         private readonly LMSContext db = new LMSContext();
 
-        public class StudentDto
-        {
-            public int id { get; set; }
-            public string studentId { get; set; }
-            public string name { get; set; }
-        }
+
 
 
         // GET: Teacher/Index
@@ -48,10 +43,10 @@ namespace LMS.Controllers
 
             int teacherId = Convert.ToInt32(Session["Id"]);
 
-            // Get all teacher courses
-            var courses = db.Courses
-                .Where(c => c.TeacherId == teacherId)
-                .ToList();
+            //// Get all teacher courses
+            //var courses = db.Courses
+            //    .Where(c => c.TeacherId == teacherId)
+            //    .ToList();
 
             // Store student counts in a dictionary
             var studentCounts = db.CourseUsers
@@ -60,7 +55,7 @@ namespace LMS.Controllers
 
             ViewBag.StudentCounts = studentCounts;
 
-            return View(courses);
+            return View();
         }
 
 
@@ -74,77 +69,15 @@ namespace LMS.Controllers
 
             int teacherId = Convert.ToInt32(Session["Id"]);
 
-            var course = db.Courses
-                .Include(c => c.Materials.Select(m => m.MaterialFiles))
-                .FirstOrDefault(c => c.Id == id && c.TeacherId == teacherId);
+            //var course = db.Courses
+            //    .Include(c => c.Materials.Select(m => m.MaterialFiles))
+            //    .FirstOrDefault(c => c.Id == id && c.TeacherId == teacherId);
 
 
-            return View(course);
-        }
-
-
-        // GET: /Teacher/CreateCourse
-        public ActionResult CreateCourse()
-        {
             return View();
         }
 
-        // POST: Create Course
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult CreateCourse(Course model, string SelectedStudentsJson)
-        {
-            // Ensure teacher logged in
-            if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
-            {
-                return RedirectToAction("Login", "Home");
-            }
 
-            if (!ModelState.IsValid)
-            {
-                TempData["ErrorMessage"] = "Please correct the form fields.";
-                return View(model);
-            }
-                int teacherId = Convert.ToInt32(Session["Id"]);
-
-                // Save course first
-                model.TeacherId = teacherId;
-                model.DateCreated = DateTime.Now;
-                db.Courses.Add(model);
-                db.SaveChanges();
-
-                if (!string.IsNullOrWhiteSpace(SelectedStudentsJson))
-                {
-                    var students = Newtonsoft.Json.JsonConvert.DeserializeObject<List<StudentDto>>(SelectedStudentsJson);
-
-                    if (students != null && students.Count > 0)
-                    {
-                        foreach (var s in students)
-                        {
-                            // guard against duplicates
-                            var exists = db.CourseUsers.FirstOrDefault(cu => cu.CourseId == model.Id && cu.StudentId == s.id);
-                            if (exists == null)
-                            {
-                                var cu = new CourseUser
-                                {
-                                    CourseId = model.Id,
-                                    StudentId = s.id,
-                                    DateAdded = DateTime.Now
-                                };
-                                db.CourseUsers.Add(cu);
-                                System.Diagnostics.Debug.WriteLine($"Adding CourseUser CourseId={model.Id} StudentId={s.id}");
-                            }
-                        }
-
-                        db.SaveChanges();
-                    }
-                    
-                }
-
-                TempData["SuccessMessage"] = "Course created successfully!";
-                return RedirectToAction("Course");
-            
-        }
 
         // POST: Upload Material
         [HttpPost]

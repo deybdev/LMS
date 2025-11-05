@@ -38,7 +38,6 @@
     border-radius: 12px;
     padding: 20px 30px;
     border: 1px solid var(--border-color);
-    height: 730px;
     display: flex;
     flex-direction: column;
 }
@@ -92,18 +91,18 @@
     min-width: 120px;
 }
 
-.users-table-container {
+.default-table-container {
     border-radius: 8px;
     flex: 1;
 }
 
-.users-table {
+.default-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
 }
 
-.users-table th {
+.default-table th {
     position: sticky;
     top: 0;
     background: #fff;
@@ -116,11 +115,11 @@
     border-bottom: 1px solid var(--border-color);
 }
 
-.users-table th:last-child {
+.default-table th:last-child {
     text-align: center;
 }
 
-.users-table td {
+.default-table td {
     font-family: var(--archivo-plain-font);
     padding: 10px;
     border-bottom: 1px solid var(--border-color);
@@ -128,16 +127,16 @@
     font-size: 1rem;
 }
 
-.users-table td:last-child {
+.default-table td:last-child {
     text-align: center;
 }
 
-.users-table tr:nth-child(5n) td {
+.default-table tr:nth-child(5n) td {
     border-bottom: none;
 }
 
 
-.user-row:hover {
+.default-row:hover {
     background-color: #f8f9fa;
 }
 
@@ -231,6 +230,9 @@
 
 .delete-btn {
     color: #D32F2F;
+    margin-left: 5px;
+}
+.edit-btn {
     margin-left: 5px;
 }
 

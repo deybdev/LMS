@@ -66,9 +66,9 @@
                     </div>
 
                     <form id="createAccountForm"
-                          data-create-url="@Url.Action("CreateAccount", "Admin")"
-                          data-edit-url="@Url.Action("EditAccount", "Admin")"
-                          data-get-user-url="@Url.Action("GetUserData", "Admin")">
+                          data-create-url="@Url.Action("CreateAccount", "Account")"
+                          data-edit-url="@Url.Action("EditAccount", "Account")"
+                          data-get-user-url="@Url.Action("GetUserData", "Account")">
                         @Html.AntiForgeryToken()
 
                         <!-- Hidden ID for editing -->
@@ -87,31 +87,22 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="userId" class="form-label">Student/Teacher's ID</label>
-                            <input type="text" id="userId" name="userId" class="form-control" required>
+                            <label for="role" class="form-label">Select Role</label>
+                            <select id="role" name="role" class="form-select" required>
+                                <option value="">Choose Role</option>
+                                <option value="Student">Student</option>
+                                <option value="Teacher">Teacher</option>
+                                @*<option value="IT">IT</option>*@
+                            </select>
                         </div>
+
+
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" id="email" name="email" class="form-control" required>
+                                <label for="userId" class="form-label">Student/Teacher's ID</label>
+                                <input type="text" id="userId" name="userId" class="form-control" required>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="phone" class="form-label">Phone Number</label>
-                                <input type="tel" id="phone" name="phone" class="form-control" required>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="role" class="form-label">Select Role</label>
-                                <select id="role" name="role" class="form-select" required>
-                                    <option value="">Choose Role</option>
-                                    <option value="Student">Student</option>
-                                    <option value="Teacher">Teacher</option>
-                                </select>
-                            </div>
-
                             <div class="col-md-6 mb-3">
                                 <label for="department" class="form-label">Select Department</label>
                                 <select id="department" name="department" class="form-select" required>
@@ -124,6 +115,20 @@
                                 </select>
                             </div>
                         </div>
+
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" id="email" name="email" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" id="phone" name="phone" class="form-control" required>
+                            </div>
+                        </div>
+
+
                     </form>
                 </div>
 
@@ -142,7 +147,7 @@
     <div class="modal fade" id="uploadExcelModal" tabindex="-1" aria-labelledby="uploadExcelModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-md">
             <div class="modal-content rounded-0">
-                <form id="excelUploadForm" action="@Url.Action("UploadAccounts", "Admin")" method="post" enctype="multipart/form-data">
+                <form id="excelUploadForm" action="@Url.Action("UploadAccounts", "Account")" method="post" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
                     <div class="modal-header">
                         <h5 class="modal-title" id="uploadExcelModalLabel">
@@ -241,8 +246,8 @@
         </div>
 
         <!-- Users Table -->
-        <div class="users-table-container">
-            <table class="users-table">
+        <div class="default-table-container">
+            <table class="default-table">
                 <thead>
                     <tr>
                         <th>User</th>
@@ -253,13 +258,13 @@
                         <th>Action</th>
                     </tr>
                 </thead>
-                <tbody id="userTableBody" data-delete-url="@Url.Action("DeleteUser", "Admin")">
+                <tbody id="userTableBody" data-delete-url="@Url.Action("DeleteUser", "Account")">
                     @if (Model != null && Model.Any())
                     {
                         foreach (var user in Model)
                         {
-                            <tr class="user-row">
-                                <td class="user-info">
+                            <tr class="default-row">
+                                <td class="default-info">
                                     <div class="user-details">
                                         <div class="user-name">@user.LastName @user.FirstName</div>
                                         <div class="user-email">@user.Email</div>
@@ -298,8 +303,8 @@
                                                 data-item-id="@user.Id"
                                                 data-item-name="@($"{user.LastName} {user.FirstName}")"
                                                 data-extra="@user.Role"
-                                                data-target-remove=".user-row"
-                                                data-url="@Url.Action("DeleteUser", "Admin")"
+                                                data-target-remove=".default-row"
+                                                data-url="@Url.Action("DeleteUser", "Account")"
                                                 title="Delete">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
@@ -313,7 +318,7 @@
                     }
                     else
                     {
-                        <tr id="noUsersRow"><td colspan="6" class="text-center border-bottom-0">No students found.</td></tr>
+                        <tr id="noDataRow"><td colspan="6" class="text-center border-bottom-0">No students found.</td></tr>
                     }
                 </tbody>
             </table>
@@ -345,7 +350,6 @@
 
 @section scripts {
     <script src="~/Scripts/jquery-3.6.0.min.js"></script>
-    <script src="~/Scripts/Custom/manageUser.js"></script>
     <script src="~/Scripts/Custom/index.js"></script>
     <script src="~/Scripts/Admin/formValidation.js"></script>
     <script src="~/Scripts/Custom/deleteHandler.js"></script>
@@ -371,6 +375,7 @@
             });
         </script>
     }
+
 }
 
 <style>

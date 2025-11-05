@@ -3,7 +3,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.getElementById("searchInput");
     const tableBody = document.getElementById("userTableBody");
-    const noUsersRow = document.getElementById("noUsersRow");
+    const noUsersRow = document.getElementById("noDataRow");
     const paginationNumbers = document.getElementById("paginationNumbers");
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
@@ -12,15 +12,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const itemsPerPage = 5;
     let currentPage = 1;
-    let allRows = Array.from(tableBody.querySelectorAll("tr.user-row"));
+    let allRows = Array.from(tableBody.querySelectorAll("tr.default-row"));
     let filteredRows = [...allRows];
 
     function updateRowArrays() {
-        allRows = Array.from(tableBody.querySelectorAll("tr.user-row"));
+        allRows = Array.from(tableBody.querySelectorAll("tr.default-row"));
         filteredRows = allRows.filter(r => {
             const query = searchInput.value.toLowerCase();
             if (!query) return true;
-
+            aaz
             const name = r.querySelector(".user-name").textContent.toLowerCase();
             const email = r.querySelector(".user-email").textContent.toLowerCase();
             const dept = r.cells[2].textContent.toLowerCase();
@@ -47,7 +47,6 @@ document.addEventListener("DOMContentLoaded", () => {
         filteredRows.slice(start, end).forEach(r => r.style.display = "");
 
         if (noUsersRow) noUsersRow.style.display = filteredRows.length ? "none" : "";
-        if (noUsersRow && !filteredRows.length) noUsersRow.cells[0].textContent = "No users found.";
 
         paginationInfo.textContent = filteredRows.length
             ? `Showing ${start + 1}-${Math.min(end, filteredRows.length)} of ${filteredRows.length} entries`
