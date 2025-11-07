@@ -1,7 +1,344 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Programs";
 }
 
-<h2>Programs</h2>
+<link rel="stylesheet" href="~/Content/manageUser.css" />
+<link rel="stylesheet" href="~/Content/adminAcademic.css" />
+
+
+<div class="admin-container">
+    <div class="page-header">
+        <h1>Program Management</h1>
+        <p class="subtitle">Manage academic programs, year levels, and sections</p>
+    </div>
+
+    <!-- Create Program Button -->
+    <div class="create-dropdown mb-3">
+        <button type="button" data-bs-toggle="modal" data-bs-target="#createProgramModal">
+            <i class="fa-solid fa-plus"></i> Create Program
+        </button>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="admin-navigation">
+        <div class="nav-tabs">
+            <button class="nav-tab"
+                    onclick="window.location.href='@Url.Action("Departments", "Admin")'">
+                Department
+            </button>
+            <button class="nav-tab active"
+                    onclick="window.location.href='@Url.Action("Programs", "Admin")'">
+                Program
+            </button>
+            <button class="nav-tab"
+                    onclick="window.location.href='@Url.Action("Sections", "Admin")'">
+                Sections
+            </button>
+        </div>
+    </div>
+
+
+    <!-- Main Content -->
+    <div class="admin-content">
+        <!-- Search and Filter Section -->
+        <div class="search-filter-section">
+            <div class="filter-controls">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search programs by name, code, or department..." />
+
+                <div class="filter-dropdowns">
+                    <select class="filter-select" id="departmentFilter">
+                        <option value="">All Departments</option>
+                        <option value="Computer Studies">Computer Studies</option>
+                        <option value="Information Technology">Information Technology</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Business Administration">Business Administration</option>
+                        <option value="Accountancy">Accountancy</option>
+                        <option value="Education">Education</option>
+                        <option value="General Education">General Education</option>
+                    </select>
+
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">All Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Programs Table -->
+        <div class="default-table-container">
+            <table class="default-table">
+                <thead>
+                    <tr>
+                        <th>Program Name</th>
+                        <th>Code</th>
+                        <th>Department</th>
+                        <th>Duration</th>
+                        <th>Date Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="programTableBody">
+                    <!-- Sample Data -->
+                    <tr class="default-row" data-department="Computer Studies" data-status="Active">
+                        <td class="default-info">
+                            <div class="user-details">
+                                <div class="user-name">BS in Computer Science</div>
+                            </div>
+                        </td>
+                        <td><span class="role-tag">BSCS</span></td>
+                        <td>CCS</td>
+                        <td>4 Years</td>
+                        <td class="last-login">
+                            <div>01/15/2024</div>
+                            <div class="login-time">10:30 AM</div>
+                        </td>
+                        <td class="action-buttons">
+                            <button class="action-btn edit-btn" data-id="1" title="Edit">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button type="button" class="action-btn delete-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal"
+                                    data-item-id="1"
+                                    data-item-name="BS in Computer Science"
+                                    data-target-remove=".default-row"
+                                    title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                    <tr class="default-row" data-department="Information Technology" data-status="Active">
+                        <td class="default-info">
+                            <div class="user-details">
+                                <div class="user-name">BS in Information Technology</div>
+                            </div>
+                        </td>
+                        <td><span class="role-tag">BSIT</span></td>
+                        <td>CCS</td>
+                        <td>4 Years</td>
+                        <td class="last-login">
+                            <div>01/15/2024</div>
+                            <div class="login-time">10:35 AM</div>
+                        </td>
+                        <td class="action-buttons">
+                            <button class="action-btn edit-btn" data-id="2" title="Edit">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button type="button" class="action-btn delete-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal"
+                                    data-item-id="2"
+                                    data-item-name="BS in Information Technology"
+                                    data-target-remove=".default-row"
+                                    title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                    <tr class="default-row" data-department="Business Administration" data-status="Active">
+                        <td class="default-info">
+                            <div class="user-details">
+                                <div class="user-name">BS in Business Administration</div>
+                            </div>
+                        </td>
+                        <td><span class="role-tag">BSBA</span></td>
+                        <td>CBAA</td>
+                        <td>4 Years</td>
+                        <td class="last-login">
+                            <div>01/15/2024</div>
+                            <div class="login-time">10:40 AM</div>
+                        </td>
+                        <td class="action-buttons">
+                            <button class="action-btn edit-btn" data-id="3" title="Edit">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button type="button" class="action-btn delete-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal"
+                                    data-item-id="3"
+                                    data-item-name="BS in Business Administration"
+                                    data-target-remove=".default-row"
+                                    title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                    <tr class="default-row" data-department="Engineering" data-status="Active">
+                        <td class="default-info">
+                            <div class="user-details">
+                                <div class="user-name">BS in Civil Engineering</div>
+                            </div>
+                        </td>
+                        <td><span class="role-tag">BSCE</span></td>
+                        <td>COE</td>
+                        <td>5 Years</td>
+                        <td class="last-login">
+                            <div>01/15/2024</div>
+                            <div class="login-time">10:45 AM</div>
+                        </td>
+                        <td class="action-buttons">
+                            <button class="action-btn edit-btn" data-id="4" title="Edit">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button type="button" class="action-btn delete-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal"
+                                    data-item-id="4"
+                                    data-item-name="BS in Civil Engineering"
+                                    data-target-remove=".default-row"
+                                    title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                    <tr class="default-row" data-department="Accountancy" data-status="Inactive">
+                        <td class="default-info">
+                            <div class="user-details">
+                                <div class="user-name">BS in Accountancy</div>
+                            </div>
+                        </td>
+                        <td><span class="role-tag">BSA</span></td>
+                        <td>CBAA</td>
+                        <td>4 Years</td>
+                        <td class="last-login">
+                            <div>01/15/2024</div>
+                            <div class="login-time">10:50 AM</div>
+                        </td>
+                        <td class="action-buttons">
+                            <button class="action-btn edit-btn" data-id="5" title="Edit">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button type="button" class="action-btn delete-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal"
+                                    data-item-id="5"
+                                    data-item-name="BS in Accountancy"
+                                    data-target-remove=".default-row"
+                                    title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <span id="paginationInfo">Showing 1-5 of 5 entries</span>
+                <span id="currentPageInfo" class="ms-3">Page 1 of 1</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" id="prevBtn" disabled>
+                    <i class="fa-solid fa-chevron-left"></i> Previous
+                </button>
+                <div class="pagination-numbers" id="paginationNumbers">
+                    <button class="pagination-number active">1</button>
+                </div>
+                <button class="pagination-btn" id="nextBtn" disabled>
+                    Next <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <div id="alertContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; max-width: 320px;"></div>
+
+<!-- Create/Edit Program Modal -->
+<div class="modal fade" id="createProgramModal" tabindex="-1" aria-labelledby="createProgramModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createProgramModalLabel">
+                    <i class="fa-solid fa-graduation-cap"></i> <span id="modalTitle">Create New Program</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div id="formErrorContainer" class="alert alert-danger alert-dismissible fade show d-none" role="alert">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i>
+                    <span id="formErrorMessage"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <form id="createProgramForm">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" id="programId" name="id" />
+
+                    <div class="mb-3">
+                        <label for="programName" class="form-label">Program Name *</label>
+                        <input type="text" id="programName" name="programName" class="form-control" required placeholder="e.g., Bachelor of Science in Computer Science">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="programCode" class="form-label">Program Code *</label>
+                        <input type="text" id="programCode" name="programCode" class="form-control" required placeholder="e.g., BSCS">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="department" class="form-label">Department *</label>
+                        <select id="department" name="department" class="form-select" required>
+                            <option value="">Choose department</option>
+                            <option value="Computer Studies">Computer Studies</option>
+                            <option value="Information Technology">Information Technology</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Business Administration">Business Administration</option>
+                            <option value="Accountancy">Accountancy</option>
+                            <option value="Education">Education</option>
+                            <option value="General Education">General Education</option>
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="programDuration" class="form-label">Duration (Years) *</label>
+                            <input type="number" id="programDuration" name="programDuration" class="form-control" required min="1" max="10" placeholder="4">
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn cancel-btn" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="submitProgramBtn" form="createProgramForm">
+                    <i id="programIcon" class="fa-solid fa-save me-1"></i> <span id="btnText">Create</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Create/Edit Section Modal -->
+
+@section scripts {
+    <script src="~/Scripts/Custom/deleteHandler.js"></script>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <script>
+            $(function () {
+                showAlert('success', '@TempData["SuccessMessage"]');
+            });
+        </script>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <script>
+            $(function () {
+                showAlert('danger', '@TempData["ErrorMessage"]');
+            });
+        </script>
+    }
+}
 

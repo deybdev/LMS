@@ -206,8 +206,10 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\CourseController.cs" />
+    <Compile Include="Controllers\DepartmentController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ITController.cs" />
+    <Compile Include="Controllers\ProgramController.cs" />
     <Compile Include="Controllers\StudentController.cs" />
     <Compile Include="Controllers\TeacherController.cs" />
     <Compile Include="Global.asax.cs">
@@ -258,13 +260,27 @@
     <Compile Include="Migrations\202511050342045_UndoDescriptionCourse.Designer.cs">
       <DependentUpon>202511050342045_UndoDescriptionCourse.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202511061200155_AddDepeartmentInCourse.cs" />
+    <Compile Include="Migrations\202511061200155_AddDepeartmentInCourse.Designer.cs">
+      <DependentUpon>202511061200155_AddDepeartmentInCourse.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511061502050_AddDepartmentAndProgram.cs" />
+    <Compile Include="Migrations\202511061502050_AddDepartmentAndProgram.Designer.cs">
+      <DependentUpon>202511061502050_AddDepartmentAndProgram.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511061504570_AddModelDepandProg.cs" />
+    <Compile Include="Migrations\202511061504570_AddModelDepandProg.Designer.cs">
+      <DependentUpon>202511061504570_AddModelDepandProg.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AuditLog.cs" />
     <Compile Include="Models\Course.cs" />
     <Compile Include="Models\CourseUser.cs" />
+    <Compile Include="Models\Department.cs" />
     <Compile Include="Models\Event.cs" />
     <Compile Include="Models\LMSContext.cs" />
     <Compile Include="Models\Material.cs" />
+    <Compile Include="Models\Program.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\AdminDashboardViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -274,6 +290,7 @@
     <Content Include="App_Data\LMS_DB_log.ldf">
       <DependentUpon>LMS_DB.mdf</DependentUpon>
     </Content>
+    <Content Include="Content\adminAcademic.css" />
     <Content Include="Content\itCourse.css" />
     <Content Include="Content\adminDashboard.css" />
     <Content Include="Content\adminLogs.css" />
@@ -296,6 +313,7 @@
     <Content Include="Content\calendar.css" />
     <Content Include="Content\index.css" />
     <Content Include="Content\manageUser.css" />
+    <Content Include="Content\programManagement.css" />
     <Content Include="Content\Site.css" />
     <Content Include="Content\teacherCourse.css" />
     <Content Include="Content\teacherCreateCourse.css" />
@@ -370,9 +388,12 @@
     <Content Include="Views\IT\Course.cshtml" />
     <Content Include="Views\IT\CreateCourse.cshtml" />
     <Content Include="Views\IT\EditCourse.cshtml" />
-    <Content Include="Views\IT\AssignCourse.cshtml" />
+    <Content Include="Views\IT\AssignedCourses.cshtml" />
     <Content Include="Views\IT\Schedule.cshtml" />
     <Content Include="Views\IT\Profile.cshtml" />
+    <Content Include="Views\IT\AssignCourse.cshtml" />
+    <Content Include="Views\Admin\Departments.cshtml" />
+    <Content Include="Views\Admin\Sections.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202510231406342_InitialCreate.resx">
@@ -408,6 +429,15 @@
     <EmbeddedResource Include="Migrations\202511050342045_UndoDescriptionCourse.resx">
       <DependentUpon>202511050342045_UndoDescriptionCourse.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511061200155_AddDepeartmentInCourse.resx">
+      <DependentUpon>202511061200155_AddDepeartmentInCourse.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511061502050_AddDepartmentAndProgram.resx">
+      <DependentUpon>202511061502050_AddDepartmentAndProgram.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511061504570_AddModelDepandProg.resx">
+      <DependentUpon>202511061504570_AddModelDepandProg.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -438,6 +468,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Uploads\Materials\" />
+    <Folder Include="Views\Department\" />
+    <Folder Include="Views\Program\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

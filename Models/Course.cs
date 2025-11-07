@@ -10,6 +10,7 @@ namespace LMS.Models
         public string CourseCode { get; set; }
         public string Semester { get; set; }
         public string Description { get; set; } 
+        public string Department { get; set; }
         public DateTime DateCreated { get; set; }
 
         //public virtual User Teacher { get; set; }

@@ -1,0 +1,41 @@
+﻿.admin-navigation {
+    margin-bottom: 20px;
+}
+
+.nav-tabs {
+    display: flex;
+    gap: 0;
+    justify-content: space-between;
+    border: 1px solid var(--border-color);
+    border-radius: 50px;
+    background: #d9d9d9;
+    align-items: center;
+    padding: 3px;
+}
+
+.nav-tab {
+    background: none;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: black;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    font-family: var(--archivo-plain-font);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+    .nav-tab:hover {
+        background: #d1d1d1;
+        border-radius: 15px;
+    }
+
+    .nav-tab.active {
+        background: white;
+        border-radius: 15px;
+    }

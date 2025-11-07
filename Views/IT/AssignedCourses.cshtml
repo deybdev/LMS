@@ -1,0 +1,238 @@
+@{
+    ViewBag.Title = "AssignedCourses";
+}
+
+<link rel="stylesheet" href="~/Content/teacherCreateCourse.css" />
+<link rel="stylesheet" href="~/Content/manageUser.css" />
+<link rel="stylesheet" href="~/Content/itCourse.css" />
+
+
+
+<div class="admin-container">
+    <div class="page-header">
+        <h1>Course Assignment</h1>
+        <p class="subtitle">Assign existing courses to teachers and manage current assignments</p>
+    </div>
+
+    <div class="header-actions">
+        <button class="btn-create-class" onclick="window.location.href='@Url.Action("AssignCourse", "IT")'">
+            <i class="fas fa-plus"></i> Create Course
+        </button>
+    </div>
+
+    <!-- Current Assignments Section -->
+    <div class="admin-content" style="margin-bottom: 2rem;">
+        <div class="search-filter-section">
+            <div class="filter-controls">
+                <input type="text" id="searchAssignments" class="search-input" placeholder="Search by course title, teacher name, or department..." />
+
+                <div class="filter-dropdowns">
+                    <select class="filter-select" id="assignmentDeptFilter">
+                        <option value="">All Departments</option>
+                        <option value="Computer Studies">Computer Studies</option>
+                        <option value="Information Technology">Information Technology</option>
+                        <option value="Business Administration">Business Administration</option>
+                    </select>
+
+                    <select class="filter-select" id="assignmentSemesterFilter">
+                        <option value="">All Semesters</option>
+                        <option value="1st">1st Semester</option>
+                        <option value="2nd">2nd Semester</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignments Grid -->
+        <div class="courses-grid-container">
+            <div class="courses-row" id="assignmentsGrid">
+
+                <!-- Sample Assignment Card 1 -->
+                <div class="course-card" data-department="Computer Studies" data-semester="1st">
+                    <div class="course-header">
+                        <div class="course-main-info">
+                            <h3 class="course-title">Introduction to Programming</h3>
+                            <div class="course-meta-row">
+                                <span class="course-code">CS101</span>
+                                <span class="department-tag">Computer Studies</span>
+                            </div>
+                            <p class="course-description">Learn the fundamentals of programming.</p>
+                        </div>
+                        <div class="course-actions">
+                            <button class="action-btn edit-btn" title="Reassign">
+                                <i class="fas fa-exchange-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="course-stats-row">
+                        <div class="teacher-info">
+                            <div class="stat-item">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                                <div class="teacher-details">
+                                    <div class="teacher-name">Dr. John Smith</div>
+                                    <div class="teacher-email">john.smith@school.edu</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="enrollment-info">
+                            <div class="stat-item">
+                                <i class="fas fa-users"></i>
+                                <div class="enrollment-details">
+                                    <div class="enrollment-count">35 Students</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="course-footer">
+                        <div class="created-date">
+                            <i class="far fa-calendar"></i>
+                            <span>1st Semester</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Sample Assignment Card 1 -->
+                <div class="course-card" data-department="Computer Studies" data-semester="1st">
+                    <div class="course-header">
+                        <div class="course-main-info">
+                            <h3 class="course-title">Introduction to Programming</h3>
+                            <div class="course-meta-row">
+                                <span class="course-code">CS101</span>
+                                <span class="department-tag">Computer Studies</span>
+                            </div>
+                            <p class="course-description">Learn the fundamentals of programming.</p>
+                        </div>
+                        <div class="course-actions">
+                            <button class="action-btn edit-btn" title="Reassign">
+                                <i class="fas fa-exchange-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="course-stats-row">
+                        <div class="teacher-info">
+                            <div class="stat-item">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                                <div class="teacher-details">
+                                    <div class="teacher-name">Dr. John Smith</div>
+                                    <div class="teacher-email">john.smith@school.edu</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="enrollment-info">
+                            <div class="stat-item">
+                                <i class="fas fa-users"></i>
+                                <div class="enrollment-details">
+                                    <div class="enrollment-count">35 Students</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="course-footer">
+                        <div class="created-date">
+                            <i class="far fa-calendar"></i>
+                            <span>1st Semester</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sample Assignment Card 2 -->
+                <div class="course-card" data-department="Information Technology" data-semester="1st">
+                    <div class="course-header">
+                        <div class="course-main-info">
+                            <h3 class="course-title">Web Development</h3>
+                            <div class="course-meta-row">
+                                <span class="course-code">IT301</span>
+                                <span class="department-tag">Information Technology</span>
+                            </div>
+                            <p class="course-description">Modern web development techniques.</p>
+                        </div>
+                        <div class="course-actions">
+                            <button class="action-btn edit-btn" title="Reassign">
+                                <i class="fas fa-exchange-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="course-stats-row">
+                        <div class="teacher-info">
+                            <div class="stat-item">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                                <div class="teacher-details">
+                                    <div class="teacher-name">Prof. Mary Johnson</div>
+                                    <div class="teacher-email">mary.johnson@school.edu</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="enrollment-info">
+                            <div class="stat-item">
+                                <i class="fas fa-users"></i>
+                                <div class="enrollment-details">
+                                    <div class="enrollment-count">28 Students</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="course-footer">
+                        <div class="created-date">
+                            <i class="far fa-calendar"></i>
+                            <span>1st Semester</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <span>Showing 1-2 of 2 assignments</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" disabled>
+                    <i class="fa-solid fa-chevron-left"></i> Previous
+                </button>
+                <div class="pagination-numbers">
+                    <button class="pagination-number active">1</button>
+                </div>
+                <button class="pagination-btn" disabled>
+                    Next <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    
+</div>
+
+<div id="alertContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; max-width: 320px;"></div>
+
+<style>
+    
+.btn-create-class {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    margin-left: auto;
+    padding: .75rem 2.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 20px;
+    font-family: var(--archivo-plain-font);
+}
+
+.btn-create-class:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+</style>

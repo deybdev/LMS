@@ -55,7 +55,7 @@
                                 <a href="@Url.Action("Index", "Admin")" class="nav-link @(isActive("Admin", new string[] { "Index" }))">Home</a>
                                 <a href="@Url.Action("ManageUsers", "Admin")" class="nav-link @(isActive("Admin", new string[] { "ManageUsers"}))">Users</a>
                                 <a href="@Url.Action("Calendar", "Admin")" class="nav-link @(isActive("Admin", new string[] { "Calendar" }))">Calendar</a>
-                                <a href="@Url.Action("Programs", "Admin")" class="nav-link @(isActive("Admin", new string[] { "Programs", "CreateProgram", "EditProgram" }))">Programs</a>
+                                <a href="@Url.Action("Departments", "Admin")" class="nav-link  @(isActive("Admin", new string[] { "Programs", "Departments", "Sections"}))">Academics</a>
                                 <a href="@Url.Action("Logs", "Admin")" class="nav-link @(isActive("Admin", new string[] { "Logs" }))">Logs</a>
                             }
                             else if (Session["Role"].ToString() == "Teacher")
@@ -77,9 +77,9 @@
                             else if (Session["Role"].ToString() == "IT")
                             {
                                 <a href="@Url.Action("Index", "IT")" class="nav-link @(isActive("IT", new string[] { "Index" }))">Home</a>
-                                <a href="@Url.Action("Course", "IT")" class="nav-link @(isActive("IT", new string[] { "Course", "CreateCourse", "EditCourse" }))">Manage Courses</a>
-                                <a href="@Url.Action("AssignCourse", "IT")" class="nav-link @(isActive("IT", new string[] { "AssignCourse" }))">Course Assignment</a>
-                                <a href="@Url.Action("Schedule", "IT")" class="nav-link @(isActive("IT", new string[] { "Schedule" }))">Manage Schedules</a>
+                                <a href="@Url.Action("Course", "IT")" class="nav-link @(isActive("IT", new string[] { "Course", "CreateCourse", "EditCourse" }))">Courses</a>
+                                <a href="@Url.Action("AssignedCourses", "IT")" class="nav-link @(isActive("IT", new string[] { "AssignedCourses", "AssignCourse" }))">Assign Course</a>
+                                <a href="@Url.Action("Schedule", "IT")" class="nav-link @(isActive("IT", new string[] { "Schedule" }))">Schedules</a>
                                 <a href="@Url.Action("Profile", "IT")" class="nav-link @(isActive("IT", new string[] { "Profile" }))">Profile</a>
                             }
 

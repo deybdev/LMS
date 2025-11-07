@@ -12,4 +12,6 @@ public class LMSContext : DbContext
     public DbSet<Material> Materials { get; set; }
     public DbSet<MaterialFile> MaterialFiles { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<Department> Departments { get; set; }
+    public DbSet<Program> Programs { get; set; }
 }

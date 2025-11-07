@@ -121,6 +121,10 @@ namespace LMS.Controllers
         {
             return View();
         }
+        public ActionResult AssignedCourses()
+        {
+            return View();
+        }
         public ActionResult AssignCourse()
         {
             return View();

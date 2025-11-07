@@ -69,6 +69,7 @@
                           data-create-url="@Url.Action("CreateAccount", "Account")"
                           data-edit-url="@Url.Action("EditAccount", "Account")"
                           data-get-user-url="@Url.Action("GetUserData", "Account")">
+
                         @Html.AntiForgeryToken()
 
                         <!-- Hidden ID for editing -->
@@ -221,10 +222,6 @@
 
         <!-- Search and Filter Section -->
         <div class="search-filter-section">
-            <div class="table-name">
-                <span><i class="fa-solid fa-users"></i></span>
-                <span>User Accounts</span>
-            </div>
             <div class="filter-controls">
                 <input type="text" id="searchInput" class="search-input" placeholder="Search users by Name, Department, or Email" />
 

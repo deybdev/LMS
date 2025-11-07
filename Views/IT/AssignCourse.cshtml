@@ -1,7 +1,189 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "AssignCourse";
 }
 
-<h2>AssignCourse</h2>
+<link rel="stylesheet" href="~/Content/teacherCreateCourse.css" />
 
+<div class="admin-container">
+    <div class="create-course-container">
+        <div class="course-form-wrapper">
+
+            <!-- Header -->
+            <div class="form-header">
+                <div class="header-icon">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <p>Assign Course</p>
+            </div>
+
+            <form id="assignCourseForm" class="course-form" method="post">
+                @Html.AntiForgeryToken()
+
+                <!-- CLASS DETAILS -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-calendar-alt"></i> Class Details
+                    </h3>
+
+                    <div class="form-grid">
+
+                        <!-- Semester -->
+                        <div class="form-group">
+                            <label class="form-label">Semester *</label>
+                            <select name="Semester" class="form-select" required>
+                                <option value="">-- Select Semester --</option>
+                                <option value="1st">1st Semester</option>
+                                <option value="2nd">2nd Semester</option>
+                                <option value="Summer">Summer</option>
+                            </select>
+                        </div>
+
+                        <!-- Department -->
+                        <div class="form-group">
+                            <label class="form-label">Department *</label>
+                            <select name="Department" class="form-select" required>
+                                <option value="">-- Select Department --</option>
+                                <option value="CCS">CCS</option>
+                                <option value="COE">COE</option>
+                                <option value="CBA">CBA</option>
+                                <option value="CTE">CTE</option>
+                                <option value="CHS">CHS</option>
+                            </select>
+                        </div>
+
+                        <!-- Program -->
+                        <div class="form-group">
+                            <label class="form-label">Program *</label>
+                            <select name="Program" class="form-select" required>
+                                <option value="">-- Select Program --</option>
+                                <option value="BSIT">BSIT</option>
+                                <option value="BSCS">BSCS</option>
+                                <option value="BLIS">BLIS</option>
+                                <option value="BSBA">BSBA</option>
+                                <option value="BSA">BSA</option>
+                                <option value="BEED">BEED</option>
+                                <option value="BSED">BSED</option>
+                            </select>
+                        </div>
+
+                        <!-- Year Level -->
+                        <div class="form-group">
+                            <label class="form-label">Year Level *</label>
+                            <select name="YearLevel" class="form-select" required>
+                                <option value="">-- Select Year Level --</option>
+                                <option value="1st Year">1st Year</option>
+                                <option value="2nd Year">2nd Year</option>
+                                <option value="3rd Year">3rd Year</option>
+                                <option value="4th Year">4th Year</option>
+                            </select>
+                        </div>
+
+                        <!-- Section -->
+                        <div class="form-group">
+                            <label class="form-label">Section *</label>
+                            <input type="text" name="Section" class="form-control" placeholder="Ex. A, B, C" required />
+                        </div>
+
+                        <!-- Day -->
+                        <div class="form-group">
+                            <label class="form-label">Day *</label>
+                            <select name="Day" class="form-select" required>
+                                <option value="">-- Select Day --</option>
+                                <option>Monday</option>
+                                <option>Tuesday</option>
+                                <option>Wednesday</option>
+                                <option>Thursday</option>
+                                <option>Friday</option>
+                                <option>Saturday</option>
+                            </select>
+                        </div>
+
+                        <!-- Time From -->
+                        <div class="form-group">
+                            <label class="form-label">Time From *</label>
+                            <input type="time" name="TimeFrom" class="form-control" required />
+                        </div>
+
+                        <!-- Time To -->
+                        <div class="form-group">
+                            <label class="form-label">Time To *</label>
+                            <input type="time" name="TimeTo" class="form-control" required />
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- COURSE SELECTION -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-book"></i> Course Information
+                    </h3>
+
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label class="form-label">Course *</label>
+                            <select id="courseSelect" name="CourseId" class="form-select" required>
+                                <option value="">-- Select Course --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="courseDetailsDisplay"
+                         style="display:none; margin-top:1.5rem; padding:1rem; background:var(--light-blue); border-radius:8px;">
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:1rem;">
+                            <div>
+                                <label class="detail-label">Course Code</label>
+                                <span id="displayCourseCode" class="detail-value"></span>
+                            </div>
+                            <div>
+                                <label class="detail-label">Department</label>
+                                <span id="displayDepartment" class="detail-value"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TEACHER SELECTION -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-chalkboard-teacher"></i> Teacher Information
+                    </h3>
+
+                    <div class="form-group full-width">
+                        <label class="form-label">Teacher *</label>
+                        <input type="text" id="teacherSearch" class="form-control search-input"
+                               placeholder="Search teacher..." autocomplete="off" />
+                    </div>
+
+                    <div id="selectedTeacherDisplay" style="display:none; margin-top:1.5rem;">
+                        <div class="enrolled-student-item">
+                            <div class="student-avatar-small" id="teacherAvatar">TN</div>
+                            <div class="student-info" style="flex:1;">
+                                <div class="student-header">
+                                    <span id="teacherName">Teacher Name</span>
+                                </div>
+                                <div class="student-details-small">
+                                    <span id="teacherEmail">email</span>
+                                </div>
+                            </div>
+                            <button type="button" class="remove-btn" onclick="removeSelectedTeacher()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="selectedTeacherId" name="TeacherId" required />
+                </div>
+
+                <!-- ACTIONS -->
+                <div class="form-actions">
+                    <a href="@Url.Action("Course", "IT")" class="btn btn-cancel">Cancel</a>
+                    <button type="submit" class="btn btn-create">
+                        <i class="fas fa-check"></i> Assign
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,178 @@
+﻿@model IEnumerable<LMS.Models.Department>
+
+@{
+    ViewBag.Title = "Departments";
+}
+
+<link rel="stylesheet" href="~/Content/manageUser.css" />
+<link rel="stylesheet" href="~/Content/adminAcademic.css" />
+
+<div class="admin-container">
+    <div class="page-header">
+        <h1>Department Management</h1>
+        <p class="subtitle">Manage academic departments</p>
+    </div>
+
+    <!-- Create Department Button -->
+    <div class="create-dropdown mb-3">
+        <button type="button" data-bs-toggle="modal" data-bs-target="#createDepartmentModal">
+            <i class="fa-solid fa-plus"></i> Create Department
+        </button>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="admin-navigation">
+        <div class="nav-tabs">
+            <button class="nav-tab active"
+                    onclick="window.location.href='@Url.Action("Departments", "Admin")'">
+                Department
+            </button>
+            <button class="nav-tab"
+                    onclick="window.location.href='@Url.Action("Programs", "Admin")'">
+                Program
+            </button>
+            <button class="nav-tab"
+                    onclick="window.location.href='@Url.Action("Sections", "Admin")'">
+                Sections
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="admin-content">
+        <!-- Search and Filter Section -->
+        <div class="search-filter-section">
+            <div class="filter-controls">
+                <input type="text" id="searchDepartmentInput" class="search-input" placeholder="Search departments by name or code..." />
+
+            </div>
+        </div>
+
+        <!-- Departments Table -->
+        <div class="default-table-container">
+            <table class="default-table">
+                <thead>
+                    <tr>
+                        <th>Department Name</th>
+                        <th>Code</th>
+                        <th>Date Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="departmentTableBody" data-delete-url="@Url.Action("Delete", "Department")">
+                    @foreach (var dept in Model)
+                    {
+                        <tr class="default-row" data-id="@dept.Id" data-status="Active">
+                            <td class="default-info">
+                                <div class="user-details">
+                                    <div class="user-name">@dept.DepartmentName</div>
+                                </div>
+                            </td>
+
+                            <td><span class="role-tag">@dept.DepartmentCode</span></td>
+
+                            <td class="last-login">
+                                <div>@dept.DateCreated.ToString("MM/dd/yyyy")</div>
+                            </td>
+
+                            <td class="action-buttons">
+                                <button class="action-btn edit-btn" data-id="@dept.Id" title="Edit">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+
+                                <button type="button" class="action-btn delete-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-item-id="@dept.Id"
+                                        data-item-name="@dept.DepartmentCode"
+                                        data-target-remove=".default-row"
+                                        data-url="@Url.Action("Delete", "Department")"
+                                        title="Delete">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+
+        <!-- Container for stacked alerts -->
+        <div id="alertContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; max-width: 320px;"></div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <span id="deptPaginationInfo">Showing 1-5 of 5 entries</span>
+                <span id="deptCurrentPageInfo" class="ms-3">Page 1 of 1</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" id="deptPrevBtn" disabled>
+                    <i class="fa-solid fa-chevron-left"></i> Previous
+                </button>
+                <div class="pagination-numbers" id="deptPaginationNumbers">
+                    <button class="pagination-number active">1</button>
+                </div>
+                <button class="pagination-btn" id="deptNextBtn" disabled>
+                    Next <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create/Edit Department Modal -->
+<div class="modal fade" id="createDepartmentModal" tabindex="-1" aria-labelledby="createDepartmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createDepartmentModalLabel">
+                    <i class="fa-solid fa-building"></i> <span id="deptModalTitle">Create New Department</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div id="deptFormErrorContainer" class="alert alert-danger alert-dismissible fade show d-none" role="alert">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i>
+                    <span id="deptFormErrorMessage"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <form id="createDepartmentForm">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" id="departmentId" name="Id" />
+
+                    <div class="mb-3">
+                        <label for="departmentName" class="form-label">Department Name *</label>
+                        <input type="text" id="departmentName" name="DepartmentName" class="form-control" required placeholder="e.g., College of Computer Studies">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="departmentCode" class="form-label">Department Code *</label>
+                        <input type="text" id="departmentCode" name="DepartmentCode" class="form-control" required placeholder="e.g., CCS">
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn cancel-btn" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="submitDepartmentBtn" form="createDepartmentForm">
+                    <i id="deptIcon" class="fa-solid fa-save me-1"></i> <span id="deptBtnText">Create</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/Scripts/Custom/deleteHandler.js"></script>
+    <script src="~/Scripts/Admin/formValidation.js"></script>
+}
+
+<style>
+
+</style>
+

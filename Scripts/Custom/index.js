@@ -20,7 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
         filteredRows = allRows.filter(r => {
             const query = searchInput.value.toLowerCase();
             if (!query) return true;
-            aaz
             const name = r.querySelector(".user-name").textContent.toLowerCase();
             const email = r.querySelector(".user-email").textContent.toLowerCase();
             const dept = r.cells[2].textContent.toLowerCase();

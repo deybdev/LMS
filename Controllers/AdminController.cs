@@ -72,6 +72,20 @@ namespace LMS.Controllers
         {
             return View();
         }
+        // GET: Admin/Departments
+        public ActionResult Departments()
+        {
+            var departments = db.Departments
+                                .OrderBy(d => d.DepartmentName)
+                                .ToList();
+
+            return View(departments);
+        }
+
+        public ActionResult Sections()
+        {
+            return View();
+        }
 
         // GET: Course
 
