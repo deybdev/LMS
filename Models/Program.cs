@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -10,23 +11,22 @@ namespace LMS.Models
 
         public int DepartmentId { get; set; }
 
-        [Required]
         public string ProgramName { get; set; }
 
-        [Required]
 
         public string ProgramCode { get; set; }
 
-        [Required]
-        public int DurationYears { get; set; }
+        public int ProgramDuration { get; set; }
 
         public DateTime DateCreated { get; set; } = DateTime.Now;
-
-        public bool IsActive { get; set; } = true;
 
 
         // ✅ Relationship: Program belongs to one Department
         public Department Department { get; set; }
+
+        // ✅ Relationship: Program has many Courses
+        public virtual ICollection<Course> Courses { get; set; }
+
     }
 
 }

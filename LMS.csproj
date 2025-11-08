@@ -216,42 +216,6 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\EmailHelper.cs" />
-    <Compile Include="Migrations\202510231406342_InitialCreate.cs" />
-    <Compile Include="Migrations\202510231406342_InitialCreate.Designer.cs">
-      <DependentUpon>202510231406342_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202510260243269_InitialCreate1.cs" />
-    <Compile Include="Migrations\202510260243269_InitialCreate1.Designer.cs">
-      <DependentUpon>202510260243269_InitialCreate1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202510260451431_AddCourseUserTable.cs" />
-    <Compile Include="Migrations\202510260451431_AddCourseUserTable.Designer.cs">
-      <DependentUpon>202510260451431_AddCourseUserTable.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202510261328195_AddMaterialDB.cs" />
-    <Compile Include="Migrations\202510261328195_AddMaterialDB.Designer.cs">
-      <DependentUpon>202510261328195_AddMaterialDB.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202510261619380_FixRelationships.cs" />
-    <Compile Include="Migrations\202510261619380_FixRelationships.Designer.cs">
-      <DependentUpon>202510261619380_FixRelationships.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202510261635430_UpdateDecimalInMaterialFIle.cs" />
-    <Compile Include="Migrations\202510261635430_UpdateDecimalInMaterialFIle.Designer.cs">
-      <DependentUpon>202510261635430_UpdateDecimalInMaterialFIle.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202510270533028_NavigateTeacherToCourse.cs" />
-    <Compile Include="Migrations\202510270533028_NavigateTeacherToCourse.Designer.cs">
-      <DependentUpon>202510270533028_NavigateTeacherToCourse.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202510271516532_IAddAuditTable.cs" />
-    <Compile Include="Migrations\202510271516532_IAddAuditTable.Designer.cs">
-      <DependentUpon>202510271516532_IAddAuditTable.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202511050327011_UpdateCourseModel.cs" />
-    <Compile Include="Migrations\202511050327011_UpdateCourseModel.Designer.cs">
-      <DependentUpon>202511050327011_UpdateCourseModel.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\202511050336380_CourseUpdate.cs" />
     <Compile Include="Migrations\202511050336380_CourseUpdate.Designer.cs">
       <DependentUpon>202511050336380_CourseUpdate.cs</DependentUpon>
@@ -271,6 +235,22 @@
     <Compile Include="Migrations\202511061504570_AddModelDepandProg.cs" />
     <Compile Include="Migrations\202511061504570_AddModelDepandProg.Designer.cs">
       <DependentUpon>202511061504570_AddModelDepandProg.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511071322300_RemoveStatusProgram.cs" />
+    <Compile Include="Migrations\202511071322300_RemoveStatusProgram.Designer.cs">
+      <DependentUpon>202511071322300_RemoveStatusProgram.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511071326081_UpdateProgramModel.cs" />
+    <Compile Include="Migrations\202511071326081_UpdateProgramModel.Designer.cs">
+      <DependentUpon>202511071326081_UpdateProgramModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511071454137_UpdateCourseModelFixed.cs" />
+    <Compile Include="Migrations\202511071454137_UpdateCourseModelFixed.Designer.cs">
+      <DependentUpon>202511071454137_UpdateCourseModelFixed.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511071528045_AddNavCourse.cs" />
+    <Compile Include="Migrations\202511071528045_AddNavCourse.Designer.cs">
+      <DependentUpon>202511071528045_AddNavCourse.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AuditLog.cs" />
@@ -338,6 +318,7 @@
     <Content Include="Scripts\Custom\adminCourse.js" />
     <Content Include="Scripts\Custom\adminLogs.js" />
     <Content Include="Scripts\Custom\deleteHandler.js" />
+    <Content Include="Scripts\Custom\dropdown.js" />
     <Content Include="Scripts\Custom\improvedExcelProgress.js" />
     <Content Include="Scripts\Custom\index.js" />
     <Content Include="Scripts\Custom\schoolCalendar.js" />
@@ -396,33 +377,6 @@
     <Content Include="Views\Admin\Sections.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202510231406342_InitialCreate.resx">
-      <DependentUpon>202510231406342_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202510260243269_InitialCreate1.resx">
-      <DependentUpon>202510260243269_InitialCreate1.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202510260451431_AddCourseUserTable.resx">
-      <DependentUpon>202510260451431_AddCourseUserTable.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202510261328195_AddMaterialDB.resx">
-      <DependentUpon>202510261328195_AddMaterialDB.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202510261619380_FixRelationships.resx">
-      <DependentUpon>202510261619380_FixRelationships.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202510261635430_UpdateDecimalInMaterialFIle.resx">
-      <DependentUpon>202510261635430_UpdateDecimalInMaterialFIle.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202510270533028_NavigateTeacherToCourse.resx">
-      <DependentUpon>202510270533028_NavigateTeacherToCourse.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202510271516532_IAddAuditTable.resx">
-      <DependentUpon>202510271516532_IAddAuditTable.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202511050327011_UpdateCourseModel.resx">
-      <DependentUpon>202511050327011_UpdateCourseModel.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202511050336380_CourseUpdate.resx">
       <DependentUpon>202511050336380_CourseUpdate.cs</DependentUpon>
     </EmbeddedResource>
@@ -437,6 +391,18 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202511061504570_AddModelDepandProg.resx">
       <DependentUpon>202511061504570_AddModelDepandProg.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511071322300_RemoveStatusProgram.resx">
+      <DependentUpon>202511071322300_RemoveStatusProgram.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511071326081_UpdateProgramModel.resx">
+      <DependentUpon>202511071326081_UpdateProgramModel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511071454137_UpdateCourseModelFixed.resx">
+      <DependentUpon>202511071454137_UpdateCourseModelFixed.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511071528045_AddNavCourse.resx">
+      <DependentUpon>202511071528045_AddNavCourse.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

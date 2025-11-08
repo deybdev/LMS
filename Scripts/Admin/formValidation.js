@@ -115,6 +115,8 @@
             type: 'GET',
             data: { id: itemId },
             success: (data) => {
+                console.log('Received data:', data); // Debug log
+                
                 if (data.success) {
                     this.isEdit = true;
                     
@@ -128,10 +130,13 @@
                     $icon.removeClass('fa-upload').addClass('fa-save');
                     $modal.modal('show');
                 } else {
-                    showAlert('danger', `Error loading ${this.config.entityName.toLowerCase()} data`);
+                    console.error('Error from server:', data.message); // Debug log
+                    showAlert('danger', `Error loading ${this.config.entityName.toLowerCase()} data: ${data.message}`);
                 }
             },
-            error: () => {
+            error: (xhr, status, error) => {
+                console.error('Ajax error:', xhr, status, error); // Debug log
+                console.error('Response text:', xhr.responseText); // Debug log
                 showAlert('danger', `Error loading ${this.config.entityName.toLowerCase()} data`);
             }
         });
@@ -300,47 +305,48 @@ function initProgramForm() {
         errorContainerId: 'formErrorContainer',
         errorMessageId: 'formErrorMessage',
         idFieldId: 'programId',
-        createUrl: '/Admin/CreateProgram',
-        editUrl: '/Admin/EditProgram',
-        getDataUrl: '/Admin/GetProgramData',
-        deleteUrl: '/Admin/DeleteProgram',
+        createUrl: '/Program/Create',
+        editUrl: '/Program/Edit',
+        getDataUrl: '/Program/GetById',
+        deleteUrl: '/Program/Delete',
         createTriggerSelector: 'button[data-bs-target="#createProgramModal"]',
         entityName: 'Program',
         
         fillFormFields: (program) => {
+            console.log('Filling form with program data:', program); // Debug log
             $('#programId').val(program.id);
             $('#programName').val(program.programName);
             $('#programCode').val(program.programCode);
-            $('#department').val(program.department);
-            $('#programDuration').val(program.duration);
-            $('#programStatus').val(program.status);
+            $('#department').val(program.departmentId);
+            $('#programDuration').val(program.programDuration);
         },
         
         updateExistingRow: (program) => {
             const $row = $(`.edit-btn[data-id="${program.id}"]`).closest('tr');
-            $row.attr('data-department', program.department);
-            $row.attr('data-status', program.status);
+            $row.attr('data-department', program.departmentCode);
             $row.find('.user-name').text(program.programName);
             $row.find('.role-tag').text(program.programCode);
-            $row.find('td:eq(2)').text(program.department);
-            $row.find('td:eq(3)').text(`${program.duration} Years`);
+            $row.find('td:eq(2)').text(program.departmentCode);
+            $row.find('td:eq(3)').text(`${program.programDuration} Years`);
         },
         
         buildNewRow: (program, deleteUrl) => {
             const dateCreated = new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+            const timeCreated = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             
             return `
-            <tr class="default-row" data-department="${program.department}" data-status="${program.status}">
+            <tr class="default-row" data-department="${program.departmentCode}">
                 <td class="default-info">
                     <div class="user-details">
                         <div class="user-name">${program.programName}</div>
                     </div>
                 </td>
                 <td><span class="role-tag">${program.programCode}</span></td>
-                <td>${program.department}</td>
-                <td>${program.duration} Years</td>
+                <td>${program.departmentCode}</td>
+                <td>${program.programDuration} Years</td>
                 <td class="last-login">
                     <div>${dateCreated}</div>
+                    <div class="login-time">${timeCreated}</div>
                 </td>
                 <td class="action-buttons">
                     <button class="action-btn edit-btn" data-id="${program.id}" title="Edit">

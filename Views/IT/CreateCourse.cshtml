@@ -37,36 +37,42 @@
                             <input type="text" id="CourseCode" name="CourseCode" class="form-control" required placeholder="e.g., CS101">
                         </div>
 
-                        @*<div class="form-group">
-                            <label for="section" class="form-label">Year and Section *</label>
-                            <input type="text" id="Section" name="Section" class="form-control" required placeholder="e.g., 1A, 3R, 4B">
-                        </div>*@
-
                     </div>
                     <div class="form-grid">
-                    
                         <div class="form-group">
-                            <label for="semester" class="form-label">Semester *</label>
-                            <select id="Semester" name="Semester" class="form-select" required>
-                                <option value="">Select Semester</option>
-                                <option value="1st">1st Semester</option>
-                                <option value="2nd">2nd Semester</option>
-                                <option value="summer">Summer</option>
+                            <label for="department" class="form-label">Department *</label>
+                            <select id="department" name="DepartmentId" class="form-select" required>
+                                <option value="">Choose department</option>
+                                @foreach (var d in ViewBag.Departments)
+                                {
+                                    <option value="@d.Id">@d.DepartmentName</option>
+                                }
                             </select>
                         </div>
 
                         <div class="form-group">
-                            <label for="academicYear" class="form-label"></label>
-                            <label for="department" class="form-label">Select Department</label>
-                            <select id="department" name="department" class="form-select" required>
-                                <option value="" disabled>Choose department</option>
-                                <option value="Computer Studies">Computer Studies</option>
-                                <option value="Engineering">Engineering</option>
-                                <option value="Business Administration">Business Administration</option>
-                                <option value="Accountancy">Accountancy</option>
-                                <option value="Education">Education</option>
-                                <option value="General Education">General Education</option>
+                            <label for="program" class="form-label">Program *</label>
+                            <select id="program" name="ProgramId" class="form-select" required disabled>
+                                <option value="">Select program</option>
                             </select>
+                        </div>
+
+
+                        <div class="form-group">
+                            <label for="semester" class="form-label">Semester *</label>
+                            <select id="Semester" name="Semester" class="form-select" required>
+                                <option value="">Select Semester</option>
+                                <option value="1">1st Semester</option>
+                                <option value="2">2nd Semester</option>
+                                <option value="3    ">Summer</option>
+                            </select>
+                        </div>
+
+
+
+                        <div class="form-group">
+                            <label for="yearLevel" class="form-label">Year *</label>
+                            <input type="text" id="Section" name="YearLevel" class="form-control" required placeholder="e.g., 1, 2, 3, 4">
                         </div>
                     </div>
 
@@ -78,65 +84,65 @@
 
                 <!-- Class Schedule Section -->
                 @*<div class="form-section">
-                    <h3 class="section-title">
-                        <i class="fas fa-clock"></i>
-                        Class Schedule
-                    </h3>
+                        <h3 class="section-title">
+                            <i class="fas fa-clock"></i>
+                            Class Schedule
+                        </h3>
 
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="selectDay" class="form-label">Select Day *</label>
-                            <select id="Day" name="Day" class="form-select" required>
-                                <option value="">Choose Day</option>
-                                <option value="monday">Monday</option>
-                                <option value="tuesday">Tuesday</option>
-                                <option value="wednesday">Wednesday</option>
-                                <option value="thursday">Thursday</option>
-                                <option value="friday">Friday</option>
-                                <option value="saturday">Saturday</option>
-                            </select>
-                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="selectDay" class="form-label">Select Day *</label>
+                                <select id="Day" name="Day" class="form-select" required>
+                                    <option value="">Choose Day</option>
+                                    <option value="monday">Monday</option>
+                                    <option value="tuesday">Tuesday</option>
+                                    <option value="wednesday">Wednesday</option>
+                                    <option value="thursday">Thursday</option>
+                                    <option value="friday">Friday</option>
+                                    <option value="saturday">Saturday</option>
+                                </select>
+                            </div>
 
-                        <div class="form-group">
-                            <label for="startTime" class="form-label">Start Time *</label>
-                            <select id="StartTime" name="StartTime" class="form-select" required>
-                                <option value="">Select Start Time</option>
-                                <option value="07:00">7:00 AM</option>
-                                <option value="08:00">8:00 AM</option>
-                                <option value="09:00">9:00 AM</option>
-                                <option value="10:00">10:00 AM</option>
-                                <option value="11:00">11:00 AM</option>
-                                <option value="13:00">1:00 PM</option>
-                                <option value="14:00">2:00 PM</option>
-                                <option value="15:00">3:00 PM</option>
-                                <option value="16:00">4:00 PM</option>
-                                <option value="17:00">5:00 PM</option>
-                                <option value="18:00">6:00 PM</option>
-                                <option value="19:00">7:00 PM</option>
-                            </select>
-                        </div>
+                            <div class="form-group">
+                                <label for="startTime" class="form-label">Start Time *</label>
+                                <select id="StartTime" name="StartTime" class="form-select" required>
+                                    <option value="">Select Start Time</option>
+                                    <option value="07:00">7:00 AM</option>
+                                    <option value="08:00">8:00 AM</option>
+                                    <option value="09:00">9:00 AM</option>
+                                    <option value="10:00">10:00 AM</option>
+                                    <option value="11:00">11:00 AM</option>
+                                    <option value="13:00">1:00 PM</option>
+                                    <option value="14:00">2:00 PM</option>
+                                    <option value="15:00">3:00 PM</option>
+                                    <option value="16:00">4:00 PM</option>
+                                    <option value="17:00">5:00 PM</option>
+                                    <option value="18:00">6:00 PM</option>
+                                    <option value="19:00">7:00 PM</option>
+                                </select>
+                            </div>
 
-                        <div class="form-group">
-                            <label for="endTime" class="form-label">End Time *</label>
-                            <select id="EndTime" name="EndTime" class="form-select" required>
-                                <option value="">Select End Time</option>
-                                <option value="08:00">8:00 AM</option>
-                                <option value="09:00">9:00 AM</option>
-                                <option value="10:00">10:00 AM</option>
-                                <option value="11:00">11:00 AM</option>
-                                <option value="12:00">12:00 PM</option>
-                                <option value="14:00">2:00 PM</option>
-                                <option value="15:00">3:00 PM</option>
-                                <option value="16:00">4:00 PM</option>
-                                <option value="17:00">5:00 PM</option>
-                                <option value="18:00">6:00 PM</option>
-                                <option value="19:00">7:00 PM</option>
-                                <option value="20:00">8:00 PM</option>
-                                <option value="21:00">9:00 PM</option>
-                            </select>
+                            <div class="form-group">
+                                <label for="endTime" class="form-label">End Time *</label>
+                                <select id="EndTime" name="EndTime" class="form-select" required>
+                                    <option value="">Select End Time</option>
+                                    <option value="08:00">8:00 AM</option>
+                                    <option value="09:00">9:00 AM</option>
+                                    <option value="10:00">10:00 AM</option>
+                                    <option value="11:00">11:00 AM</option>
+                                    <option value="12:00">12:00 PM</option>
+                                    <option value="14:00">2:00 PM</option>
+                                    <option value="15:00">3:00 PM</option>
+                                    <option value="16:00">4:00 PM</option>
+                                    <option value="17:00">5:00 PM</option>
+                                    <option value="18:00">6:00 PM</option>
+                                    <option value="19:00">7:00 PM</option>
+                                    <option value="20:00">8:00 PM</option>
+                                    <option value="21:00">9:00 PM</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                </div>*@
+                    </div>*@
 
                 <!-- Invite Students Section -->
                 <!--<div class="form-section">
@@ -147,19 +153,16 @@
                     </h3>
 
                     <div class="invite-students-container">-->
-
-                        <!-- Search & Selected Students -->
-                        <!--<div class="search-student-section">-->
-
-                            <!-- Search Input -->
-                            <!--<div class="search-input-wrapper">
-                                <input type="text" id="studentSearch" class="form-control search-input" placeholder="Search for a student by name or student ID...">
-                                <button type="button" class="btn-clear-all" onclick="clearAllStudents()" disabled>Clear All</button>
-                            </div>
-                        </div>-->
-
-                        <!-- Search Results -->
-                        <!--<div class="students-display">
+                <!-- Search & Selected Students -->
+                <!--<div class="search-student-section">-->
+                <!-- Search Input -->
+                <!--<div class="search-input-wrapper">
+                        <input type="text" id="studentSearch" class="form-control search-input" placeholder="Search for a student by name or student ID...">
+                        <button type="button" class="btn-clear-all" onclick="clearAllStudents()" disabled>Clear All</button>
+                    </div>
+                </div>-->
+                <!-- Search Results -->
+                <!--<div class="students-display">
                             <div class="no-students-message">
                                 <i class="fas fa-user-friends"></i>
                                 <p>No students enrolled yet</p>
@@ -170,10 +173,8 @@
                     </div>
 
                 </div>-->
-
                 <!-- Hidden Input to Store Selected Students -->
                 <!--<input type="hidden" name="SelectedStudentsJson" id="SelectedStudentsJson" />-->
-
                 <!-- Form Actions -->
                 <div class="form-actions">
                     <button type="button" class="btn btn-cancel" onclick="cancelForm()">Cancel</button>
@@ -189,7 +190,15 @@
 
 
 @section scripts {
-   
-
+    <script src="~/Scripts/Custom/dropdown.js"></script>
 }
+
+<style>
+    .form-select:disabled {
+    background-color: #f5f5f5;
+    color: #999;
+    cursor: not-allowed;
+}
+
+</style>
 

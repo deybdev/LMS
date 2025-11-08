@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -20,16 +20,16 @@ namespace LMS.Controllers
         public ActionResult Course()
 
         {
-            if (Session["Id"] == null || (string)Session["Role"] != "IT")
-            {
-                TempData["ErrorMessage"] = "Session expired. Please log in again.";
-                return RedirectToAction("Login", "Home");
-            }
+            //if (Session["Id"] == null || (string)Session["Role"] != "IT")
+            //{
+            //    TempData["ErrorMessage"] = "Session expired. Please log in again.";
+            //    return RedirectToAction("Login", "Home");
+            //}
 
-            // Include Teacher, Materials, and CourseUsers
             var courses = db.Courses
-                .Include("Materials.MaterialFiles")
-                .Include("CourseUsers")  // Include course users to count students
+                .Include(c => c.Program)
+                .Include(c => c.Program.Department)
+                .OrderByDescending(c => c.DateCreated)
                 .ToList();
 
             return View(courses);
@@ -41,10 +41,10 @@ namespace LMS.Controllers
         {
             try
             {
-                if (Session["Id"] == null || (string)Session["Role"] != "IT")
-                {
-                    return Json(new { success = false, message = "Session expired. Please log in again." }, JsonRequestBehavior.AllowGet);
-                }
+                //if (Session["Id"] == null || (string)Session["Role"] != "IT")
+                //{
+                //    return Json(new { success = false, message = "Session expired. Please log in again." }, JsonRequestBehavior.AllowGet);
+                //}
 
                 // Get course including teacher and materials
                 var course = db.Courses
@@ -115,6 +115,9 @@ namespace LMS.Controllers
         // GET: IT/CreateCourse
         public ActionResult CreateCourse()
         {
+            ViewBag.Programs = db.Programs.ToList();
+            ViewBag.Departments = db.Departments.ToList();
+
             return View();
         }
         public ActionResult EditCourse()

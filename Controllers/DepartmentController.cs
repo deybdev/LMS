@@ -1,5 +1,6 @@
 ﻿using LMS.Models;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 
@@ -134,5 +135,16 @@ namespace LMS.Controllers
                 data = new { id = id }
             });
         }
+
+        // ✅ GET ALL DEPARTMENTS
+        [HttpGet]
+        public List<Department> GetAll()
+        {
+            return db.Departments
+                .OrderBy(d => d.DepartmentName)
+                .ToList();
+        }
+
+
     }
 }

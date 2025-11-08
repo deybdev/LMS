@@ -97,6 +97,18 @@ namespace LMS.Controllers
             return Json(new { success = true, message = $"Course '{courseTitle}' deleted successfully!" });
         }
 
+        public JsonResult GetProgramsByDepartment(int departmentId)
+        {
+            var programs = db.Programs
+                .Where(p => p.DepartmentId == departmentId)
+                .Select(p => new {
+                    p.Id,
+                    p.ProgramName
+                })
+                .ToList();
+
+            return Json(programs, JsonRequestBehavior.AllowGet);
+        }
 
     }
 }

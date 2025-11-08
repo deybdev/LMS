@@ -1,6 +1,7 @@
 ﻿@{
     ViewBag.Title = "Programs";
 }
+@model IEnumerable<LMS.Models.Program>
 
 <link rel="stylesheet" href="~/Content/manageUser.css" />
 <link rel="stylesheet" href="~/Content/adminAcademic.css" />
@@ -79,152 +80,81 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="programTableBody">
-                    <!-- Sample Data -->
-                    <tr class="default-row" data-department="Computer Studies" data-status="Active">
-                        <td class="default-info">
-                            <div class="user-details">
-                                <div class="user-name">BS in Computer Science</div>
-                            </div>
-                        </td>
-                        <td><span class="role-tag">BSCS</span></td>
-                        <td>CCS</td>
-                        <td>4 Years</td>
-                        <td class="last-login">
-                            <div>01/15/2024</div>
-                            <div class="login-time">10:30 AM</div>
-                        </td>
-                        <td class="action-buttons">
-                            <button class="action-btn edit-btn" data-id="1" title="Edit">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button type="button" class="action-btn delete-btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal"
-                                    data-item-id="1"
-                                    data-item-name="BS in Computer Science"
-                                    data-target-remove=".default-row"
-                                    title="Delete">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
+                <tbody id="programTableBody" data-delete-url="@Url.Action("Delete", "Program")">
 
-                    <tr class="default-row" data-department="Information Technology" data-status="Active">
-                        <td class="default-info">
-                            <div class="user-details">
-                                <div class="user-name">BS in Information Technology</div>
-                            </div>
-                        </td>
-                        <td><span class="role-tag">BSIT</span></td>
-                        <td>CCS</td>
-                        <td>4 Years</td>
-                        <td class="last-login">
-                            <div>01/15/2024</div>
-                            <div class="login-time">10:35 AM</div>
-                        </td>
-                        <td class="action-buttons">
-                            <button class="action-btn edit-btn" data-id="2" title="Edit">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button type="button" class="action-btn delete-btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal"
-                                    data-item-id="2"
-                                    data-item-name="BS in Information Technology"
-                                    data-target-remove=".default-row"
-                                    title="Delete">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
+                    @foreach (var p in Model)
+                    {
+                        <tr class="default-row"
+                            data-department="@p.Department.DepartmentCode"
+                            data-status="Active">
 
-                    <tr class="default-row" data-department="Business Administration" data-status="Active">
-                        <td class="default-info">
-                            <div class="user-details">
-                                <div class="user-name">BS in Business Administration</div>
-                            </div>
-                        </td>
-                        <td><span class="role-tag">BSBA</span></td>
-                        <td>CBAA</td>
-                        <td>4 Years</td>
-                        <td class="last-login">
-                            <div>01/15/2024</div>
-                            <div class="login-time">10:40 AM</div>
-                        </td>
-                        <td class="action-buttons">
-                            <button class="action-btn edit-btn" data-id="3" title="Edit">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button type="button" class="action-btn delete-btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal"
-                                    data-item-id="3"
-                                    data-item-name="BS in Business Administration"
-                                    data-target-remove=".default-row"
-                                    title="Delete">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
+                            <td class="default-info">
+                                @{
+                                    string program = p.ProgramName?.Trim() ?? "";
+                                    string shortProgram = program;
 
-                    <tr class="default-row" data-department="Engineering" data-status="Active">
-                        <td class="default-info">
-                            <div class="user-details">
-                                <div class="user-name">BS in Civil Engineering</div>
-                            </div>
-                        </td>
-                        <td><span class="role-tag">BSCE</span></td>
-                        <td>COE</td>
-                        <td>5 Years</td>
-                        <td class="last-login">
-                            <div>01/15/2024</div>
-                            <div class="login-time">10:45 AM</div>
-                        </td>
-                        <td class="action-buttons">
-                            <button class="action-btn edit-btn" data-id="4" title="Edit">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button type="button" class="action-btn delete-btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal"
-                                    data-item-id="4"
-                                    data-item-name="BS in Civil Engineering"
-                                    data-target-remove=".default-row"
-                                    title="Delete">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
+                                    if (!string.IsNullOrEmpty(program))
+                                    {
+                                        var words = program.Split(' ');
+                                        var skipWords = new[] { "of" };
+                                        int end = words.Length;
 
-                    <tr class="default-row" data-department="Accountancy" data-status="Inactive">
-                        <td class="default-info">
-                            <div class="user-details">
-                                <div class="user-name">BS in Accountancy</div>
-                            </div>
-                        </td>
-                        <td><span class="role-tag">BSA</span></td>
-                        <td>CBAA</td>
-                        <td>4 Years</td>
-                        <td class="last-login">
-                            <div>01/15/2024</div>
-                            <div class="login-time">10:50 AM</div>
-                        </td>
-                        <td class="action-buttons">
-                            <button class="action-btn edit-btn" data-id="5" title="Edit">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button type="button" class="action-btn delete-btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal"
-                                    data-item-id="5"
-                                    data-item-name="BS in Accountancy"
-                                    data-target-remove=".default-row"
-                                    title="Delete">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
+                                        for (int i = 0; i < words.Length; i++)
+                                        {
+                                            if (words[i].Equals("in", StringComparison.OrdinalIgnoreCase) ||
+                                                words[i].Equals("major", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                end = i;
+                                                break;
+                                            }
+                                        }
+
+                                        string acronym = string.Concat(
+                                            words.Take(end)
+                                                 .Where(w => !skipWords.Contains(w, StringComparer.OrdinalIgnoreCase))
+                                                 .Select(w => char.ToUpper(w[0]))
+                                        );
+
+                                        string remaining = string.Join(" ", words.Skip(end));
+
+                                        shortProgram = $"{acronym} {remaining}".Trim();
+                                    }
+                                }
+
+                                <div class="user-name">@shortProgram</div>
+                            </td>
+
+                            <td><span class="role-tag">@p.ProgramCode</span></td>
+
+                            <td>@p.Department.DepartmentCode</td>
+
+                            <td>@p.ProgramDuration Years</td>
+
+                            <td class="last-login">
+                                <div>@p.DateCreated.ToString("MM/dd/yyyy")</div>
+                                <div class="login-time">@p.DateCreated.ToString("hh:mm tt")</div>
+                            </td>
+
+                            <td class="action-buttons">
+                                <button class="action-btn edit-btn" data-id="@p.Id" title="Edit">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+
+                                <button type="button" class="action-btn delete-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-item-id="@p.Id"
+                                        data-item-name="@p.ProgramCode"
+                                        data-target-remove=".default-row"
+                                        data-url="@Url.Action("Delete", "Program")"
+                                        title="Delete">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+
+                        </tr>
+                    }
+
                 </tbody>
             </table>
         </div>
@@ -251,7 +181,7 @@
 </div>
 
 
-    <div id="alertContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; max-width: 320px;"></div>
+<div id="alertContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; max-width: 320px;"></div>
 
 <!-- Create/Edit Program Modal -->
 <div class="modal fade" id="createProgramModal" tabindex="-1" aria-labelledby="createProgramModalLabel" aria-hidden="true">
@@ -274,36 +204,34 @@
                 <form id="createProgramForm">
                     @Html.AntiForgeryToken()
 
-                    <input type="hidden" id="programId" name="id" />
+                    <input type="hidden" id="programId" name="Id" />
 
                     <div class="mb-3">
                         <label for="programName" class="form-label">Program Name *</label>
-                        <input type="text" id="programName" name="programName" class="form-control" required placeholder="e.g., Bachelor of Science in Computer Science">
+                        <input type="text" id="programName" name="ProgramName" class="form-control" required placeholder="e.g., Bachelor of Science in Computer Science">
                     </div>
 
                     <div class="mb-3">
                         <label for="programCode" class="form-label">Program Code *</label>
-                        <input type="text" id="programCode" name="programCode" class="form-control" required placeholder="e.g., BSCS">
+                        <input type="text" id="programCode" name="ProgramCode" class="form-control" required placeholder="e.g., BSCS">
                     </div>
 
                     <div class="mb-3">
                         <label for="department" class="form-label">Department *</label>
-                        <select id="department" name="department" class="form-select" required>
+                        <select id="department" name="DepartmentId" class="form-select" required>
                             <option value="">Choose department</option>
-                            <option value="Computer Studies">Computer Studies</option>
-                            <option value="Information Technology">Information Technology</option>
-                            <option value="Engineering">Engineering</option>
-                            <option value="Business Administration">Business Administration</option>
-                            <option value="Accountancy">Accountancy</option>
-                            <option value="Education">Education</option>
-                            <option value="General Education">General Education</option>
+
+                            @foreach (var d in ViewBag.Departments)
+                            {
+                                <option value="@d.Id">@d.DepartmentName</option>
+                            }
                         </select>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="programDuration" class="form-label">Duration (Years) *</label>
-                            <input type="number" id="programDuration" name="programDuration" class="form-control" required min="1" max="10" placeholder="4">
+                            <input type="number" id="programDuration" name="ProgramDuration" class="form-control" required min="1" max="10" placeholder="4">
                         </div>
                     </div>
                 </form>
@@ -322,6 +250,7 @@
 
 @section scripts {
     <script src="~/Scripts/Custom/deleteHandler.js"></script>
+    <script src="~/Scripts/Admin/formValidation.js"></script>
 
     @if (TempData["SuccessMessage"] != null)
     {

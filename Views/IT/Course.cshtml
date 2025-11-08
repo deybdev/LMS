@@ -1,6 +1,5 @@
 ﻿@{
     ViewBag.Title = "Course Management";
-    var studentCounts = ViewBag.StudentCounts as Dictionary<int, int>;
 }
 
 @model IEnumerable<LMS.Models.Course>
@@ -61,7 +60,9 @@
                     <tr>
                         <th>Course Code</th>
                         <th>Title</th>
+                        <th>Program</th>
                         <th>Semester</th>
+                        <th>Year Level</th>
                         <th>Date Created</th>
                         <th>Actions</th>
                     </tr>
@@ -78,9 +79,20 @@
                                         @course.CourseTitle
                                     </p>
                                 </td>
+                                <td>@(course.Program?.ProgramCode ?? "N/A")</td>
                                 <td>
-                                    @course.Semester
+                                    @(course.Semester == 1 ? "1st" :
+                                      course.Semester == 2 ? "2nd" :
+                                      course.Semester == 3 ? "3rd" :
+                                      course.Semester + "th")
                                 </td>
+                                <td>
+                                    @(course.YearLevel == 1 ? "1st" :
+                                      course.YearLevel == 2 ? "2nd" :
+                                      course.YearLevel == 3 ? "3rd" :
+                                      course.YearLevel + "th")
+                                </td>
+
                                 <td>@course.DateCreated.ToString("MMM dd, yyyy")</td>
                                 <td class="action-buttons">
                                     <button class="action-btn view-btn">
@@ -106,7 +118,7 @@
                     else
                     {
                         <tr id="noDataRow">
-                            <td colspan="5" class="text-center border-bottom-0">No courses found.</td>
+                            <td colspan="6" class="text-center border-bottom-0">No courses found.</td>
                         </tr>
                     }
                 </tbody>
@@ -119,7 +131,7 @@
         <!-- Pagination Controls -->
         <div class="pagination-container">
             <div class="pagination-info">
-                <span id="paginationInfo">Showing 1-5 of 0 entries</span>
+                <span id="paginationInfo">Showing 1-@Model.Count() of @Model.Count() entries</span>
                 <span id="currentPageInfo" class="ms-3">Page 1 of 1</span>
             </div>
             <div class="pagination-controls">

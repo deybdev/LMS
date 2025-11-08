@@ -1,18 +1,9 @@
 ﻿using LMS.Models;
-using LMS.Helpers;
-using ClosedXML.Excel;
-using System.IO;
 using System;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Web;
 using System.Web.Mvc;
-using OfficeOpenXml;
 using System.Collections.Generic;
-using Newtonsoft.Json;
-
-
+using System.Data.Entity;
 
 namespace LMS.Controllers
 {
@@ -70,8 +61,16 @@ namespace LMS.Controllers
         // GET: Admin/Program
         public ActionResult Programs()
         {
-            return View();
+            ViewBag.Departments = db.Departments.ToList();
+
+            var programs = db.Programs
+                             .Include(p => p.Department)
+                             .ToList();
+
+            return View(programs);
         }
+
+
         // GET: Admin/Departments
         public ActionResult Departments()
         {

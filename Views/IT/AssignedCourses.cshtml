@@ -1,238 +1,572 @@
 @{
-    ViewBag.Title = "AssignedCourses";
+    ViewBag.Title = "Assigned Courses";
 }
 
 <link rel="stylesheet" href="~/Content/teacherCreateCourse.css" />
 <link rel="stylesheet" href="~/Content/manageUser.css" />
 <link rel="stylesheet" href="~/Content/itCourse.css" />
 
-
-
 <div class="admin-container">
     <div class="page-header">
-        <h1>Course Assignment</h1>
-        <p class="subtitle">Assign existing courses to teachers and manage current assignments</p>
+        <h1>Course Curriculum</h1>
+        <p class="subtitle">View and manage courses assigned to each Program, Year Level, and Semester</p>
     </div>
 
     <div class="header-actions">
         <button class="btn-create-class" onclick="window.location.href='@Url.Action("AssignCourse", "IT")'">
-            <i class="fas fa-plus"></i> Create Course
+            <i class="fas fa-plus"></i> Assign Courses
         </button>
     </div>
 
-    <!-- Current Assignments Section -->
+    <!-- Filter Section -->
     <div class="admin-content" style="margin-bottom: 2rem;">
         <div class="search-filter-section">
             <div class="filter-controls">
-                <input type="text" id="searchAssignments" class="search-input" placeholder="Search by course title, teacher name, or department..." />
+                <input type="text" id="searchAssignments" class="search-input" placeholder="Search by program, year level, or semester..." />
 
                 <div class="filter-dropdowns">
-                    <select class="filter-select" id="assignmentDeptFilter">
-                        <option value="">All Departments</option>
-                        <option value="Computer Studies">Computer Studies</option>
-                        <option value="Information Technology">Information Technology</option>
-                        <option value="Business Administration">Business Administration</option>
+                    <select class="filter-select" id="programFilter">
+                        <option value="">All Programs</option>
+                        <option value="BSCS">BSCS - BS in Computer Science</option>
+                        <option value="BSIT">BSIT - BS in Information Technology</option>
+                        <option value="BSBA">BSBA - BS in Business Administration</option>
+                        <option value="BSCE">BSCE - BS in Civil Engineering</option>
                     </select>
 
-                    <select class="filter-select" id="assignmentSemesterFilter">
+                    <select class="filter-select" id="yearLevelFilter">
+                        <option value="">All Year Levels</option>
+                        <option value="1">1st Year</option>
+                        <option value="2">2nd Year</option>
+                        <option value="3">3rd Year</option>
+                        <option value="4">4th Year</option>
+                        <option value="5">5th Year</option>
+                    </select>
+
+                    <select class="filter-select" id="semesterFilter">
                         <option value="">All Semesters</option>
-                        <option value="1st">1st Semester</option>
-                        <option value="2nd">2nd Semester</option>
+                        <option value="1">1st Semester</option>
+                        <option value="2">2nd Semester</option>
+                        <option value="3">Summer</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        <!-- Assignments Grid -->
-        <div class="courses-grid-container">
-            <div class="courses-row" id="assignmentsGrid">
-
-                <!-- Sample Assignment Card 1 -->
-                <div class="course-card" data-department="Computer Studies" data-semester="1st">
-                    <div class="course-header">
-                        <div class="course-main-info">
-                            <h3 class="course-title">Introduction to Programming</h3>
-                            <div class="course-meta-row">
-                                <span class="course-code">CS101</span>
-                                <span class="department-tag">Computer Studies</span>
+        <!-- Curriculum Table -->
+        <div class="default-table-container">
+            <table class="default-table">
+                <thead>
+                    <tr>
+                        <th>Program</th>
+                        <th>Year Level</th>
+                        <th>Semester</th>
+                        <th>Total Courses</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="curriculumTableBody">
+                    <!-- Group Row 1: BSCS - 1st Year - 1st Semester -->
+                    <tr class="default-row curriculum-group-row" 
+                        data-program="BSCS" 
+                        data-year="1" 
+                        data-semester="1"
+                        data-group-id="bscs-1-1">
+                        <td class="default-info">
+                            <div class="user-details">
+                                <div class="user-name">BS in Computer Science</div>
+                                <div class="user-email">BSCS</div>
                             </div>
-                            <p class="course-description">Learn the fundamentals of programming.</p>
-                        </div>
-                        <div class="course-actions">
-                            <button class="action-btn edit-btn" title="Reassign">
-                                <i class="fas fa-exchange-alt"></i>
+                        </td>
+                        <td><span class="role-tag">1st Year</span></td>
+                        <td><span class="role-tag">1st Semester</span></td>
+                        <td>
+                            <span class="course-count-badge">
+                                <i class="fas fa-book"></i> 2 Courses
+                            </span>
+                        </td>
+                        <td class="action-buttons">
+                            <button class="action-btn view-btn" 
+                                    onclick="openCoursesModal('BSCS', 'BS in Computer Science', '1st Year', '1st Semester', 'bscs-1-1')"
+                                    title="View Courses">
+                                <i class="fas fa-eye"></i>
                             </button>
-                        </div>
-                    </div>
-
-                    <div class="course-stats-row">
-                        <div class="teacher-info">
-                            <div class="stat-item">
-                                <i class="fas fa-chalkboard-teacher"></i>
-                                <div class="teacher-details">
-                                    <div class="teacher-name">Dr. John Smith</div>
-                                    <div class="teacher-email">john.smith@school.edu</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="enrollment-info">
-                            <div class="stat-item">
-                                <i class="fas fa-users"></i>
-                                <div class="enrollment-details">
-                                    <div class="enrollment-count">35 Students</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="course-footer">
-                        <div class="created-date">
-                            <i class="far fa-calendar"></i>
-                            <span>1st Semester</span>
-                        </div>
-                    </div>
-                </div>
-                <!-- Sample Assignment Card 1 -->
-                <div class="course-card" data-department="Computer Studies" data-semester="1st">
-                    <div class="course-header">
-                        <div class="course-main-info">
-                            <h3 class="course-title">Introduction to Programming</h3>
-                            <div class="course-meta-row">
-                                <span class="course-code">CS101</span>
-                                <span class="department-tag">Computer Studies</span>
-                            </div>
-                            <p class="course-description">Learn the fundamentals of programming.</p>
-                        </div>
-                        <div class="course-actions">
-                            <button class="action-btn edit-btn" title="Reassign">
-                                <i class="fas fa-exchange-alt"></i>
+                            <button class="action-btn edit-btn" 
+                                    onclick="editCurriculum('bscs-1-1', 'BSCS', '1st Year', '1st Semester')"
+                                    title="Edit Curriculum">
+                                <i class="fa-solid fa-pen"></i>
                             </button>
-                        </div>
-                    </div>
-
-                    <div class="course-stats-row">
-                        <div class="teacher-info">
-                            <div class="stat-item">
-                                <i class="fas fa-chalkboard-teacher"></i>
-                                <div class="teacher-details">
-                                    <div class="teacher-name">Dr. John Smith</div>
-                                    <div class="teacher-email">john.smith@school.edu</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="enrollment-info">
-                            <div class="stat-item">
-                                <i class="fas fa-users"></i>
-                                <div class="enrollment-details">
-                                    <div class="enrollment-count">35 Students</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="course-footer">
-                        <div class="created-date">
-                            <i class="far fa-calendar"></i>
-                            <span>1st Semester</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sample Assignment Card 2 -->
-                <div class="course-card" data-department="Information Technology" data-semester="1st">
-                    <div class="course-header">
-                        <div class="course-main-info">
-                            <h3 class="course-title">Web Development</h3>
-                            <div class="course-meta-row">
-                                <span class="course-code">IT301</span>
-                                <span class="department-tag">Information Technology</span>
-                            </div>
-                            <p class="course-description">Modern web development techniques.</p>
-                        </div>
-                        <div class="course-actions">
-                            <button class="action-btn edit-btn" title="Reassign">
-                                <i class="fas fa-exchange-alt"></i>
+                            <button type="button" 
+                                    class="action-btn delete-btn"
+                                    onclick="deleteCurriculum('bscs-1-1', 'BSCS - 1st Year - 1st Semester')"
+                                    title="Delete Curriculum">
+                                <i class="fa-solid fa-trash"></i>
                             </button>
-                        </div>
-                    </div>
+                        </td>
+                    </tr>
 
-                    <div class="course-stats-row">
-                        <div class="teacher-info">
-                            <div class="stat-item">
-                                <i class="fas fa-chalkboard-teacher"></i>
-                                <div class="teacher-details">
-                                    <div class="teacher-name">Prof. Mary Johnson</div>
-                                    <div class="teacher-email">mary.johnson@school.edu</div>
-                                </div>
+                    <!-- Group Row 2: BSIT - 2nd Year - 1st Semester -->
+                    <tr class="default-row curriculum-group-row" 
+                        data-program="BSIT" 
+                        data-year="2" 
+                        data-semester="1"
+                        data-group-id="bsit-2-1">
+                        <td class="default-info">
+                            <div class="user-details">
+                                <div class="user-name">BS in Information Technology</div>
+                                <div class="user-email">BSIT</div>
                             </div>
-                        </div>
-                        <div class="enrollment-info">
-                            <div class="stat-item">
-                                <i class="fas fa-users"></i>
-                                <div class="enrollment-details">
-                                    <div class="enrollment-count">28 Students</div>
-                                </div>
+                        </td>
+                        <td><span class="role-tag">2nd Year</span></td>
+                        <td><span class="role-tag">1st Semester</span></td>
+                        <td>
+                            <span class="course-count-badge">
+                                <i class="fas fa-book"></i> 1 Course
+                            </span>
+                        </td>
+                        <td class="action-buttons">
+                            <button class="action-btn view-btn" 
+                                    onclick="openCoursesModal('BSIT', 'BS in Information Technology', '2nd Year', '1st Semester', 'bsit-2-1')"
+                                    title="View Courses">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn edit-btn" 
+                                    onclick="editCurriculum('bsit-2-1', 'BSIT', '2nd Year', '1st Semester')"
+                                    title="Edit Curriculum">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button type="button" 
+                                    class="action-btn delete-btn"
+                                    onclick="deleteCurriculum('bsit-2-1', 'BSIT - 2nd Year - 1st Semester')"
+                                    title="Delete Curriculum">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Group Row 3: BSCS - 1st Year - 2nd Semester -->
+                    <tr class="default-row curriculum-group-row" 
+                        data-program="BSCS" 
+                        data-year="1" 
+                        data-semester="2"
+                        data-group-id="bscs-1-2">
+                        <td class="default-info">
+                            <div class="user-details">
+                                <div class="user-name">BS in Computer Science</div>
+                                <div class="user-email">BSCS</div>
                             </div>
-                        </div>
-                    </div>
+                        </td>
+                        <td><span class="role-tag">1st Year</span></td>
+                        <td><span class="role-tag">2nd Semester</span></td>
+                        <td>
+                            <span class="course-count-badge">
+                                <i class="fas fa-book"></i> 1 Course
+                            </span>
+                        </td>
+                        <td class="action-buttons">
+                            <button class="action-btn view-btn" 
+                                    onclick="openCoursesModal('BSCS', 'BS in Computer Science', '1st Year', '2nd Semester', 'bscs-1-2')"
+                                    title="View Courses">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn edit-btn" 
+                                    onclick="editCurriculum('bscs-1-2', 'BSCS', '1st Year', '2nd Semester')"
+                                    title="Edit Curriculum">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button type="button" 
+                                    class="action-btn delete-btn"
+                                    onclick="deleteCurriculum('bscs-1-2', 'BSCS - 1st Year - 2nd Semester')"
+                                    title="Delete Curriculum">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
 
-                    <div class="course-footer">
-                        <div class="created-date">
-                            <i class="far fa-calendar"></i>
-                            <span>1st Semester</span>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+                </tbody>
+            </table>
         </div>
 
-        <!-- Pagination -->
+        <!-- Pagination Controls -->
         <div class="pagination-container">
             <div class="pagination-info">
-                <span>Showing 1-2 of 2 assignments</span>
+                <span id="paginationInfo">Showing 3 of 3 curriculum groups</span>
             </div>
             <div class="pagination-controls">
-                <button class="pagination-btn" disabled>
+                <button class="pagination-btn" id="prevBtn" disabled>
                     <i class="fa-solid fa-chevron-left"></i> Previous
                 </button>
-                <div class="pagination-numbers">
+                <div class="pagination-numbers" id="paginationNumbers">
                     <button class="pagination-number active">1</button>
                 </div>
-                <button class="pagination-btn" disabled>
+                <button class="pagination-btn" id="nextBtn" disabled>
                     Next <i class="fa-solid fa-chevron-right"></i>
                 </button>
             </div>
         </div>
     </div>
+</div>
 
-    
+<!-- Courses Modal -->
+<div class="modal fade" id="coursesModal" tabindex="-1" aria-labelledby="coursesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="coursesModalLabel">
+                    <i class="fas fa-list"></i> <span id="modalCurriculumTitle">Courses</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Courses Table -->
+                <div class="modal-table-container">
+                    <table class="default-table">
+                        <thead>
+                            <tr>
+                                <th>Course Code</th>
+                                <th>Course Title</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalCoursesTableBody">
+                            <!-- Courses will be loaded here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="alertContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; max-width: 320px;"></div>
 
-<style>
-    
-.btn-create-class {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 5px;
-    margin-left: auto;
-    padding: .75rem 2.5rem;
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 20px;
-    font-family: var(--archivo-plain-font);
+@section scripts {
+    <script src="~/Scripts/Custom/deleteHandler.js"></script>
+
+    <script>
+        // Sample course data (replace with actual backend data)
+        const coursesData = {
+            'bscs-1-1': [
+                { id: 1, code: 'CS101', title: 'Introduction to Programming', description: 'Learn fundamental programming concepts using modern programming languages. Topics include variables, control structures, functions, and basic data structures.', materials: 5 },
+                { id: 5, code: 'CS103', title: 'Computer Fundamentals', description: 'Introduction to computer hardware, software, and basic troubleshooting. Understanding of computer systems and operations.', materials: 4 }
+            ],
+            'bsit-2-1': [
+                { id: 2, code: 'IT201', title: 'Web Development Fundamentals', description: 'Comprehensive introduction to web development covering HTML, CSS, JavaScript, and modern web frameworks. Build responsive and interactive websites.', materials: 8 }
+            ],
+            'bscs-1-2': [
+                { id: 3, code: 'CS102', title: 'Data Structures and Algorithms', description: 'Study of fundamental data structures and algorithms. Topics include arrays, linked lists, stacks, queues, trees, and sorting algorithms.', materials: 7 }
+            ]
+        };
+
+        function openCoursesModal(programCode, programName, yearLevel, semester, groupId) {
+            // Set modal title
+            $('#modalCurriculumTitle').text(`Courses for ${programCode} - ${yearLevel} - ${semester}`);
+            
+            // Set curriculum info
+            $('#modalProgram').text(`${programCode} - ${programName}`);
+            $('#modalYearLevel').text(yearLevel);
+            $('#modalSemester').text(semester);
+
+            // Get courses for this group
+            const courses = coursesData[groupId] || [];
+            $('#modalCourseCount').text(courses.length);
+
+            // Populate courses table
+            const $tbody = $('#modalCoursesTableBody');
+            $tbody.empty();
+
+            if (courses.length === 0) {
+                $tbody.append(`
+                    <tr>
+                        <td colspan="5" class="text-center" style="padding: 2rem; color: var(--gray-text);">
+                            <i class="fas fa-inbox" style="font-size: 2rem; color: #dee2e6; margin-bottom: 0.5rem;"></i>
+                            <p style="margin: 0;">No courses assigned yet</p>
+                        </td>
+                    </tr>
+                `);
+            } else {
+                courses.forEach(course => {
+                    $tbody.append(`
+                        <tr class="modal-course-row">
+                            <td><span class="course-code-tag">${course.code}</span></td>
+                            <td class="course-title-col">${course.title}</td>
+                        </tr>
+                    `);
+                });
+            }
+
+            // Show modal
+            $('#coursesModal').modal('show');
+        }
+
+        function editCourse(courseId) {
+            window.location.href = '@Url.Action("EditCourse", "IT")?id=' + courseId;
+        }
+
+        function deleteCourse(courseId, courseName) {
+            if (confirm(`Are you sure you want to delete "${courseName}"?`)) {
+                // Implement delete functionality
+                console.log('Deleting course:', courseId);
+                // After successful delete, refresh the modal or close it
+                showAlert('success', 'Course deleted successfully');
+            }
+        }
+
+        function editCurriculum(groupId, program, yearLevel, semester) {
+            // Navigate to edit curriculum page or open edit modal
+            // For now, redirect to assign course page with curriculum info
+            window.location.href = '@Url.Action("AssignCourse", "IT")?groupId=' + groupId + '&program=' + program + '&year=' + yearLevel + '&semester=' + semester;
+        }
+
+        function deleteCurriculum(groupId, curriculumName) {
+            if (confirm(`Are you sure you want to delete the curriculum "${curriculumName}" and all its assigned courses?`)) {
+                // Implement delete curriculum functionality
+                console.log('Deleting curriculum:', groupId);
+                // After successful delete, remove the row and refresh
+                showAlert('success', 'Curriculum deleted successfully');
+                // TODO: Add actual delete API call
+                // location.reload();
+            }
+        }
+
+        $(document).ready(function () {
+            // Search functionality
+            $('#searchAssignments').on('keyup', function () {
+                filterCurriculum();
+            });
+
+            // Filter functionality
+            $('#programFilter, #yearLevelFilter, #semesterFilter').on('change', function () {
+                filterCurriculum();
+            });
+
+            function filterCurriculum() {
+                const searchTerm = $('#searchAssignments').val().toLowerCase();
+                const programFilter = $('#programFilter').val();
+                const yearFilter = $('#yearLevelFilter').val();
+                const semesterFilter = $('#semesterFilter').val();
+
+                $('.curriculum-group-row').each(function () {
+                    const $row = $(this);
+                    const programName = $row.find('.user-name').text().toLowerCase();
+                    const programCode = $row.find('.user-email').text().toLowerCase();
+                    const program = $row.data('program');
+                    const year = $row.data('year').toString();
+                    const semester = $row.data('semester').toString();
+
+                    const matchesSearch = programName.includes(searchTerm) || programCode.includes(searchTerm);
+                    const matchesProgram = !programFilter || program === programFilter;
+                    const matchesYear = !yearFilter || year === yearFilter;
+                    const matchesSemester = !semesterFilter || semester === semesterFilter;
+
+                    if (matchesSearch && matchesProgram && matchesYear && matchesSemester) {
+                        $row.show();
+                    } else {
+                        $row.hide();
+                    }
+                });
+
+                updatePaginationInfo();
+            }
+
+            function updatePaginationInfo() {
+                const visibleCount = $('.curriculum-group-row:visible').length;
+                const totalCount = $('.curriculum-group-row').length;
+                $('#paginationInfo').text(`Showing ${visibleCount} of ${totalCount} curriculum groups`);
+            }
+        });
+    </script>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <script>
+            $(function () {
+                showAlert('success', '@TempData["SuccessMessage"]');
+            });
+        </script>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <script>
+            $(function () {
+                showAlert('danger', '@TempData["ErrorMessage"]');
+            });
+        </script>
+    }
 }
 
-.btn-create-class:hover {
-    background: var(--primary-hover);
-    transform: translateY(-1px);
-}
+<style>
+    .btn-create-class {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        margin-left: auto;
+        padding: .75rem 2.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 20px;
+        font-family: var(--archivo-plain-font);
+    }
+
+    .btn-create-class:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+    }
+
+    /* Course Count Badge */
+    .course-count-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #e8f5e8;
+        color: var(--success-color);
+        padding: 0.4rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        font-family: var(--archivo-plain-font);
+    }
+
+    .course-count-badge i {
+        font-size: 0.9rem;
+    }
+
+    /* View Button Styling */
+    .view-btn {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .view-btn:hover {
+        background: var(--primary-hover);
+    }
+
+    /* Modal Styles */
+    .modal-xl {
+        max-width: 900px;
+    }
+
+    .modal-header .modal-title {
+        font-family: var(--archivo-black-font);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+    /* Modal Table Container */
+    .modal-table-container {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .modal-table-container .default-table th,
+    .modal-table-container .default-table td {
+        text-align: left;
+    }
+
+    .modal-course-row:hover {
+        background: #f8f9fa;
+    }
+
+    .course-code-tag {
+        display: inline-block;
+        background: var(--light-blue);
+        color: var(--primary-color);
+        padding: 0.35rem 0.65rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        font-family: var(--archivo-plain-font);
+    }
+
+    .course-title-col {
+        font-weight: 600;
+        color: var(--dark-primary-color);
+        font-family: var(--archivo-plain-font);
+        text-align: left;
+    }
+
+    .course-desc-col {
+        color: var(--gray-text);
+        font-size: 0.85rem;
+        line-height: 1.5;
+        font-family: var(--archivo-plain-font);
+        max-width: 500px;
+    }
+
+    .material-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: var(--gray-text);
+        font-size: 0.85rem;
+        font-family: var(--archivo-plain-font);
+    }
+
+    .material-count i {
+        color: var(--primary-color);
+        font-size: 0.8rem;
+    }
+
+    .text-center {
+        text-align: center !important;
+    }
+
+    /* Modal Footer */
+    .modal-footer {
+        border-top: 1px solid #dee2e6;
+        padding: 1rem 1.5rem;
+    }
+
+    .modal-footer .btn {
+        font-family: var(--archivo-plain-font);
+    }
+
+    /* Scrollbar Styling */
+    .modal-table-container::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .modal-table-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .modal-table-container::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 4px;
+    }
+
+    .modal-table-container::-webkit-scrollbar-thumb:hover {
+        background: #a0aec0;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .modal-xl {
+            max-width: 95%;
+        }
+
+        .curriculum-info-badge {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .course-desc-col {
+            font-size: 0.8rem;
+            max-width: 300px;
+        }
+    }
 </style>
