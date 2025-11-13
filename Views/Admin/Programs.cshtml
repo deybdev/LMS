@@ -1,4 +1,5 @@
-﻿@{
+﻿@using LMS.Helpers
+@{
     ViewBag.Title = "Programs";
 }
 @model IEnumerable<LMS.Models.Program>
@@ -89,39 +90,7 @@
                             data-status="Active">
 
                             <td class="default-info">
-                                @{
-                                    string program = p.ProgramName?.Trim() ?? "";
-                                    string shortProgram = program;
-
-                                    if (!string.IsNullOrEmpty(program))
-                                    {
-                                        var words = program.Split(' ');
-                                        var skipWords = new[] { "of" };
-                                        int end = words.Length;
-
-                                        for (int i = 0; i < words.Length; i++)
-                                        {
-                                            if (words[i].Equals("in", StringComparison.OrdinalIgnoreCase) ||
-                                                words[i].Equals("major", StringComparison.OrdinalIgnoreCase))
-                                            {
-                                                end = i;
-                                                break;
-                                            }
-                                        }
-
-                                        string acronym = string.Concat(
-                                            words.Take(end)
-                                                 .Where(w => !skipWords.Contains(w, StringComparer.OrdinalIgnoreCase))
-                                                 .Select(w => char.ToUpper(w[0]))
-                                        );
-
-                                        string remaining = string.Join(" ", words.Skip(end));
-
-                                        shortProgram = $"{acronym} {remaining}".Trim();
-                                    }
-                                }
-
-                                <div class="user-name">@shortProgram</div>
+                                <div class="user-name">@ProgramNameHelper.AbbreviateProgramName(p.ProgramName)</div>
                             </td>
 
                             <td><span class="role-tag">@p.ProgramCode</span></td>
@@ -250,7 +219,7 @@
 
 @section scripts {
     <script src="~/Scripts/Custom/deleteHandler.js"></script>
-    <script src="~/Scripts/Admin/formValidation.js"></script>
+    <script src="~/Scripts/Custom/formValidation.js"></script>
 
     @if (TempData["SuccessMessage"] != null)
     {

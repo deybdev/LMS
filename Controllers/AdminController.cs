@@ -83,8 +83,15 @@ namespace LMS.Controllers
 
         public ActionResult Sections()
         {
-            return View();
+            var sections = db.Sections
+                .Include("Program")
+                .Include("Program.Department")
+                .ToList();
+            ViewBag.Programs = db.Programs.ToList();
+            ViewBag.Departments = db.Departments.ToList();
+            return View(sections);
         }
+
 
         // GET: Course
 
@@ -234,6 +241,9 @@ namespace LMS.Controllers
         // GET: Admin/ManageUsers
         public ActionResult ManageUsers()
         {
+            ViewBag.Programs = db.Programs.ToList();
+            ViewBag.Departments = db.Departments.ToList();
+
             var users = db.Users
                 .OrderBy(u => u.LastName)
                 .ToList();

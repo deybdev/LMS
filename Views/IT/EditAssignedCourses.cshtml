@@ -1,0 +1,231 @@
+@{
+    ViewBag.Title = "Edit Assigned Courses";
+}
+
+<link rel="stylesheet" href="~/Content/teacherCreateCourse.css" />
+<link rel="stylesheet" href="~/Content/assignCourse.css" />
+<link rel="stylesheet" href="~/Content/Site.css" />
+
+<div class="admin-container">
+    <div class="create-course-container">
+        <div class="course-form-wrapper">
+
+            <!-- Header -->
+            <div class="form-header">
+                <div class="header-icon">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </div>
+                <p>Edit Curriculum Courses</p>
+            </div>
+
+            <form id="editCurriculumForm" class="course-form" method="post" action="@Url.Action("UpdateCurriculumCourses", "Curriculum")">
+                @Html.AntiForgeryToken()
+
+                <!-- Hidden fields for curriculum identification -->
+                <input type="hidden" name="ProgramId" value="@ViewBag.ProgramId" />
+                <input type="hidden" name="YearLevel" value="@ViewBag.YearLevel" />
+                <input type="hidden" name="Semester" value="@ViewBag.Semester" />
+
+                <!-- CURRICULUM INFO (Read-only) -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-graduation-cap"></i> Curriculum Information
+                    </h3>
+                    <p class="section-description">Currently editing curriculum for the following program and level</p>
+
+                    <div class="curriculum-info-display">
+                        <div class="info-item">
+                            <label>Program:</label>
+                            <span class="info-value">@ViewBag.ProgramCode - @ViewBag.ProgramName</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Year Level:</label>
+                            <span class="info-value">
+                                @{
+                                    int year = ViewBag.YearLevel;
+                                    string yearSuffix = year == 1 ? "st" : year == 2 ? "nd" : year == 3 ? "rd" : "th";
+                                }
+                                @year@yearSuffix Year
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <label>Semester:</label>
+                            <span class="info-value">
+                                @{
+                                    int sem = ViewBag.Semester;
+                                    string semName = sem == 1 ? "1st Semester" : sem == 2 ? "2nd Semester" : sem == 3 ? "Summer" : $"Semester {sem}";
+                                }
+                                @semName
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COURSE SEARCH & SELECTION -->
+                <div class="form-section" id="courseSection">
+                    <h3 class="section-title">
+                        <i class="fas fa-search"></i> Search & Manage Courses
+                    </h3>
+                    <p class="section-description">Add or remove courses from this curriculum</p>
+
+                    <!-- Search Bar with Dropdown -->
+                    <div class="form-group full-width">
+                        <label class="form-label">Search Course</label>
+                        <div class="search-dropdown-wrapper">
+                            <input type="text"
+                                   id="courseSearch"
+                                   class="form-control search-input"
+                                   placeholder="Type course code or title to search..."
+                                   autocomplete="off" />
+                            <i class="fas fa-search search-icon"></i>
+
+                            <!-- Search Results Dropdown -->
+                            <div id="courseSearchDropdown" class="search-results-dropdown" style="display: none;">
+                                <div class="dropdown-header">
+                                    <span id="courseSearchCount" class="results-count">0 results found</span>
+                                </div>
+                                <div id="courseSearchList" class="dropdown-results-list">
+                                    <!-- Search results will be populated here -->
+                                </div>
+                                <div id="courseSearchNoResults" class="no-results-message" style="display: none;">
+                                    <i class="fas fa-search"></i>
+                                    <p>No courses found</p>
+                                    <small>Try searching with a different term</small>
+                                </div>
+                                <div id="courseSearchLoading" class="loading-results" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <span>Searching...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selected Courses Display -->
+                    <div id="selectedCoursesSection" style="margin-top: 1.5rem;">
+                        <div class="selected-items-header">
+                            <h4>
+                                <i class="fas fa-check-circle"></i> Selected Courses
+                                <span id="selectedCountBadge" class="selected-count-badge">
+                                    @{
+                                        var assignedCourses = (List<LMS.Models.Course>)ViewBag.AssignedCourses;
+                                        var courseCount = assignedCourses != null ? assignedCourses.Count : 0;
+                                    }
+                                    @courseCount
+                                </span>
+                            </h4>
+                            <button type="button" class="btn-clear-selection" onclick="clearAllSelections()">
+                                <i class="fas fa-times"></i> Clear All
+                            </button>
+                        </div>
+                        <div id="selectedCoursesList" class="selected-items-list">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Hidden inputs for selected course IDs -->
+                    <input type="hidden" name="CourseIds" id="courseIdsInput" 
+                           value="@string.Join(",", assignedCourses?.Select(c => c.Id) ?? Enumerable.Empty<int>())" />
+                </div>
+
+                <!-- ACTIONS -->
+                <div class="form-actions">
+                    <a href="@Url.Action("AssignedCourses", "IT")" class="btn btn-cancel">Cancel</a>
+                    <button type="submit" class="btn btn-create" id="submitBtn">
+                        <i class="fas fa-save"></i> Update Curriculum
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="alertContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; max-width: 320px;"></div>
+
+@section scripts {
+    <script src="~/Scripts/Custom/searchableDropdown.js"></script>
+    <script src="~/Scripts/Custom/deleteHandler.js"></script>
+
+    <script>
+        // Expose global remove function BEFORE DOM ready
+        window.removeCourseFromSelection = function(courseId) {
+            console.log('Removing course:', courseId);
+            if (window.courseAssignmentForm) {
+                window.courseAssignmentForm.removeCourse(courseId);
+            } else {
+                console.error('courseAssignmentForm not initialized');
+            }
+        };
+
+        window.clearAllSelections = function() {
+            if (window.courseAssignmentForm) {
+                window.courseAssignmentForm.clearAllSelections();
+            }
+        };
+
+        $(function () {
+            // Initialize with pre-selected courses
+            var preSelectedCourses = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+                ((List<LMS.Models.Course>)ViewBag.AssignedCourses).Select(c => new {
+                    Id = c.Id,
+                    CourseCode = c.CourseCode,
+                    CourseTitle = c.CourseTitle,
+                    Description = c.Description ?? ""
+                }).ToList()
+            ));
+
+            console.log('Pre-selected courses:', preSelectedCourses);
+
+            // Initialize CourseAssignmentForm with pre-selected courses
+            window.courseAssignmentForm = new CourseAssignmentForm({
+                formId: 'editCurriculumForm',
+                programSelectId: null,  // Not needed for edit mode
+                yearLevelSelectId: null,
+                semesterSelectId: null,
+                courseSearchInputId: 'courseSearch',
+                courseSectionId: 'courseSection',
+                selectedCoursesSectionId: 'selectedCoursesSection',
+                selectedCoursesListId: 'selectedCoursesList',
+                selectedCountBadgeId: 'selectedCountBadge',
+                courseIdsInputId: 'courseIdsInput',
+                submitBtnId: 'submitBtn',
+                preSelectedCourses: preSelectedCourses,
+                editMode: true
+            });
+
+            console.log('CourseAssignmentForm initialized');
+        });
+
+        function updateSelectedCount() {
+            var count = $('.selected-item').length;
+            $('#selectedCountBadge').text(count);
+
+            if (count === 0) {
+                $('#selectedCoursesList').html(
+                    '<div class="no-selected-items">' +
+                    '<i class="fas fa-folder-open"></i>' +
+                    '<span>No courses selected</span>' +
+                    '</div>'
+                );
+            }
+        }
+    </script>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <script>
+            $(function () {
+                showAlert('success', '@TempData["SuccessMessage"]');
+            });
+        </script>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <script>
+            $(function () {
+                showAlert('danger', '@TempData["ErrorMessage"]');
+            });
+        </script>
+    }
+}

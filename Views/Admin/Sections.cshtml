@@ -1,6 +1,8 @@
 ﻿@{
     ViewBag.Title = "Sections";
 }
+@using LMS.Helpers
+@model IEnumerable<LMS.Models.Section>
 
 <link rel="stylesheet" href="~/Content/manageUser.css" />
 <link rel="stylesheet" href="~/Content/adminAcademic.css" />
@@ -46,11 +48,13 @@
                 <div class="filter-dropdowns">
                     <select class="filter-select" id="programFilter">
                         <option value="">All Programs</option>
-                        <option value="BSCS">BS in Computer Science</option>
-                        <option value="BSIT">BS in Information Technology</option>
-                        <option value="BSBA">BS in Business Administration</option>
-                        <option value="BSCE">BS in Civil Engineering</option>
-                        <option value="BSA">BS in Accountancy</option>
+                        @if (ViewBag.Programs != null)
+                        {
+                            foreach (var prog in ViewBag.Programs)
+                            {
+                                <option value="@prog.ProgramCode">@prog.ProgramCode</option>
+                            }
+                        }
                     </select>
 
                     <select class="filter-select" id="yearLevelFilter">
@@ -85,180 +89,48 @@
                     </tr>
                 </thead>
                 <tbody id="sectionTableBody">
-                    <!-- Sample Data -->
-                    <tr class="default-row" data-program="BSCS" data-year="1" data-status="Active">
-                        <td class="default-info">
-                            <div class="user-details">
-                                <div class="user-name">BSCS 1-A</div>
-                            </div>
-                        </td>
-                        <td><span class="role-tag">BSCS</span></td>
-                        <td>1st Year</td>
-                        <td>42</td>
-                        <td class="last-login">
-                            <div>08/15/2024</div>
-                            <div class="login-time">09:00 AM</div>
-                        </td>
-                        <td class="action-buttons">
-                            <button class="action-btn edit-btn" data-id="1" title="Edit">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button type="button" class="action-btn delete-btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal"
-                                    data-item-id="1"
-                                    data-item-name="BSCS 1-A"
-                                    data-target-remove=".default-row"
-                                    title="Delete">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr class="default-row" data-program="BSCS" data-year="1" data-status="Active">
-                        <td class="default-info">
-                            <div class="user-details">
-                                <div class="user-name">BSCS 1-B</div>
-                            </div>
-                        </td>
-                        <td><span class="role-tag">BSCS</span></td>
-                        <td>1st Year</td>
-                        <td>45</td>
-                        <td class="last-login">
-                            <div>08/15/2024</div>
-                            <div class="login-time">09:05 AM</div>
-                        </td>
-                        <td class="action-buttons">
-                            <button class="action-btn edit-btn" data-id="2" title="Edit">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button type="button" class="action-btn delete-btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal"
-                                    data-item-id="2"
-                                    data-item-name="BSCS 1-B"
-                                    data-target-remove=".default-row"
-                                    title="Delete">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr class="default-row" data-program="BSIT" data-year="2" data-status="Active">
-                        <td class="default-info">
-                            <div class="user-details">
-                                <div class="user-name">BSIT 2-A</div>
-                            </div>
-                        </td>
-                        <td><span class="role-tag">BSIT</span></td>
-                        <td>2nd Year</td>
-                        <td>38</td>
-                        <td class="last-login">
-                            <div>08/15/2024</div>
-                            <div class="login-time">09:10 AM</div>
-                        </td>
-                        <td class="action-buttons">
-                            <button class="action-btn edit-btn" data-id="3" title="Edit">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button type="button" class="action-btn delete-btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal"
-                                    data-item-id="3"
-                                    data-item-name="BSIT 2-A"
-                                    data-target-remove=".default-row"
-                                    title="Delete">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr class="default-row" data-program="BSBA" data-year="3" data-status="Active">
-                        <td class="default-info">
-                            <div class="user-details">
-                                <div class="user-name">BSBA 3-A</div>
-                            </div>
-                        </td>
-                        <td><span class="role-tag">BSBA</span></td>
-                        <td>3rd Year</td>
-                        <td>35</td>
-                        <td class="last-login">
-                            <div>08/15/2024</div>
-                            <div class="login-time">09:15 AM</div>
-                        </td>
-                        <td class="action-buttons">
-                            <button class="action-btn edit-btn" data-id="4" title="Edit">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button type="button" class="action-btn delete-btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal"
-                                    data-item-id="4"
-                                    data-item-name="BSBA 3-A"
-                                    data-target-remove=".default-row"
-                                    title="Delete">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr class="default-row" data-program="BSCE" data-year="4" data-status="Active">
-                        <td class="default-info">
-                            <div class="user-details">
-                                <div class="user-name">BSCE 4-A</div>
-                            </div>
-                        </td>
-                        <td><span class="role-tag">BSCE</span></td>
-                        <td>4th Year</td>
-                        <td>30</td>
-                        <td class="last-login">
-                            <div>08/15/2024</div>
-                            <div class="login-time">09:20 AM</div>
-                        </td>
-                        <td class="action-buttons">
-                            <button class="action-btn edit-btn" data-id="5" title="Edit">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button type="button" class="action-btn delete-btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal"
-                                    data-item-id="5"
-                                    data-item-name="BSCE 4-A"
-                                    data-target-remove=".default-row"
-                                    title="Delete">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr class="default-row" data-program="BSA" data-year="2" data-status="Inactive">
-                        <td class="default-info">
-                            <div class="user-details">
-                                <div class="user-name">BSA 2-B</div>
-                            </div>
-                        </td>
-                        <td><span class="role-tag">BSA</span></td>
-                        <td>2nd Year</td>
-                        <td>0</td>
-                        <td class="last-login">
-                            <div>08/15/2024</div>
-                            <div class="login-time">09:25 AM</div>
-                        </td>
-                        <td class="action-buttons">
-                            <button class="action-btn edit-btn" data-id="6" title="Edit">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button type="button" class="action-btn delete-btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal"
-                                    data-item-id="6"
-                                    data-item-name="BSA 2-B"
-                                    data-target-remove=".default-row"
-                                    title="Delete">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
+                    @if (Model == null || !Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center">No sections found</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var s in Model)
+                        {
+                            string yearSuffix = s.YearLevel == 1 ? "st" : s.YearLevel == 2 ? "nd" : s.YearLevel == 3 ? "rd" : "th";
+                            <tr class="default-row" data-program="@s.Program.ProgramCode" data-year="@s.YearLevel" data-status="Active">
+                                <td class="default-info">
+                                    <div class="user-details">
+                                        <div class="user-name">@s.SectionName</div>
+                                    </div>
+                                </td>
+                                <td><span class="role-tag">@s.Program.ProgramCode</span></td>
+                                <td>@s.YearLevel@(yearSuffix) Year</td>
+                                <td>0</td>
+                                <td class="last-login">
+                                    <div>@s.DateCreated.ToString("MM/dd/yyyy")</div>
+                                    <div class="login-time">@s.DateCreated.ToString("hh:mm tt")</div>
+                                </td>
+                                <td class="action-buttons">
+                                    <button class="action-btn edit-btn" data-id="@s.Id" title="Edit">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <button type="button" class="action-btn delete-btn"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteModal"
+                                            data-item-id="@s.Id"
+                                            data-item-name="@s.SectionName"
+                                            data-url="@Url.Action("Delete", "Section")"
+                                            data-target-remove=".default-row"
+                                            title="Delete">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
                 </tbody>
             </table>
         </div>
@@ -266,7 +138,7 @@
         <!-- Pagination Controls -->
         <div class="pagination-container">
             <div class="pagination-info">
-                <span id="paginationInfo">Showing 1-6 of 6 entries</span>
+                <span id="paginationInfo">Showing @(Model?.Count() ?? 0) of @(Model?.Count() ?? 0) entries</span>
                 <span id="currentPageInfo" class="ms-3">Page 1 of 1</span>
             </div>
             <div class="pagination-controls">
@@ -307,52 +179,42 @@
                 <form id="createSectionForm">
                     @Html.AntiForgeryToken()
 
-                    <input type="hidden" id="sectionId" name="id" />
+                    <input type="hidden" id="sectionId" name="Id" />
 
                     <div class="mb-3">
                         <label for="sectionName" class="form-label">Section Name *</label>
-                        <input type="text" id="sectionName" name="sectionName" class="form-control" required placeholder="e.g., A">
+                        <input type="text" id="sectionName" name="SectionName" class="form-control" required placeholder="e.g., A">
                     </div>
 
                     <div class="mb-3">
                         <label for="department" class="form-label">Department *</label>
-                        <select id="department" name="department" class="form-select" required>
-                            <option value="" disabled selected>Choose department</option>
-                            <option value="CCS">CCS</option>
-                            <option value="COE">COE</option>
-                            <option value="COED">COED</option>
-                            <option value="CBAA">CBAA</option>
+                        <select id="department" class="form-select" required>
+                            <option value="">Choose department</option>
+                            @if (ViewBag.Departments != null)
+                            {
+                                foreach (var d in ViewBag.Departments)
+                                {
+                                    <option value="@d.Id">@d.DepartmentName</option>
+                                }
+                            }
                         </select>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="program" class="form-label">Program *</label>
-                            <select id="program" name="program" class="form-select" required>
+                            <select id="program" name="ProgramId" class="form-select" required disabled>
                                 <option value="" disabled selected>Choose program</option>
-                                <option value="BSCS">BS in Computer Science</option>
-                                <option value="BSIT">BS in Information Technology</option>
-                                <option value="BSBA">BS in Business Administration</option>
-                                <option value="BSCE">BS in Civil Engineering</option>
-                                <option value="BSA">BS in Accountancy</option>
                             </select>
                         </div>
 
                         <div class="col-md-6 mb-3">
                             <label for="yearLevel" class="form-label">Year Level *</label>
-                            <select id="yearLevel" name="yearLevel" class="form-select" required>
+                            <select id="yearLevel" name="YearLevel" class="form-select" required disabled>
                                 <option value="" disabled selected>Choose year level</option>
-                                <option value="1">1st Year</option>
-                                <option value="2">2nd Year</option>
-                                <option value="3">3rd Year</option>
-                                <option value="4">4th Year</option>
-                                <option value="5">5th Year</option>
                             </select>
                         </div>
                     </div>
-                    
-
-
                 </form>
             </div>
 
@@ -368,6 +230,8 @@
 
 @section scripts {
     <script src="~/Scripts/Custom/deleteHandler.js"></script>
+    <script src="~/Scripts/Custom/sectionDropdown.js"></script>
+    <script src="~/Scripts/Custom/sectionManagement.js"></script>
 
     @if (TempData["SuccessMessage"] != null)
     {

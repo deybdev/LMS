@@ -16,12 +16,11 @@
 
 /* ========== Form Header ========== */
 .form-header {
-    display:flex ;
+    display: flex;
     color: #777777;
     align-items: center;
     gap: .5rem;
     padding: 1rem 0 0 1.5rem;
-
 }
 
 .header-icon {
@@ -30,7 +29,7 @@
     color: var(--dark-primary-color);
 }
 
-.form-header p{
+.form-header p {
     font-size: 1.2rem;
 }
 
@@ -63,16 +62,6 @@
 .section-title i {
     color: var(--primary-color);
     font-size: 1.2rem;
-}
-
-.student-count {
-    background: var(--primary-color);
-    color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    margin-left: auto;
 }
 
 /* ========== Form Grid & Groups ========== */
@@ -116,14 +105,6 @@
     box-shadow: 0 0 0 3px rgba(24, 82, 172, 0.1);
 }
 
-.form-control.search-active {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    border-bottom-color: var(--primary-color);
-    position: relative;
-    z-index: 1001;
-}
-
 .form-control::placeholder {
     color: var(--gray-text);
     font-style: italic;
@@ -132,432 +113,6 @@
 .textarea-large {
     min-height: 100px;
     resize: vertical;
-}
-
-/* ========== Search Input Wrapper ========== */
-.search-input-wrapper {
-    position: relative;
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-}
-
-/* ========== Search Dropdown ========== */
-.search-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 104px;
-    background: white;
-    border-top: none;
-    border-radius: 0 0 8px 8px;
-    max-height: 300px;
-    overflow-y: auto;
-    z-index: 1000;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    margin-top: -1px; /* Connect to input */
-}
-
-.search-dropdown::-webkit-scrollbar {
-    width: 6px;
-}
-
-.search-dropdown::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-.search-dropdown::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 3px;
-}
-
-.search-dropdown::-webkit-scrollbar-thumb:hover {
-    background: var(--gray-text);
-}
-
-/* ========== Search Result Items ========== */
-.search-result-item {
-    display: flex;
-    align-items: center;
-    padding: .6rem;
-    border-bottom: 1px solid #f1f1f1;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    gap: 1rem;
-}
-
-.search-result-item:hover {
-    background: var(--light-blue);
-}
-
-.search-result-item:last-child {
-    border-bottom: none;
-}
-
-.student-avatar {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background: var(--dark-primary-color);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 1rem;
-    flex-shrink: 0;
-    font-family: var(--archivo-black-font);
-}
-
-.student-avatar-small {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    background: var(--dark-primary-color);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 0.9rem;
-    flex-shrink: 0;
-    font-family: var(--archivo-black-font);
-}
-
-.student-details {
-    flex: 1;
-    min-width: 0;
-}
-
-
-.student-header{
-    display: flex;
-    align-items: center;
-    gap: .8rem;
-}
-
-.student-details .student-name,
-.student-header span:first-child{
-    font-weight: 600;
-    font-size: 1rem;
-}
-
-.student-header span:last-child{
-    background: #ECECEC;
-    font-size: .7rem;
-    padding: .1rem .5rem;
-    border-radius: 15px;
-}
-
-.student-info-row {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 0.25rem;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.student-id {
-    color: var(--primary-color);
-    font-weight: 500;
-    font-size: 0.8rem;
-    background: var(--light-blue);
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    flex-shrink: 0;
-}
-
-.student-email {
-    color: var(--gray-text);
-    font-size: 0.8rem;
-    flex-shrink: 0;
-}
-
-.student-department {
-    color: var(--gray-text);
-    font-size: 0.75rem;
-    font-style: italic;
-}
-
-.add-indicator {
-    flex-shrink: 0;
-    font-size: 1.2rem;
-}
-
-.add-indicator .added {
-    color: var(--success-color);
-}
-
-.add-indicator i:not(.added) {
-    color: var(--dark-primary-color);
-}
-
-/* ========== Search States ========== */
-.search-loading,
-.search-error,
-.search-no-results {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem;
-    text-align: center;
-    color: var(--gray-text);
-}
-
-.search-loading i,
-.search-error i,
-.search-no-results i {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: var(--border-color);
-}
-
-.search-error i {
-    color: var(--danger-color);
-}
-
-.loading-spinner {
-    width: 30px;
-    height: 30px;
-    border: 3px solid var(--border-color);
-    border-top: 3px solid var(--primary-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 1rem;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* ========== Invite Students Section ========== */
-.invite-students-container {
-    background: #f8f9fa;
-    border-radius: 10px;
-    padding: 1.5rem;
-    border: 1px solid var(--border-color);
-}
-
-.search-student-section {
-    margin-bottom: 1.5rem;
-}
-
-.search-input {
-    flex: 1;
-}
-
-.btn-clear-all {
-    background: var(--danger-color);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: var(--archivo-plain-font);
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-.btn-clear-all:hover:not(:disabled) {
-    background: #c82333;
-    transform: translateY(-1px);
-}
-
-.btn-clear-all:disabled {
-    background: var(--gray-text);
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* ========== Students Display ========== */
-.students-display {
-    min-height: 150px;
-    border-radius: 8px;
-    position: relative;
-    padding: 0;
-}
-
-/* When containing enrolled students, change display behavior */
-.students-display:has(.enrolled-students-list) {
-    align-items: stretch;
-    justify-content: stretch;
-}
-
-.no-students-message {
-    text-align: center;
-    color: var(--gray-text);
-    padding: 2rem;
-}
-
-.no-students-message i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    color: var(--border-color);
-}
-
-.no-students-message p {
-    font-size: 1.1rem;
-    font-weight: 500;
-    margin: 0 0 0.5rem 0;
-    color: var(--dark-primary-color);
-    font-family: var(--archivo-plain-font);
-}
-
-.no-students-message small {
-    font-size: 0.85rem;
-    color: var(--gray-text);
-    font-family: var(--archivo-plain-font);
-}
-
-/* ========== Enrolled Students List (Direct in students-display) ========== */
-.enrolled-students-list {
-    display: flex;
-    flex-direction: column;
-    gap: .5rem;
-    width: 100%;
-    max-height: 350px;
-    overflow-y: auto;
-}
-
-.enrolled-students-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.enrolled-students-list::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-}
-
-.enrolled-students-list::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 3px;
-}
-
-.enrolled-students-list::-webkit-scrollbar-thumb:hover {
-    background: var(--gray-text);
-}
-
-.enrolled-student-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: .6rem;
-    margin-right: 10px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    transition: all 0.2s ease;
-}
-
-.enrolled-student-item:hover {
-    background: var(--light-blue);
-    border-color: var(--primary-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.student-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.student-details-small {
-    display: flex;
-    gap: .4rem;
-    margin-top: 0.25rem;
-    flex-wrap: wrap;
-}
-
-.student-details-small span {
-    font-size: 0.75rem;
-    color: var(--gray-text);
-}
-
-.remove-btn {
-    background: none;
-    color: var(--danger-color);
-    border: none;
-    padding: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 1rem;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.remove-btn:hover {
-    transform: scale(1.3);
-}
-
-/* ========== Selected Students (Alternative Display) ========== */
-.selected-students-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-top: 1rem;
-}
-
-.selected-student {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0.75rem;
-    background: var(--light-blue);
-    border: 1px solid var(--primary-color);
-    border-radius: 20px;
-    font-size: 0.85rem;
-    transition: all 0.2s ease;
-}
-
-.selected-student:hover {
-    background: #b3d9ff;
-}
-
-.selected-student-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-}
-
-.selected-student-name {
-    font-weight: 500;
-    color: var(--dark-primary-color);
-}
-
-.selected-student-id {
-    font-size: 0.7rem;
-    color: var(--gray-text);
-}
-
-.selected-student-email {
-    font-size: 0.65rem;
-    color: var(--gray-text);
-    font-style: italic;
-}
-
-.remove-student-btn {
-    background: none;
-    border: none;
-    color: var(--danger-color);
-    cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-}
-
-.remove-student-btn:hover {
-    background: var(--danger-color);
-    color: white;
 }
 
 /* ========== Form Actions ========== */
@@ -652,51 +207,16 @@
         padding: 1.5rem;
     }
     
-    .form-header h1 {
-        font-size: 1.5rem;
+    .form-header p {
+        font-size: 1.1rem;
     }
     
     .header-icon {
-        font-size: 2rem;
+        font-size: 1.2rem;
     }
     
     .section-title {
         font-size: 1.1rem;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-    
-    .student-count {
-        margin-left: 0;
-        align-self: flex-start;
-    }
-    
-    .search-input-wrapper {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .search-dropdown {
-        right: 0; /* Full width on mobile */
-    }
-    
-    .student-info-row {
-        flex-direction: column;
-        gap: 0.5rem;
-        align-items: flex-start;
-    }
-    
-    .student-details-small {
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-    
-    .enrolled-student-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.75rem;
-        padding: 0.75rem;
     }
     
     .form-actions {
@@ -719,54 +239,11 @@
         padding: 1rem;
     }
     
-    .invite-students-container {
+    .form-header {
         padding: 1rem;
     }
     
-    .no-students-message {
-        padding: 1.5rem 1rem;
-    }
-    
-    .no-students-message i {
-        font-size: 2rem;
-    }
-    
-    .search-dropdown {
-        max-height: 250px;
-    }
-    
-    .search-result-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.75rem;
-        padding: 1rem 0.75rem;
-    }
-    
-    .student-info-row {
-        width: 100%;
-    }
-    
-    .enrolled-student-item {
-        padding: 1rem 0.75rem;
-    }
-    
-    .students-display:has(.enrolled-students-list) {
-        padding: 0.75rem;
-    }
-    
-    .selected-student {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 0.75rem;
-        border-radius: 8px;
-        gap: 0.5rem;
-    }
-    
-    .selected-student-info {
-        width: 100%;
-    }
-    
-    .remove-student-btn {
-        align-self: flex-end;
+    .form-header p {
+        font-size: 1rem;
     }
 }

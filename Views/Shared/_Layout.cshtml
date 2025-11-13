@@ -93,6 +93,10 @@
                                             <a class="dropdown-item @(isActive("IT", new string[] { "AssignedCourses" }))"
                                                href="@Url.Action("AssignedCourses", "IT")">Assign Courses</a>
                                         </li>
+                                        <li>
+                                            <a class="dropdown-item @(isActive("IT", new string[] { "ManageStudentCourses" }))"
+                                               href="@Url.Action("ManageStudentCourses", "IT")"> Student Courses</a>
+                                        </li>
 
                                         <li>
                                             <a class="dropdown-item @(isActive("IT", new string[] { "AssignTeacher" }))"
@@ -138,66 +142,117 @@
                 </div>
             </div>
         </div>
+
+        <!-- Delete Curriculum Modal -->
+        <div class="modal fade" id="deleteCurriculumModal" tabindex="-1" aria-labelledby="deleteCurriculumModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteCurriculumModalLabel">
+                            <i class="fas fa-exclamation-triangle"></i> Confirm Delete Curriculum
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-4"><strong>Are you sure you want to delete this curriculum group?</strong></p>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle"></i> <strong>Program:</strong> <span id="deleteProgramName"></span><br />
+                            <i class="fas fa-info-circle"></i> <strong>Details:</strong> <span id="deleteCurriculumDetails"></span><br />
+                            <i class="fas fa-book"></i> <strong>Total Courses:</strong> <span id="deleteCourseCount"></span>
+                        </div>
+                        <p class="text-danger"><strong>Warning:</strong> This will permanently remove all course assignments for this curriculum group.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn cancel-btn" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="button" class="btn delete-btn" id="confirmDeleteCurriculumBtn">
+                            <i class="fas fa-trash"></i> Delete Curriculum
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logout Modal -->
+        <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure you want to logout?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn cancel-btn" data-bs-dismiss="modal">Cancel</button>
+                        <a href="@Url.Action("Logout", "Account")" class="btn delete-btn">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </header>
 
     <!--
-    <div id="loadingOverlay" style="
-    position: absolute;
-    top: 65px;
-    left:0;
-    width:100%;
-    height:calc(100vh - 65px);
-    background: rgba(255,255,255,1);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 99;
-    flex-direction: column;
-">
-        <img src="~/Images/logo.png" alt="Logo" class="loading-logo" style="width:120px;">
-    </div>
+        <div id="loadingOverlay" style="
+        position: absolute;
+        top: 65px;
+        left:0;
+        width:100%;
+        height:calc(100vh - 65px);
+        background: rgba(255,255,255,1);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 99;
+        flex-direction: column;
+    ">
+            <img src="~/Images/logo.png" alt="Logo" class="loading-logo" style="width:120px;">
+        </div>
 
 
-    <style>
-        @@keyframes slowPulse {
-            0% {
+        <style>
+            @@keyframes slowPulse {
+                0% {
+                    opacity: 0;
+                }
+
+                50% {
+                    opacity: 1;
+                }
+
+                100% {
+                    opacity: 0;
+                }
+            }
+
+            .loading-logo {
+                animation: slowPulse 2s ease-in-out infinite;
+            }
+
+            #loadingOverlay.fade-out {
                 opacity: 0;
+                transition: opacity 1s ease-out;
             }
+        </style>
 
-            50% {
-                opacity: 1;
-            }
+        <script>
+            window.onload = function () {
+                const overlay = document.getElementById('loadingOverlay');
+                const content = document.getElementById('pageContent');
 
-            100% {
-                opacity: 0;
-            }
-        }
-
-        .loading-logo {
-            animation: slowPulse 2s ease-in-out infinite;
-        }
-
-        #loadingOverlay.fade-out {
-            opacity: 0;
-            transition: opacity 1s ease-out;
-        }
-    </style>
-
-    <script>
-        window.onload = function () {
-            const overlay = document.getElementById('loadingOverlay');
-            const content = document.getElementById('pageContent');
-
-            setTimeout(() => {
-                overlay.classList.add('fade-out');
-                overlay.style.display = 'none';
-                content.style.display = 'block';
-            }, 2000);
-        };
-    </script>
+                setTimeout(() => {
+                    overlay.classList.add('fade-out');
+                    overlay.style.display = 'none';
+                    content.style.display = 'block';
+                }, 2000);
+            };
+        </script>
 
 
-    <!-- <div id="pageContent" style="display:none;"> -->
+        <!-- <div id="pageContent" style="display:none;"> -->
     <div>
         @RenderBody()
 
@@ -208,6 +263,30 @@
 
     @Scripts.Render("~/bundles/jquery")
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
     @RenderSection("scripts", required: false)
+
+    <script>
+    $(function () {
+        @* First alert *@
+        @if (TempData["AlertMessage"] != null)
+        {
+            <text>
+            showAlert('@(TempData["AlertType"] ?? "success")', '@TempData["AlertMessage"]');
+            </text>
+        }
+
+        @* Second alert with delay *@
+        @if (TempData["AlertMessage2"] != null)
+        {
+            <text>
+            setTimeout(function() {
+                showAlert('@(TempData["AlertType2"] ?? "info")', '@TempData["AlertMessage2"]');
+            }, 300);
+            </text>
+        }
+    });
+    </script>
+
 </body>
 </html>

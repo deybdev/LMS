@@ -32,17 +32,14 @@ namespace LMS.Controllers
                 ViewBag.Error = "Please enter your email and password.";
                 return View();
             }
-            //Find User by Email
             var user = db.Users.FirstOrDefault(u => u.Email == email);
 
-            //Check if user exists
             if (user == null)
             {
                 ViewBag.Error = "Invalid email or password.";
                 return View();
             }
 
-            //Verify Password
             if (HashPassword(password) == user.Password)
             {
                 Session["Id"] = user.Id;
@@ -53,13 +50,6 @@ namespace LMS.Controllers
 
                 user.LastLogin = DateTime.Now;
                 db.SaveChanges();
-
-                LogAction(
-                    category: "Authentication",
-                    message: $"{user.FirstName} {user.LastName} logged in.",
-                    userName: $"{user.FirstName} {user.LastName}",
-                    role: user.Role
-                );
 
                 switch (user.Role.ToLower())
                 {
@@ -111,7 +101,7 @@ namespace LMS.Controllers
                     using (var workbook = new XLWorkbook(stream))
                     {
                         var worksheet = workbook.Worksheet(1);
-                        var rows = worksheet.RangeUsed()?.RowsUsed().Skip(1); // skip header row
+                        var rows = worksheet.RangeUsed()?.RowsUsed().Skip(1);
 
                         if (rows == null || !rows.Any())
                         {
@@ -129,23 +119,20 @@ namespace LMS.Controllers
                         {
                             try
                             {
-                                var userId = row.Cell(1).GetString().Trim();
-                                var lastName = row.Cell(2).GetString().Trim();
-                                var firstName = row.Cell(3).GetString().Trim();
-                                var email = row.Cell(4).GetString().Trim();
-                                var phone = row.Cell(5).GetString().Trim();
-                                var department = row.Cell(6).GetString().Trim();
+                                string userId = row.Cell(1).GetString().Trim();
+                                string lastName = row.Cell(2).GetString().Trim();
+                                string firstName = row.Cell(3).GetString().Trim();
+                                string email = row.Cell(4).GetString().Trim();
+                                string phone = row.Cell(5).GetString().Trim();
 
-                                // Validate required fields
-                                if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName) ||
-                                    string.IsNullOrEmpty(email) || string.IsNullOrEmpty(userId))
+                                if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(firstName) ||
+                                    string.IsNullOrEmpty(lastName) || string.IsNullOrEmpty(email))
                                 {
                                     errorCount++;
                                     errorDetails.Add($"Missing required fields (ID, Name, or Email)");
                                     continue;
                                 }
 
-                                // Validate email format
                                 if (!IsValidEmail(email))
                                 {
                                     errorCount++;
@@ -153,15 +140,12 @@ namespace LMS.Controllers
                                     continue;
                                 }
 
-                                // Check for duplicate email
                                 if (db.Users.Any(u => u.Email == email))
                                 {
                                     errorCount++;
                                     errorDetails.Add($"Email already exists - {email}");
                                     continue;
                                 }
-
-                                // Check for duplicate UserID
                                 if (db.Users.Any(u => u.UserID == userId))
                                 {
                                     errorCount++;
@@ -177,28 +161,13 @@ namespace LMS.Controllers
                                     LastName = lastName,
                                     FirstName = firstName,
                                     Email = email,
-                                    PhoneNumber = phone,
-                                    Department = department,
-                                    Password = HashPassword(password),
                                     Role = role,
+                                    Password = HashPassword(password),
                                     DateCreated = DateTime.Now
                                 };
 
                                 db.Users.Add(newUser);
                                 successCount++;
-
-                                try
-                                {
-                                    EmailHelper.SendEmail(
-                                        toEmail: email,
-                                        subject: "Welcome to G2 Academy University LMS",
-                                        htmlBody: EmailHelper.CreateWelcomeEmailTemplate(email, password, $"{firstName} {lastName}")
-                                    );
-                                }
-                                catch (Exception emailEx)
-                                {
-                                    System.Diagnostics.Debug.WriteLine($"Failed to send email to {email}: {emailEx.Message}");
-                                }
                             }
                             catch (Exception rowEx)
                             {
@@ -207,20 +176,12 @@ namespace LMS.Controllers
                             }
                         }
 
-                        LogAction(
-                            category: "User Actions",
-                            message: $"Bulk upload completed: {successCount} accounts added, {errorCount} errors",
-                            userName: Session["FullName"]?.ToString(),
-                            role: "Admin"
-                        );
-
                         db.SaveChanges();
 
                         // Prepare messages
                         if (successCount > 0)
                         {
-                            string successMsg = $"Successfully uploaded {successCount} of {totalRows} accounts!";
-                            TempData["AlertMessage"] = successMsg;
+                            TempData["AlertMessage"] = $"Successfully uploaded {successCount} of {totalRows} accounts!";
                             TempData["AlertType"] = "success";
 
                             if (errorCount > 0)
@@ -243,8 +204,6 @@ namespace LMS.Controllers
                             TempData["AlertMessage"] = errorMsg;
                             TempData["AlertType"] = "danger";
                         }
-
-                        System.Diagnostics.Debug.WriteLine($"Upload completed: {successCount} successful, {errorCount} errors out of {totalRows} total rows");
                     }
                 }
             }
@@ -258,6 +217,7 @@ namespace LMS.Controllers
             return RedirectToAction("ManageUsers");
         }
 
+
         // GET: Account/GetUserData
         public ActionResult GetUserData(int id)
         {
@@ -269,24 +229,59 @@ namespace LMS.Controllers
                     return Json(new { success = false, message = "User not found" }, JsonRequestBehavior.AllowGet);
                 }
 
+                var userData = new
+                {
+                    id = user.Id,
+                    userId = user.UserID,
+                    firstName = user.FirstName,
+                    lastName = user.LastName,
+                    email = user.Email,
+                    role = user.Role,
+                    programId = (int?)null,
+                    yearLevel = (int?)null,
+                    sectionId = (int?)null,
+                    department = (int?)null
+                };
+
+                // If student, get their course enrollment details
+                if (user.Role == "Student")
+                {
+                    var studentCourse = db.StudentCourses
+                        .Where(sc => sc.StudentId == user.Id)
+                        .OrderByDescending(sc => sc.DateEnrolled)
+                        .FirstOrDefault();
+
+                    if (studentCourse != null)
+                    {
+                        var section = db.Sections.Find(studentCourse.SectionId);
+                        if (section != null)
+                        {
+                            userData = new
+                            {
+                                id = user.Id,
+                                userId = user.UserID,
+                                firstName = user.FirstName,
+                                lastName = user.LastName,
+                                email = user.Email,
+                                role = user.Role,
+                                programId = (int?)section.ProgramId,
+                                yearLevel = (int?)section.YearLevel,
+                                sectionId = (int?)studentCourse.SectionId,
+                                department = (int?)section.Program?.DepartmentId
+                            };
+                        }
+                    }
+                }
+
                 return Json(new
                 {
                     success = true,
-                    user = new
-                    {
-                        id = user.Id,
-                        userId = user.UserID,
-                        firstName = user.FirstName,
-                        lastName = user.LastName,
-                        email = user.Email,
-                        phoneNumber = user.PhoneNumber,
-                        department = user.Department,
-                        role = user.Role
-                    }
+                    user = userData
                 }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"GetUserData Error: {ex.Message}");
                 return Json(new { success = false, message = "Error: " + ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
@@ -294,7 +289,8 @@ namespace LMS.Controllers
         // POST: Account/EditAccount
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult EditAccount(int id, string role, string firstName, string lastName, string email, string userId, string phone, string department)
+        public ActionResult EditAccount(int id, string role, string firstName, string lastName, string userId,
+            string email, string phone, int? programId, int? yearLevel, int? sectionId)
         {
             try
             {
@@ -302,7 +298,6 @@ namespace LMS.Controllers
                 if (existingUser == null)
                     return Json(new { success = false, message = "User not found!" });
 
-                // Build log message for changes
                 var changes = new List<string>();
 
                 if (existingUser.FirstName != firstName || existingUser.LastName != lastName)
@@ -311,30 +306,30 @@ namespace LMS.Controllers
                     changes.Add($"Email: '{existingUser.Email}' → '{email}'");
                 if (existingUser.UserID != userId)
                     changes.Add($"User ID: '{existingUser.UserID}' → '{userId}'");
-                if (existingUser.PhoneNumber != phone)
-                    changes.Add($"Phone: '{existingUser.PhoneNumber}' → '{phone}'");
-                if (existingUser.Department != department)
-                    changes.Add($"Department: '{existingUser.Department}' → '{department}'");
                 if (existingUser.Role != role)
                     changes.Add($"Role: '{existingUser.Role}' → '{role}'");
 
-                // Update fields
                 existingUser.FirstName = firstName;
                 existingUser.LastName = lastName;
                 existingUser.Email = email;
                 existingUser.UserID = userId;
-                existingUser.PhoneNumber = phone;
-                existingUser.Department = department;
                 existingUser.Role = role;
 
                 db.SaveChanges();
 
-                // Log changes only if there were any
-                if (changes.Any())
+                if (role == "Student" && programId.HasValue && yearLevel.HasValue && sectionId.HasValue)
                 {
-                    string logMessage = $"Updated user: {string.Join("; ", changes)}";
-                    LogAction("User Actions", logMessage, Session["FullName"]?.ToString(), "Admin");
+                    var oldEnrollments = db.StudentCourses.Where(sc => sc.StudentId == id).ToList();
+                    if (oldEnrollments.Any())
+                    {
+                        db.StudentCourses.RemoveRange(oldEnrollments);
+                        db.SaveChanges();
+                    }
+                    int currentSemester = DateTime.Now.Month >= 6 && DateTime.Now.Month <= 10 ? 1 : 2;
+                    AutoAssignCoursesToStudent(id, programId.Value, sectionId.Value, yearLevel.Value, currentSemester);
+                    changes.Add($"Program/Year/Section updated");
                 }
+
 
                 return Json(new
                 {
@@ -347,14 +342,13 @@ namespace LMS.Controllers
                         firstName = existingUser.FirstName,
                         lastName = existingUser.LastName,
                         email = existingUser.Email,
-                        phone = existingUser.PhoneNumber,
-                        department = existingUser.Department,
                         role = existingUser.Role
                     }
                 });
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"EditAccount Error: {ex.Message}");
                 return Json(new { success = false, message = "Error: " + ex.Message });
             }
         }
@@ -362,76 +356,74 @@ namespace LMS.Controllers
         // POST: Account/CreateAccount
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult CreateAccount(string role, string firstName, string lastName, string email, string userId, string phone, string department)
+        public ActionResult CreateAccount(string role, string firstName, string lastName, string userId, 
+            string email, int? semester, int? programId, int? yearLevel, int? sectionId)
         {
-            if (string.IsNullOrEmpty(role) || string.IsNullOrEmpty(firstName) ||
-                string.IsNullOrEmpty(lastName) || string.IsNullOrEmpty(email) ||
-                string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(department))
-            {
-                return Json(new { success = false, message = "All fields are required!" });
-            }
 
-            if (db.Users.Any(u => u.Email == email))
-            {
-                return Json(new { success = false, message = "Email already exists!" });
-            }
-
-            if (db.Users.Any(u => u.UserID == userId))
-            {
-                return Json(new { success = false, message = "Teacher/Student ID already exists!" });
-            }
-
-            string generatedPassword = GeneratePassword();
-
-            User newUser = new User
-            {
-                UserID = userId,
-                FirstName = firstName,
-                LastName = lastName,
-                Email = email,
-                PhoneNumber = phone,
-                Department = department,
-                Password = HashPassword(generatedPassword),
-                Role = role,
-                DateCreated = DateTime.Now
-            };
-
-            db.Users.Add(newUser);
-            db.SaveChanges();
-
-            // Send welcome email using EmailHelper
-            var emailSent = EmailHelper.SendEmail(
-                toEmail: email,
-                subject: "Welcome to G2 Academy University LMS",
-                htmlBody: EmailHelper.CreateWelcomeEmailTemplate(email, generatedPassword, $"{firstName} {lastName}")
-            );
-
-            LogAction("User Actions", $"Created new {role} account: {firstName} {lastName} ({email})", null, "Admin");
-
-            // Optional: Log if email sending failed
-            if (!emailSent)
-            {
-                System.Diagnostics.Debug.WriteLine($"Failed to send welcome email to {email}");
-            }
-
-
-            return Json(new
-            {
-                success = true,
-                message = $"Account created successfully!",
-                userData = new
+                if (string.IsNullOrWhiteSpace(role) || string.IsNullOrWhiteSpace(firstName) ||
+                    string.IsNullOrWhiteSpace(lastName) || string.IsNullOrWhiteSpace(userId) ||
+                    string.IsNullOrWhiteSpace(email))
                 {
-                    id = newUser.Id,
-                    userId = newUser.UserID,
-                    firstName = newUser.FirstName,
-                    lastName = newUser.LastName,
-                    email = newUser.Email,
-                    phone = newUser.PhoneNumber,
-                    department = newUser.Department,
-                    role = newUser.Role
+                    return Json(new { success = false, message = "Please fill all required fields correctly." });
                 }
-            });
-        }
+
+                if (role == "Student")
+                {
+                    if (!programId.HasValue || !yearLevel.HasValue || !sectionId.HasValue)
+                    {
+                        return Json(new { success = false, message = "Please select Program, Year Level, and Section for student accounts." });
+                    }
+                }
+
+                if (db.Users.Any(u => u.Email == email))
+                {
+                    return Json(new { success = false, message = "Email already exists!" });
+                }
+
+                if (db.Users.Any(u => u.UserID == userId))
+                {
+                    return Json(new { success = false, message = "Teacher/Student ID already exists!" });
+                }
+
+                // Create user
+                string generatedPassword = GeneratePassword();
+                var user = new User
+                {
+                    UserID = userId,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Email = email,
+                    Role = role,
+                    Password = HashPassword(generatedPassword),
+                    DateCreated = DateTime.Now
+                };
+
+                db.Users.Add(user);
+                db.SaveChanges();
+
+                if (role == "Student" && programId.HasValue && yearLevel.HasValue && sectionId.HasValue)
+                {
+                    int currentSemester = semester ?? 1;
+                    
+                    AutoAssignCoursesToStudent(user.Id, programId.Value, sectionId.Value, yearLevel.Value, currentSemester);
+                }
+
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"{role} account created successfully!",
+                    userData = new
+                    {
+                        id = user.Id,
+                        userId = user.UserID,
+                        firstName = user.FirstName,
+                        lastName = user.LastName,
+                        email = user.Email,
+                        role = user.Role,
+                    }
+                });
+            }
 
         // POST: Account/DeleteUser
         [HttpPost]
@@ -447,13 +439,6 @@ namespace LMS.Controllers
             string userFullName = $"{user.FirstName} {user.LastName}";
             string userRole = user.Role;
 
-            // If the user is a student, remove their CourseUser entries
-            if (user.Role == "Student")
-            {
-                var courseUsers = db.CourseUsers.Where(cu => cu.StudentId == id).ToList();
-                db.CourseUsers.RemoveRange(courseUsers);
-            }
-
             db.Users.Remove(user);
             db.SaveChanges();
 
@@ -468,9 +453,7 @@ namespace LMS.Controllers
             return Json(new { success = true, message = $"{userRole} deleted successfully!" });
         }
 
-
-
-
+        
 
         private bool IsValidEmail(string email)
         {
@@ -522,6 +505,68 @@ namespace LMS.Controllers
             db.SaveChanges();
         }
 
+        private void AutoAssignCoursesToStudent(int studentId, int programId, int sectionId, int yearLevel, int semester)
+        {
+
+                // Validate inputs
+                if (studentId <= 0 || programId <= 0 || sectionId <= 0 || yearLevel <= 0 || semester <= 0)
+                {
+                    return;
+                }
+
+                var student = db.Users.Find(studentId);
+                if (student == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ERROR: Student with ID {studentId} not found");
+                    return;
+                }
+
+                var section = db.Sections.Find(sectionId);
+                var curriculumCourses = db.CurriculumCourses
+                    .Where(cc => cc.ProgramId == programId
+                                 && cc.YearLevel == yearLevel
+                                 && cc.Semester == semester)
+                    .ToList();
+
+                int enrolledCount = 0;
+                int skippedCount = 0;
+
+                foreach (var cc in curriculumCourses)
+                {
+                    var existingEnrollment = db.StudentCourses
+                        .FirstOrDefault(sc => sc.StudentId == studentId
+                                           && sc.CourseId == cc.CourseId
+                                           && sc.SectionId == sectionId);
+
+                    if (existingEnrollment == null)
+                    {
+                        var studentCourse = new StudentCourse
+                        {
+                            StudentId = studentId,
+                            CourseId = cc.CourseId,
+                            SectionId = sectionId,
+                            DateEnrolled = DateTime.Now
+                        };
+                        
+                        db.StudentCourses.Add(studentCourse);
+                        enrolledCount++;
+                        
+                    }
+                    else
+                    {
+                        skippedCount++;
+                    }
+                }
+
+                db.SaveChanges();
+        }
+
+        public ActionResult Logout()
+        {
+            Session.Clear();
+            Session.Abandon();
+            return RedirectToAction("Login", "Home");
+        }
 
     }
 }

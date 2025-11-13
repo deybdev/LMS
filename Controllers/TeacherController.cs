@@ -35,26 +35,6 @@ namespace LMS.Controllers
         // GET: Teacher/Course
         public ActionResult Course()
         {
-            if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
-            {
-                TempData["ErrorMessage"] = "Session expired. Please log in again.";
-                return RedirectToAction("Login", "Home");
-            }
-
-            int teacherId = Convert.ToInt32(Session["Id"]);
-
-            //// Get all teacher courses
-            //var courses = db.Courses
-            //    .Where(c => c.TeacherId == teacherId)
-            //    .ToList();
-
-            // Store student counts in a dictionary
-            var studentCounts = db.CourseUsers
-                .GroupBy(cu => cu.CourseId)
-                .ToDictionary(g => g.Key, g => g.Count());
-
-            ViewBag.StudentCounts = studentCounts;
-
             return View();
         }
 
@@ -323,7 +303,6 @@ namespace LMS.Controllers
                     name = s.FirstName + " " + s.LastName,
                     studentId = s.UserID,
                     email = s.Email,
-                    department = s.Department ?? "N/A"
                 })
                 .ToList();
 

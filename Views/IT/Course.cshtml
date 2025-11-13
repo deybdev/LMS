@@ -59,10 +59,8 @@
                 <thead>
                     <tr>
                         <th>Course Code</th>
+                        <th>Units</th>
                         <th>Title</th>
-                        <th>Program</th>
-                        <th>Semester</th>
-                        <th>Year Level</th>
                         <th>Date Created</th>
                         <th>Actions</th>
                     </tr>
@@ -74,25 +72,12 @@
                         {
                             <tr class="default-row">
                                 <td>@course.CourseCode</td>
+                                <td>@course.CourseUnit</td>
                                 <td>
                                     <p class="course-title-link">
                                         @course.CourseTitle
                                     </p>
                                 </td>
-                                <td>@(course.Program?.ProgramCode ?? "N/A")</td>
-                                <td>
-                                    @(course.Semester == 1 ? "1st" :
-                                      course.Semester == 2 ? "2nd" :
-                                      course.Semester == 3 ? "3rd" :
-                                      course.Semester + "th")
-                                </td>
-                                <td>
-                                    @(course.YearLevel == 1 ? "1st" :
-                                      course.YearLevel == 2 ? "2nd" :
-                                      course.YearLevel == 3 ? "3rd" :
-                                      course.YearLevel + "th")
-                                </td>
-
                                 <td>@course.DateCreated.ToString("MMM dd, yyyy")</td>
                                 <td class="action-buttons">
                                     <button class="action-btn view-btn">

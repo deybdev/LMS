@@ -26,7 +26,7 @@
         </button>
         <ul class="dropdown-menu" aria-labelledby="createAccountMenu">
             <li>
-                <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#manualAccountModal" href="#">
+                <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#roleSelectionModal" href="#">
                     <i class="fa-solid fa-pen-to-square"></i> Create Manually
                 </a>
             </li>
@@ -38,18 +38,46 @@
         </ul>
     </div>
 
+    <!-- Role Selection Modal -->
+    <div class="modal fade" id="roleSelectionModal" tabindex="-1" aria-labelledby="roleSelectionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="roleSelectionModalLabel">
+                        <i class="fa-solid fa-user-plus"></i> Select Account Type
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3">Choose the type of account you want to create:</p>
+                    <div class="d-grid gap-3">
+                        <button type="button" class="btn btn-outline-primary btn-lg role-choice-btn" data-role="Student">
+                            <i class="fa-solid fa-user-graduate me-2"></i> Student Account
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-lg role-choice-btn" data-role="Teacher">
+                            <i class="fa-solid fa-chalkboard-user me-2"></i> Teacher Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Manual Account Modal -->
     <div class="modal fade" id="manualAccountModal" tabindex="-1" aria-labelledby="manualAccountModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
+
                 <div class="modal-header">
                     <h5 class="modal-title" id="manualAccountModalLabel">
-                        <i class="fa-solid fa-pen-to-square"></i> <span id="modalTitle">Create Account Manually</span>
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span id="modalTitle">Create Account Manually</span>
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
                 <div class="modal-body">
+
                     @if (TempData["FormError"] != null)
                     {
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -75,6 +103,9 @@
                         <!-- Hidden ID for editing -->
                         <input type="hidden" id="editId" name="id" />
 
+                        <!-- Hidden role field (set by role selection modal) -->
+                        <input type="hidden" id="role" name="role" />
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="firstName" class="form-label">First Name</label>
@@ -87,58 +118,70 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="role" class="form-label">Select Role</label>
-                            <select id="role" name="role" class="form-select" required>
-                                <option value="">Choose Role</option>
-                                <option value="Student">Student</option>
-                                <option value="Teacher">Teacher</option>
-                                @*<option value="IT">IT</option>*@
-                            </select>
+                        <div class=" mb-3">
+                            <label for="userId" class="form-label">Student/Teacher's ID</label>
+                            <input type="text" id="userId" name="userId" class="form-control" required>
                         </div>
 
-
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="userId" class="form-label">Student/Teacher's ID</label>
-                                <input type="text" id="userId" name="userId" class="form-control" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="department" class="form-label">Select Department</label>
-                                <select id="department" name="department" class="form-select" required>
-                                    <option value="" disabled>Choose department</option>
-                                    <option value="Computer Studies">Computer Studies</option>
-                                    <option value="Engineering">Engineering</option>
-                                    <option value="Business Administration">Business Administration</option>
-                                    <option value="Accountancy">Accountancy</option>
-                                    <option value="Education">Education</option>
-                                </select>
-                            </div>
-                        </div>
-
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="mb-3">
                                 <label for="email" class="form-label">Email</label>
                                 <input type="email" id="email" name="email" class="form-control" required>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="phone" class="form-label">Phone Number</label>
-                                <input type="tel" id="phone" name="phone" class="form-control" required>
+
+
+                        
+                        <!-- Student-specific fields (hidden by default) -->
+                            <div id="studentFieldsContainer" style="display: none;">
+                                <div class=" mb-3">
+                                    <label for="semester" class="form-label">Semester <span class="text-danger">*</span></label>
+                                    <select id="semester" name="semester" class="form-select">
+                                        <option value="" selected disabled>Choose semester</option>
+                                        <option value="1">1st</option>
+                                        <option value="2">2nd</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="program" class="form-label">Program <span class="text-danger">*</span></label>
+                                    <select id="program" name="programId" class="form-select" required>
+                                        <option value="" selected disabled>Choose Program</option>
+                                        @foreach (var p in ViewBag.Programs)
+                                        {
+                                            <option value="@p.Id">
+                                                @LMS.Helpers.ProgramNameHelper.AbbreviateProgramName(p.ProgramName)
+                                            </option>
+                                        }
+                                    </select>
+                                </div>
+
+
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="studentYearLevel" class="form-label">Year Level <span class="text-danger">*</span></label>
+                                        <select id="yearLevel" name="yearLevel" class="form-select" disabled>
+                                            <option value="">Choose year level</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="studentSection" class="form-label">Section <span class="text-danger">*</span></label>
+                                        <select id="studentSection" name="sectionId" class="form-select" disabled>
+                                            <option value="">Choose section</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-
-
                     </form>
                 </div>
 
                 <div class="modal-footer">
                     <button type="button" class="btn cancel-btn" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary" id="submitAccountBtn" form="createAccountForm">
-                        <i id="uploadIcon" class="fa-solid fa-upload me-1"></i> <span id="btnText">Create</span>
+                        <i id="uploadIcon" class="fa-solid fa-upload me-1"></i>
+                        <span id="btnText">Create</span>
                     </button>
                 </div>
+
             </div>
         </div>
     </div>
@@ -198,8 +241,6 @@
                                 <li>Column 2 — Last Name</li>
                                 <li>Column 3 — First Name</li>
                                 <li>Column 4 — Email</li>
-                                <li>Column 5 — Phone</li>
-                                <li>Column 6 — Department</li>
                             </ul>
                             <p><strong>Password:</strong> auto-generated for each user.</p>
                         </div>
@@ -249,7 +290,6 @@
                     <tr>
                         <th>User</th>
                         <th>Role</th>
-                        <th>Department</th>
                         <th>Status</th>
                         <th>Last Login</th>
                         <th>Action</th>
@@ -269,7 +309,6 @@
                                     </div>
                                 </td>
                                 <td><span class="role-tag role-student">@user.Role</span></td>
-                                <td>@user.Department</td>
                                 <td>
                                     <span class="status-badge status-active">
                                         Active
@@ -346,36 +385,36 @@
 </div>
 
 @section scripts {
-    <script src="~/Scripts/jquery-3.6.0.min.js"></script>
     <script src="~/Scripts/Custom/index.js"></script>
-    <script src="~/Scripts/Admin/formValidation.js"></script>
+    <script src="~/Scripts/Custom/formValidation.js"></script>
     <script src="~/Scripts/Custom/deleteHandler.js"></script>
-    <script src="~/Scripts/Custom/improvedExcelProgress.js"></script>
-
-    @* Server-side alert handling *@
-    @if (TempData["AlertMessage"] != null)
-    {
-        <script>
-            $(function() {
-                showAlert('@(TempData["AlertType"] ?? "success")', '@TempData["AlertMessage"]');
-            });
-        </script>
-    }
-
-    @if (TempData["AlertMessage2"] != null)
-    {
-        <script>
-            $(function() {
-                setTimeout(function() {
-                    showAlert('@(TempData["AlertType2"] ?? "info")', '@TempData["AlertMessage2"]');
-                }, 300);
-            });
-        </script>
-    }
-
+    <script src="~/Scripts/Custom/excelProgress.js"></script>
+    <script src="~/Scripts/Custom/studentAccountDropdown.js"></script>
 }
 
 <style>
+    /* Role Selection Modal Styles */
+    #roleSelectionModal .modal-body {
+        padding: 2rem;
+    }
+
+    .role-choice-btn {
+        padding: 1.25rem;
+        font-size: 1.1rem;
+        font-weight: 500;
+        border-width: 2px;
+        transition: all 0.3s ease;
+    }
+
+    .role-choice-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .role-choice-btn i {
+        font-size: 1.3rem;
+    }
+
     #uploadProgressSection {
         animation: slideDown 0.3s ease-out;
     }

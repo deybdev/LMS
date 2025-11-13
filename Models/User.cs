@@ -15,9 +15,6 @@ namespace LMS.Models
 
         // Contact & Department Info
         public string Email { get; set; }
-        public string PhoneNumber { get; set; }
-        public string Department { get; set; }
-
         // Role: "Student", "Teacher", "IT", "Admin"
         public string Role { get; set; }
 
@@ -27,5 +24,8 @@ namespace LMS.Models
 
         // Date Created
         public DateTime DateCreated { get; set; }
+
+
+
     }
 }

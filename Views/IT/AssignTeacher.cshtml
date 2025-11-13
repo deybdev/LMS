@@ -1,0 +1,263 @@
+﻿@{
+    ViewBag.Title = "Assign Teacher";
+}
+
+<link rel="stylesheet" href="~/Content/manageUser.css" />
+<link rel="stylesheet" href="~/Content/itAssignTeacher.css" />
+
+<div class="admin-container">
+    <div class="page-header">
+        <h1>Teacher Assignment</h1>
+        <p class="subtitle">Assign teachers to courses and sections</p>
+    </div>
+
+    <!-- Assign New Teacher Button -->
+    <div class="create-dropdown mb-3">
+        <button type="button" data-bs-toggle="modal" data-bs-target="#assignTeacherModal">
+            <i class="fa-solid fa-user-plus"></i> Assign New Teacher
+        </button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="admin-content">
+        <!-- Statistics Overview -->
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalAssignments">0</h3>
+                    <p>Total Assignments</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="fa-solid fa-user-check"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalTeachers">0</h3>
+                    <p>Active Teachers</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <i class="fa-solid fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalCourses">0</h3>
+                    <p>Unassigned Courses</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="search-filter-section">
+            <div class="filter-controls">
+                <input type="text" id="searchInput" class="search-input" 
+                       placeholder="Search by teacher name, course, or section..." />
+
+                <div class="filter-dropdowns">
+                    <select class="filter-select" id="programFilter">
+                        <option value="">All Programs</option>
+                    </select>
+
+                    <select class="filter-select" id="yearLevelFilter">
+                        <option value="">All Year Levels</option>
+                        <option value="1">1st Year</option>
+                        <option value="2">2nd Year</option>
+                        <option value="3">3rd Year</option>
+                        <option value="4">4th Year</option>
+                    </select>
+
+                    <select class="filter-select" id="semesterFilter">
+                        <option value="">All Semesters</option>
+                        <option value="1">1st Semester</option>
+                        <option value="2">2nd Semester</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Mode Filters -->
+        <div class="view-mode-filters">
+            <button class="view-mode-btn active" data-mode="all">
+                <i class="fa-solid fa-list"></i> All Courses
+            </button>
+            <button class="view-mode-btn" data-mode="assigned">
+                <i class="fa-solid fa-check-circle"></i> Assigned Only
+            </button>
+            <button class="view-mode-btn" data-mode="unassigned">
+                <i class="fa-solid fa-clock"></i> Unassigned Only
+            </button>
+        </div>
+
+        <!-- Teacher Assignment Cards -->
+        <div id="teacherAssignmentContainer">
+            <!-- Loading state -->
+            <div class="loading-state text-center p-5">
+                <i class="fas fa-spinner fa-spin fa-3x text-primary mb-3"></i>
+                <p>Loading assignments...</p>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" style="display: none;">
+            <i class="fa-solid fa-user-slash"></i>
+            <h3>No Teacher Assignments Found</h3>
+            <p>Try adjusting your filters or assign a new teacher to get started.</p>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <span id="paginationInfo">Showing 0 of 0 entries</span>
+                <span id="currentPageInfo" class="ms-3">Page 1 of 1</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" id="prevBtn" disabled>
+                    <i class="fa-solid fa-chevron-left"></i> Previous
+                </button>
+                <div class="pagination-numbers" id="paginationNumbers">
+                    <button class="pagination-number active">1</button>
+                </div>
+                <button class="pagination-btn" id="nextBtn" disabled>
+                    Next <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="alertContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; max-width: 320px;"></div>
+
+<!-- Assign Teacher Modal -->
+<div class="modal fade" id="assignTeacherModal" tabindex="-1" aria-labelledby="assignTeacherModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignTeacherModalLabel">
+                    <i class="fa-solid fa-user-plus"></i> Assign Teacher to Course
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                
+
+                <form id="assignTeacherForm">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" id="assignmentId" name="AssignmentId" />
+
+                    <div class="mb-3">
+                        <label for="teacher" class="form-label">
+                            Select Teacher <span class="text-danger">*</span>
+                        </label>
+                        <select id="teacher" name="TeacherId" class="form-select" required>
+                            <option value="">Choose a teacher</option>
+                        </select>
+                        <small class="text-muted">Select the teacher to assign to this course</small>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="program" class="form-label">
+                                Program <span class="text-danger">*</span>
+                            </label>
+                            <select id="program" name="ProgramId" class="form-select" required>
+                                <option value="">Choose program</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="yearLevel" class="form-label">
+                                Year Level <span class="text-danger">*</span>
+                            </label>
+                            <select id="yearLevel" name="YearLevel" class="form-select" required disabled>
+                                <option value="">Choose year level</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="semester" class="form-label">
+                                Semester <span class="text-danger">*</span>
+                            </label>
+                            <select id="semester" name="Semester" class="form-select" required>
+                                <option value="">Choose semester</option>
+                                <option value="1">1st Semester</option>
+                                <option value="2">2nd Semester</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="section" class="form-label">
+                                Section <span class="text-danger">*</span>
+                            </label>
+                            <select id="section" name="SectionId" class="form-select" required disabled>
+                                <option value="">Choose section</option>
+                            </select>
+                            <small class="text-muted">Select the section for this assignment</small>
+                        </div>
+                    </div>
+
+                    <div id="formErrorContainer" class="alert alert-danger alert-dismissible fade show d-none" role="alert">
+                        <i class="fa-solid fa-circle-exclamation me-2"></i>
+                        <span id="formErrorMessage"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="course" class="form-label">
+                            Course <span class="text-danger">*</span>
+                        </label>
+                        <select id="course" name="CourseId" class="form-select" required disabled>
+                            <option value="">Choose course</option>
+                        </select>
+                        <small class="text-muted">Select the course to assign</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="remarks" class="form-label">Remarks (Optional)</label>
+                        <textarea id="remarks" name="Remarks" class="form-control" rows="3"
+                                  placeholder="Add any additional notes or comments..."></textarea>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn cancel-btn" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-times"></i> Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" id="submitAssignBtn" form="assignTeacherForm">
+                    <i class="fa-solid fa-user-plus me-1"></i> Assign Teacher
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/Scripts/Custom/assignTeacher.js"></script>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <script>
+            $(function () {
+                showAlert('success', '@TempData["SuccessMessage"]');
+            });
+        </script>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <script>
+            $(function () {
+                showAlert('danger', '@TempData["ErrorMessage"]');
+            });
+        </script>
+    }
+}
+

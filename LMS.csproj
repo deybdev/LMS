@@ -206,61 +206,59 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\CourseController.cs" />
+    <Compile Include="Controllers\CurriculumController.cs" />
     <Compile Include="Controllers\DepartmentController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ITController.cs" />
     <Compile Include="Controllers\ProgramController.cs" />
+    <Compile Include="Controllers\SectionController.cs" />
     <Compile Include="Controllers\StudentController.cs" />
     <Compile Include="Controllers\TeacherController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\EmailHelper.cs" />
-    <Compile Include="Migrations\202511050336380_CourseUpdate.cs" />
-    <Compile Include="Migrations\202511050336380_CourseUpdate.Designer.cs">
-      <DependentUpon>202511050336380_CourseUpdate.cs</DependentUpon>
+    <Compile Include="Helpers\ProgramNameHelper.cs" />
+    <Compile Include="Migrations\202511121514315_Initial.cs" />
+    <Compile Include="Migrations\202511121514315_Initial.Designer.cs">
+      <DependentUpon>202511121514315_Initial.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202511050342045_UndoDescriptionCourse.cs" />
-    <Compile Include="Migrations\202511050342045_UndoDescriptionCourse.Designer.cs">
-      <DependentUpon>202511050342045_UndoDescriptionCourse.cs</DependentUpon>
+    <Compile Include="Migrations\202511130950448_RemovePhoneInUser.cs" />
+    <Compile Include="Migrations\202511130950448_RemovePhoneInUser.Designer.cs">
+      <DependentUpon>202511130950448_RemovePhoneInUser.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202511061200155_AddDepeartmentInCourse.cs" />
-    <Compile Include="Migrations\202511061200155_AddDepeartmentInCourse.Designer.cs">
-      <DependentUpon>202511061200155_AddDepeartmentInCourse.cs</DependentUpon>
+    <Compile Include="Migrations\202511131429356_StudentCoursesUpd.cs" />
+    <Compile Include="Migrations\202511131429356_StudentCoursesUpd.Designer.cs">
+      <DependentUpon>202511131429356_StudentCoursesUpd.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202511061502050_AddDepartmentAndProgram.cs" />
-    <Compile Include="Migrations\202511061502050_AddDepartmentAndProgram.Designer.cs">
-      <DependentUpon>202511061502050_AddDepartmentAndProgram.cs</DependentUpon>
+    <Compile Include="Migrations\202511131432209_NullableTime.cs" />
+    <Compile Include="Migrations\202511131432209_NullableTime.Designer.cs">
+      <DependentUpon>202511131432209_NullableTime.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202511061504570_AddModelDepandProg.cs" />
-    <Compile Include="Migrations\202511061504570_AddModelDepandProg.Designer.cs">
-      <DependentUpon>202511061504570_AddModelDepandProg.cs</DependentUpon>
+    <Compile Include="Migrations\202511131521238_UpdNanaman.cs" />
+    <Compile Include="Migrations\202511131521238_UpdNanaman.Designer.cs">
+      <DependentUpon>202511131521238_UpdNanaman.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202511071322300_RemoveStatusProgram.cs" />
-    <Compile Include="Migrations\202511071322300_RemoveStatusProgram.Designer.cs">
-      <DependentUpon>202511071322300_RemoveStatusProgram.cs</DependentUpon>
+    <Compile Include="Migrations\202511131524043_updult.cs" />
+    <Compile Include="Migrations\202511131524043_updult.Designer.cs">
+      <DependentUpon>202511131524043_updult.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202511071326081_UpdateProgramModel.cs" />
-    <Compile Include="Migrations\202511071326081_UpdateProgramModel.Designer.cs">
-      <DependentUpon>202511071326081_UpdateProgramModel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202511071454137_UpdateCourseModelFixed.cs" />
-    <Compile Include="Migrations\202511071454137_UpdateCourseModelFixed.Designer.cs">
-      <DependentUpon>202511071454137_UpdateCourseModelFixed.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202511071528045_AddNavCourse.cs" />
-    <Compile Include="Migrations\202511071528045_AddNavCourse.Designer.cs">
-      <DependentUpon>202511071528045_AddNavCourse.cs</DependentUpon>
+    <Compile Include="Migrations\202511131532016_AssignProgUpd.cs" />
+    <Compile Include="Migrations\202511131532016_AssignProgUpd.Designer.cs">
+      <DependentUpon>202511131532016_AssignProgUpd.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AuditLog.cs" />
     <Compile Include="Models\Course.cs" />
-    <Compile Include="Models\CourseUser.cs" />
+    <Compile Include="Models\CurriculumGroupViewModel.cs" />
     <Compile Include="Models\Department.cs" />
     <Compile Include="Models\Event.cs" />
     <Compile Include="Models\LMSContext.cs" />
     <Compile Include="Models\Material.cs" />
     <Compile Include="Models\Program.cs" />
+    <Compile Include="Models\Section.cs" />
+    <Compile Include="Models\Student.cs" />
+    <Compile Include="Models\TeacherCourseSection.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\AdminDashboardViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -271,6 +269,8 @@
       <DependentUpon>LMS_DB.mdf</DependentUpon>
     </Content>
     <Content Include="Content\adminAcademic.css" />
+    <Content Include="Content\assignCourse.css" />
+    <Content Include="Content\itAssignTeacher.css" />
     <Content Include="Content\itCourse.css" />
     <Content Include="Content\adminDashboard.css" />
     <Content Include="Content\adminLogs.css" />
@@ -306,23 +306,26 @@
     <Content Include="Images\news2.jpg" />
     <Content Include="Images\news3.jpg" />
     <Content Include="Images\research.jpg" />
-    <Content Include="Scripts\Admin\formValidation.js" />
+    <Content Include="Scripts\Custom\assignTeacher.js" />
+    <Content Include="Scripts\Custom\formValidation.js" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
-    <Content Include=".env" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
-    <Content Include="Scripts\Custom\adminCourse.js" />
-    <Content Include="Scripts\Custom\adminLogs.js" />
+    <Content Include="Scripts\Custom\deleteCurriculumHandler.js" />
     <Content Include="Scripts\Custom\deleteHandler.js" />
     <Content Include="Scripts\Custom\dropdown.js" />
-    <Content Include="Scripts\Custom\improvedExcelProgress.js" />
+    <Content Include="Scripts\Custom\excelProgress.js" />
     <Content Include="Scripts\Custom\index.js" />
+    <Content Include="Scripts\Custom\manageStudentCourses.js" />
     <Content Include="Scripts\Custom\schoolCalendar.js" />
-    <Content Include="Scripts\Custom\teacherCourse.js" />
+    <Content Include="Scripts\Custom\searchableDropdown.js" />
+    <Content Include="Scripts\Custom\sectionDropdown.js" />
+    <Content Include="Scripts\Custom\sectionManagement.js" />
+    <Content Include="Scripts\Custom\studentAccountDropdown.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
     <Content Include="Scripts\jquery-3.7.0.slim.js" />
@@ -333,8 +336,6 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
-    <Content Include="Scripts\Teacher\teacherViewCourse.js" />
-    <Content Include="Scripts\Teacher\teacherCreateCourse.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -375,35 +376,9 @@
     <Content Include="Views\IT\AssignCourse.cshtml" />
     <Content Include="Views\Admin\Departments.cshtml" />
     <Content Include="Views\Admin\Sections.cshtml" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Migrations\202511050336380_CourseUpdate.resx">
-      <DependentUpon>202511050336380_CourseUpdate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202511050342045_UndoDescriptionCourse.resx">
-      <DependentUpon>202511050342045_UndoDescriptionCourse.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202511061200155_AddDepeartmentInCourse.resx">
-      <DependentUpon>202511061200155_AddDepeartmentInCourse.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202511061502050_AddDepartmentAndProgram.resx">
-      <DependentUpon>202511061502050_AddDepartmentAndProgram.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202511061504570_AddModelDepandProg.resx">
-      <DependentUpon>202511061504570_AddModelDepandProg.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202511071322300_RemoveStatusProgram.resx">
-      <DependentUpon>202511071322300_RemoveStatusProgram.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202511071326081_UpdateProgramModel.resx">
-      <DependentUpon>202511071326081_UpdateProgramModel.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202511071454137_UpdateCourseModelFixed.resx">
-      <DependentUpon>202511071454137_UpdateCourseModelFixed.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202511071528045_AddNavCourse.resx">
-      <DependentUpon>202511071528045_AddNavCourse.cs</DependentUpon>
-    </EmbeddedResource>
+    <Content Include="Views\IT\EditAssignedCourses.cshtml" />
+    <Content Include="Views\IT\AssignTeacher.cshtml" />
+    <Content Include="Views\IT\ManageStudentCourses.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -434,8 +409,29 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Uploads\Materials\" />
-    <Folder Include="Views\Department\" />
-    <Folder Include="Views\Program\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\202511121514315_Initial.resx">
+      <DependentUpon>202511121514315_Initial.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511130950448_RemovePhoneInUser.resx">
+      <DependentUpon>202511130950448_RemovePhoneInUser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511131429356_StudentCoursesUpd.resx">
+      <DependentUpon>202511131429356_StudentCoursesUpd.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511131432209_NullableTime.resx">
+      <DependentUpon>202511131432209_NullableTime.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511131521238_UpdNanaman.resx">
+      <DependentUpon>202511131521238_UpdNanaman.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511131524043_updult.resx">
+      <DependentUpon>202511131524043_updult.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511131532016_AssignProgUpd.resx">
+      <DependentUpon>202511131532016_AssignProgUpd.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

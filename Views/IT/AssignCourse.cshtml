@@ -3,6 +3,8 @@
 }
 
 <link rel="stylesheet" href="~/Content/teacherCreateCourse.css" />
+<link rel="stylesheet" href="~/Content/assignCourse.css" />
+<link rel="stylesheet" href="~/Content/Site.css" />
 
 <div class="admin-container">
     <div class="create-course-container">
@@ -16,7 +18,7 @@
                 <p>Assign Course to Curriculum</p>
             </div>
 
-            <form id="assignCourseForm" class="course-form" method="post">
+            <form id="assignCourseForm" class="course-form" method="post" action="@Url.Action("AssignCoursesToCurriculum", "Curriculum")">
                 @Html.AntiForgeryToken()
 
                 <!-- CURRICULUM SELECTION -->
@@ -27,28 +29,33 @@
                     <p class="section-description">Choose the Program, Year Level, and Semester where you want to assign courses</p>
 
                     <div class="form-grid">
-                        <!-- Program -->
+                        <!-- Department -->
                         <div class="form-group">
-                            <label class="form-label">Program *</label>
-                            <select id="programSelect" name="ProgramId" class="form-select" required>
-                                <option value="">-- Select Program --</option>
-                                <option value="1">BSCS - BS in Computer Science</option>
-                                <option value="2">BSIT - BS in Information Technology</option>
-                                <option value="3">BSBA - BS in Business Administration</option>
-                                <option value="4">BSCE - BS in Civil Engineering</option>
+                            <label class="form-label">Department *</label>
+                            <select id="department" class="form-select" required>
+                                <option value="">Choose department</option>
+                                @foreach (var d in ViewBag.Departments)
+                                {
+                                    <option value="@d.Id">@d.DepartmentName</option>
+                                }
                             </select>
                         </div>
 
+                        <!-- Program -->
+                        <div class="form-group">
+                            <label for="program" class="form-label">Program *</label>
+                            <select id="program" name="ProgramId" class="form-control" required disabled>
+                                <option value="">Select program</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
                         <!-- Year Level -->
                         <div class="form-group">
-                            <label class="form-label">Year Level *</label>
-                            <select id="yearLevelSelect" name="YearLevel" class="form-select" required>
-                                <option value="">-- Select Year Level --</option>
-                                <option value="1">1st Year</option>
-                                <option value="2">2nd Year</option>
-                                <option value="3">3rd Year</option>
-                                <option value="4">4th Year</option>
-                                <option value="5">5th Year</option>
+                            <label for="yearLevel" class="form-label">Year *</label>
+                            <select id="yearLevel" name="YearLevel" class="form-control" required disabled>
+                                <option value="">Select year</option>
                             </select>
                         </div>
 
@@ -59,7 +66,6 @@
                                 <option value="">-- Select Semester --</option>
                                 <option value="1">1st Semester</option>
                                 <option value="2">2nd Semester</option>
-                                <option value="3">Summer</option>
                             </select>
                         </div>
                     </div>
@@ -82,27 +88,26 @@
                     <div class="form-group full-width">
                         <label class="form-label">Search Course</label>
                         <div class="search-dropdown-wrapper">
-                            <input type="text" 
-                                   id="courseSearch" 
-                                   class="form-control search-input" 
-                                   placeholder="Type course code or title to search..." 
+                            <input type="text"
+                                   id="courseSearch"
+                                   class="form-control search-input"
+                                   placeholder="Type course code or title to search..."
                                    autocomplete="off" />
                             <i class="fas fa-search search-icon"></i>
-                            
+
                             <!-- Search Results Dropdown -->
-                            <div id="searchResultsDropdown" class="search-results-dropdown" style="display: none;">
+                            <div id="courseSearchDropdown" class="search-results-dropdown" style="display: none;">
                                 <div class="dropdown-header">
-                                    <span class="results-count">0 results found</span>
+                                    <span id="courseSearchCount" class="results-count">0 results found</span>
                                 </div>
-                                <div id="searchResultsList" class="dropdown-results-list">
-                                    <!-- Search results will be populated here -->
+                                <div id="courseSearchList" class="dropdown-results-list">
                                 </div>
-                                <div id="noResultsMessage" class="no-results-message" style="display: none;">
+                                <div id="courseSearchNoResults" class="no-results-message" style="display: none;">
                                     <i class="fas fa-search"></i>
                                     <p>No courses found</p>
                                     <small>Try searching with a different term</small>
                                 </div>
-                                <div id="loadingResults" class="loading-results" style="display: none;">
+                                <div id="courseSearchLoading" class="loading-results" style="display: none;">
                                     <i class="fas fa-spinner fa-spin"></i>
                                     <span>Searching...</span>
                                 </div>
@@ -112,7 +117,7 @@
 
                     <!-- Selected Courses Display -->
                     <div id="selectedCoursesSection" style="display: none; margin-top: 1.5rem;">
-                        <div class="selected-courses-header">
+                        <div class="selected-items-header">
                             <h4>
                                 <i class="fas fa-check-circle"></i> Selected Courses
                                 <span id="selectedCountBadge" class="selected-count-badge">0</span>
@@ -121,12 +126,10 @@
                                 <i class="fas fa-times"></i> Clear All
                             </button>
                         </div>
-                        <div id="selectedCoursesList" class="selected-courses-list">
-                            <!-- Selected courses will be dynamically added here -->
+                        <div id="selectedCoursesList" class="selected-items-list">
                         </div>
                     </div>
 
-                    <!-- Hidden inputs for selected course IDs -->
                     <input type="hidden" name="CourseIds" id="courseIdsInput" />
                 </div>
 
@@ -144,559 +147,17 @@
 </div>
 
 @section scripts {
+    <script src="~/Scripts/Custom/searchableDropdown.js"></script>
+    <script src="~/Scripts/Custom/dropdown.js"></script>
+
     <script>
-        // Sample course data (replace with AJAX call to backend)
-        const availableCourses = [
-            { id: 1, code: 'CS101', title: 'Introduction to Programming', description: 'Learn fundamental programming concepts using modern programming languages.' },
-            { id: 2, code: 'CS103', title: 'Computer Fundamentals', description: 'Introduction to computer hardware, software, and basic troubleshooting.'},
-            { id: 3, code: 'MATH101', title: 'Calculus I', description: 'Introduction to differential and integral calculus.'},
-            { id: 4, code: 'CS102', title: 'Data Structures and Algorithms', description: 'Study of fundamental data structures and algorithms.'},
-            { id: 5, code: 'ENG101', title: 'English Communication', description: 'Develop effective communication skills in English.'},
-            { id: 6, code: 'CS201', title: 'Object-Oriented Programming', description: 'Learn OOP concepts and design patterns.'}
-        ];
-
-        $(document).ready(function () {
-            // Show info message initially
-            $('#courseSelectionInfo').show();
-
-            // Track selections
-            let selectedProgram = '';
-            let selectedYear = '';
-            let selectedSemester = '';
-            let selectedCourses = [];
-
-            // Handle curriculum selection changes
-            $('#programSelect, #yearLevelSelect, #semesterSelect').on('change', function () {
-                selectedProgram = $('#programSelect').val();
-                selectedYear = $('#yearLevelSelect').val();
-                selectedSemester = $('#semesterSelect').val();
-
-                // Check if all three are selected
-                if (selectedProgram && selectedYear && selectedSemester) {
-                    showCourseSection();
-                } else {
-                    hideCourseSection();
-                }
-
-                validateForm();
+        $(function () {
+            // Initialize with correct IDs matching HTML
+            new CourseAssignmentForm({
+                programSelectId: 'program',          
+                yearLevelSelectId: 'yearLevel',
+                semesterSelectId: 'semesterSelect'  
             });
-
-            function showCourseSection() {
-                $('#courseSelectionInfo').hide();
-                $('#courseSection').slideDown(300);
-                $('#courseSearch').focus();
-            }
-
-            function hideCourseSection() {
-                $('#courseSection').hide();
-                $('#selectedCoursesSection').hide();
-                $('#courseSelectionInfo').show();
-                $('#courseSearch').val('');
-                $('#searchResultsDropdown').hide();
-                selectedCourses = [];
-                updateSelectedCoursesDisplay();
-            }
-
-            // Course search functionality
-            let searchTimeout;
-            $('#courseSearch').on('input', function () {
-                const searchTerm = $(this).val().trim();
-
-                clearTimeout(searchTimeout);
-
-                if (searchTerm.length === 0) {
-                    $('#searchResultsDropdown').hide();
-                    return;
-                }
-
-                // Show loading
-                $('#loadingResults').show();
-                $('#searchResultsList').empty();
-                $('#noResultsMessage').hide();
-                $('#searchResultsDropdown').show();
-
-                // Simulate search delay
-                searchTimeout = setTimeout(function() {
-                    performSearch(searchTerm);
-                }, 300);
-            });
-
-            function performSearch(searchTerm) {
-                const term = searchTerm.toLowerCase();
-                
-                // Filter courses based on search term
-                const results = availableCourses.filter(course => {
-                    // Exclude already selected courses
-                    if (selectedCourses.some(c => c.id === course.id)) {
-                        return false;
-                    }
-                    return course.code.toLowerCase().includes(term) || 
-                           course.title.toLowerCase().includes(term);
-                });
-
-                $('#loadingResults').hide();
-
-                if (results.length === 0) {
-                    $('#searchResultsList').empty();
-                    $('#noResultsMessage').show();
-                    $('.results-count').text('No results found');
-                } else {
-                    displaySearchResults(results);
-                    $('.results-count').text(`${results.length} result${results.length !== 1 ? 's' : ''} found`);
-                }
-            }
-
-            function displaySearchResults(results) {
-                $('#noResultsMessage').hide();
-                const $list = $('#searchResultsList');
-                $list.empty();
-
-                results.forEach(course => {
-                    const resultItem = $(`
-                        <div class="search-result-item" data-course-id="${course.id}">
-                            <div class="result-header">
-                                <span class="result-code">${course.code}</span>
-                                <span class="result-title">${course.title}</span>
-                            </div>
-                            <div class="result-description">${course.description}</div>
-                        </div>
-                    `);
-
-                    resultItem.on('click', function() {
-                        addCourse(course);
-                    });
-
-                    $list.append(resultItem);
-                });
-            }
-
-            function addCourse(course) {
-                // Check if not already added
-                if (!selectedCourses.some(c => c.id === course.id)) {
-                    selectedCourses.push(course);
-                    updateSelectedCoursesDisplay();
-                    
-                    // Clear search and hide dropdown
-                    $('#courseSearch').val('');
-                    $('#searchResultsDropdown').hide();
-                    
-                    validateForm();
-                }
-            }
-
-            function updateSelectedCoursesDisplay() {
-                if (selectedCourses.length > 0) {
-                    $('#selectedCoursesSection').show();
-                    $('#selectedCountBadge').text(selectedCourses.length);
-
-                    let html = '';
-                    selectedCourses.forEach(course => {
-                        html += `
-                            <div class="selected-course-item" data-course-id="${course.id}">
-                                <div class="selected-course-main">
-                                    <div class="selected-course-header">
-                                        <span class="selected-course-code">${course.code}</span>
-                                        <span class="selected-course-title">${course.title}</span>
-                                    </div>
-                                    <div class="selected-course-description">${course.description}</div>
-                                </div>
-                                <button type="button" class="remove-course-btn" onclick="removeCourse(${course.id})">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        `;
-                    });
-
-                    $('#selectedCoursesList').html(html);
-
-                    // Update hidden input
-                    const courseIds = selectedCourses.map(c => c.id).join(',');
-                    $('#courseIdsInput').val(courseIds);
-                } else {
-                    $('#selectedCoursesSection').hide();
-                    $('#courseIdsInput').val('');
-                }
-            }
-
-            function validateForm() {
-                const isValid = selectedProgram && selectedYear && selectedSemester && selectedCourses.length > 0;
-                $('#submitBtn').prop('disabled', !isValid);
-            }
-
-            // Click outside to close dropdown
-            $(document).on('click', function(e) {
-                if (!$(e.target).closest('.search-dropdown-wrapper').length) {
-                    $('#searchResultsDropdown').hide();
-                }
-            });
-
-            // Global functions
-            window.clearAllSelections = function () {
-                selectedCourses = [];
-                updateSelectedCoursesDisplay();
-                validateForm();
-            };
-
-            window.removeCourse = function (courseId) {
-                selectedCourses = selectedCourses.filter(c => c.id !== courseId);
-                updateSelectedCoursesDisplay();
-                validateForm();
-                
-                // If search has value, refresh results
-                if ($('#courseSearch').val().trim().length > 0) {
-                    performSearch($('#courseSearch').val().trim());
-                }
-            };
         });
     </script>
 }
-
-<style>
-    /* Section Description */
-    .section-description {
-        color: var(--gray-text);
-        font-size: 0.9rem;
-        margin-top: -0.5rem;
-        margin-bottom: 1rem;
-        font-family: var(--archivo-plain-font);
-    }
-
-    /* Info Message */
-    .info-message {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 1rem;
-        background: #e3f2fd;
-        border: 1px solid #90caf9;
-        border-radius: 8px;
-        color: #1976d2;
-        font-size: 0.9rem;
-        margin-top: 1rem;
-    }
-
-    /* Search Dropdown Wrapper */
-    .search-dropdown-wrapper {
-        position: relative;
-    }
-
-    .search-input {
-        padding-right: 2.5rem;
-    }
-
-    .search-icon {
-        position: absolute;
-        right: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--gray-text);
-        pointer-events: none;
-    }
-
-    /* Search Results Dropdown */
-    .search-results-dropdown {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: white;
-        border: 2px solid var(--primary-color);
-        border-radius: 8px;
-        margin-top: 0.5rem;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        z-index: 1000;
-        max-height: 400px;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .dropdown-header {
-        padding: 0.75rem 1rem;
-        background: #f8f9fa;
-        border-bottom: 1px solid #e9ecef;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .results-count {
-        font-size: 0.85rem;
-        color: var(--gray-text);
-        font-weight: 600;
-        font-family: var(--archivo-plain-font);
-    }
-
-    .dropdown-results-list {
-        overflow-y: auto;
-        max-height: 350px;
-    }
-
-    /* Search Result Item */
-    .search-result-item {
-        padding: 1rem;
-        border-bottom: 1px solid #e9ecef;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .search-result-item:last-child {
-        border-bottom: none;
-    }
-
-    .search-result-item:hover {
-        background: #f0f7ff;
-    }
-
-    .result-header {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .result-code {
-        background: var(--light-blue);
-        color: var(--primary-color);
-        padding: 0.25rem 0.6rem;
-        border-radius: 4px;
-        font-size: 0.85rem;
-        font-weight: 700;
-        font-family: var(--archivo-plain-font);
-    }
-
-    .result-title {
-        font-weight: 600;
-        color: var(--dark-primary-color);
-        font-size: 0.95rem;
-        font-family: var(--archivo-plain-font);
-    }
-
-    .result-description {
-        color: var(--gray-text);
-        font-size: 0.85rem;
-        line-height: 1.4;
-        margin-bottom: 0.5rem;
-        font-family: var(--archivo-plain-font);
-    }
-
-    .result-footer {
-        display: flex;
-        align-items: center;
-    }
-
-    .result-materials {
-        display: flex;
-        align-items: center;
-        gap: 0.35rem;
-        color: var(--gray-text);
-        font-size: 0.8rem;
-        font-family: var(--archivo-plain-font);
-    }
-
-    .result-materials i {
-        color: var(--primary-color);
-        font-size: 0.75rem;
-    }
-
-    /* Loading and No Results */
-    .loading-results,
-    .no-results-message {
-        padding: 2rem 1rem;
-        text-align: center;
-        color: var(--gray-text);
-    }
-
-    .loading-results {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.75rem;
-        color: #856404;
-    }
-
-    .loading-results i {
-        font-size: 1.2rem;
-    }
-
-    .no-results-message i {
-        font-size: 2rem;
-        color: #dee2e6;
-        margin-bottom: 0.75rem;
-    }
-
-    .no-results-message p {
-        margin: 0.25rem 0;
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: var(--dark-primary-color);
-    }
-
-    .no-results-message small {
-        font-size: 0.8rem;
-        color: var(--gray-text);
-    }
-
-    /* Selected Courses Section */
-    .selected-courses-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-        padding: 1rem;
-        background: #f0f7ff;
-        border-radius: 8px;
-        border: 1px solid var(--primary-color);
-    }
-
-    .selected-courses-header h4 {
-        margin: 0;
-        color: var(--primary-color);
-        font-family: var(--archivo-black-font);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 1rem;
-    }
-
-    .selected-count-badge {
-        background: var(--primary-color);
-        color: white;
-        padding: 0.25rem 0.6rem;
-        border-radius: 50%;
-        font-size: 0.85rem;
-        font-weight: 700;
-        min-width: 28px;
-        text-align: center;
-        display: inline-block;
-    }
-
-    .btn-clear-selection {
-        background: white;
-        border: 1px solid #dc3545;
-        color: #dc3545;
-        padding: 0.4rem 1rem;
-        border-radius: 5px;
-        font-size: 0.85rem;
-        cursor: pointer;
-        font-family: var(--archivo-plain-font);
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.35rem;
-    }
-
-    .btn-clear-selection:hover {
-        background: #dc3545;
-        color: white;
-    }
-
-    .selected-courses-list {
-        display: grid;
-        gap: 0.75rem;
-    }
-
-    .selected-course-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        padding: 1rem;
-        background: white;
-        border: 2px solid #e9ecef;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-    }
-
-    .selected-course-item:hover {
-        border-color: var(--primary-color);
-        background: #f8f9fa;
-    }
-
-    .selected-course-main {
-        flex: 1;
-        margin-right: 1rem;
-    }
-
-    .selected-course-header {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .selected-course-code {
-        background: var(--light-blue);
-        color: var(--primary-color);
-        padding: 0.35rem 0.6rem;
-        border-radius: 4px;
-        font-size: 0.85rem;
-        font-weight: 700;
-        font-family: var(--archivo-plain-font);
-    }
-
-    .selected-course-title {
-        color: var(--dark-primary-color);
-        font-size: 0.95rem;
-        font-weight: 600;
-        font-family: var(--archivo-plain-font);
-    }
-
-    .selected-course-description {
-        color: var(--gray-text);
-        font-size: 0.85rem;
-        line-height: 1.4;
-        margin-bottom: 0.5rem;
-        font-family: var(--archivo-plain-font);
-    }
-
-    .selected-course-meta {
-        display: flex;
-        align-items: center;
-        gap: 0.35rem;
-        color: var(--gray-text);
-        font-size: 0.8rem;
-        font-family: var(--archivo-plain-font);
-    }
-
-    .selected-course-meta i {
-        color: var(--primary-color);
-        font-size: 0.75rem;
-    }
-
-    .remove-course-btn {
-        background: #fff;
-        border: 1px solid #dc3545;
-        color: #dc3545;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        flex-shrink: 0;
-    }
-
-    .remove-course-btn:hover {
-        background: #dc3545;
-        color: white;
-    }
-
-    /* Scrollbar Styling */
-    .dropdown-results-list::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    .dropdown-results-list::-webkit-scrollbar-track {
-        background: #f1f1f1;
-    }
-
-    .dropdown-results-list::-webkit-scrollbar-thumb {
-        background: #cbd5e0;
-        border-radius: 4px;
-    }
-
-    .dropdown-results-list::-webkit-scrollbar-thumb:hover {
-        background: #a0aec0;
-    }
-</style>

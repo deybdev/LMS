@@ -90,6 +90,36 @@ namespace LMS.Controllers
             }
         }
 
+        // ✅ GET ALL PROGRAMS
+        [HttpGet]
+        public JsonResult GetAll()
+        {
+            try
+            {
+                var programs = db.Programs
+                    .Include(p => p.Department)
+                    .OrderBy(p => p.ProgramName)
+                    .Select(p => new
+                    {
+                        Id = p.Id,
+                        ProgramName = p.ProgramName,
+                        ProgramCode = p.ProgramCode,
+                        ProgramDuration = p.ProgramDuration,
+                        DepartmentId = p.DepartmentId,
+                        DepartmentCode = p.Department.DepartmentCode,
+                        DepartmentName = p.Department.DepartmentName
+                    })
+                    .ToList();
+
+                return Json(programs, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error loading programs: " + ex.Message },
+                    JsonRequestBehavior.AllowGet);
+            }
+        }
+
         // ✅ EDIT / UPDATE
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -161,6 +191,67 @@ namespace LMS.Controllers
                 message = $"{prog.ProgramName} deleted successfully.",
                 data = new { id = id }
             });
+        }
+
+        // ✅ GET PROGRAMS BY DEPARTMENT
+        [HttpGet]
+        public JsonResult GetProgramsByDepartment(int departmentId)
+        {
+            var programs = db.Programs
+                .Where(p => p.DepartmentId == departmentId)
+                .Select(p => new {
+                    p.Id,
+                    p.ProgramName,
+                    p.ProgramCode,
+                    p.ProgramDuration
+                })
+                .ToList();
+
+            return Json(programs, JsonRequestBehavior.AllowGet);
+        }
+
+        // ✅ GET YEAR LEVELS BY PROGRAM
+        [HttpGet]
+        public JsonResult GetYearLevelsByProgram(int programId)
+        {
+            var program = db.Programs.Find(programId);
+            if (program == null)
+            {
+                return Json(new List<object>(), JsonRequestBehavior.AllowGet);
+            }
+            var yearLevels = new List<object>();
+            for (int i = 1; i <= program.ProgramDuration; i++)
+            {
+                string suffix = GetOrdinalSuffix(i);
+                yearLevels.Add(new { Id = i, Name = $"{i}{suffix} Year" });
+            }
+            return Json(yearLevels, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public JsonResult GetSections(int programId, int yearLevel)
+        {
+            var sections = db.Sections
+                .Where(s => s.ProgramId == programId && s.YearLevel == yearLevel)
+                .Select(s => new {
+                    s.Id,
+                    s.SectionName
+                })
+                .ToList();
+
+            return Json(sections, JsonRequestBehavior.AllowGet);
+        }
+        private string GetOrdinalSuffix(int number)
+        {
+            if (number % 100 >= 11 && number % 100 <= 13)
+                return "th";
+            switch (number % 10)
+            {
+                case 1: return "st";
+                case 2: return "nd";
+                case 3: return "rd";
+                default: return "th";
+            }
         }
     }
 }

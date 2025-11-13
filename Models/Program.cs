@@ -20,12 +20,7 @@ namespace LMS.Models
 
         public DateTime DateCreated { get; set; } = DateTime.Now;
 
-
-        // ✅ Relationship: Program belongs to one Department
         public Department Department { get; set; }
-
-        // ✅ Relationship: Program has many Courses
-        public virtual ICollection<Course> Courses { get; set; }
 
     }
 

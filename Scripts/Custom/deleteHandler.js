@@ -68,9 +68,26 @@ document.addEventListener('DOMContentLoaded', () => {
             forceRemoveBackdrop();
 
             if (data.success) {
-                targetEl?.remove();
+                // Add fade-out animation before removing
+                if (targetEl) {
+                    targetEl.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    targetEl.style.opacity = '0';
+                    targetEl.style.transform = 'translateX(-20px)';
+                    
+                    setTimeout(() => {
+                        targetEl.remove();
+                        // Trigger custom event for page-specific actions
+                        document.dispatchEvent(new CustomEvent('itemDeleted', { detail: data }));
+                    }, 500);
+                } else {
+                    // If no target element, just trigger the event
+                    document.dispatchEvent(new CustomEvent('itemDeleted', { detail: data }));
+                }
+                
                 showAlert('success', data.message);
-            } else showAlert('danger', data.message || 'Delete failed.');
+            } else {
+                showAlert('danger', data.message || 'Delete failed.');
+            }
         } catch {
             bootstrap.Modal.getInstance(modal)?.hide();
             forceRemoveBackdrop();
