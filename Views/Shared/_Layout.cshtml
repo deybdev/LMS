@@ -77,8 +77,9 @@
                             else if (Session["Role"].ToString() == "IT")
                             {
                                 <a href="@Url.Action("Index", "IT")" class="nav-link @(isActive("IT", new string[] { "Index" }))">Home</a>
+                                <a href="@Url.Action("AssignedCourses", "IT")" class="nav-link @(isActive("IT", new string[] { "AssignedCourses", "AssignCourse" }))">Curriculum</a>
                                 <div class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle @(isActive("IT", new string[] { "Course", "CreateCourse", "EditCourse", "AssignedCourses", "AssignTeacher" }))"
+                                    <a class="nav-link dropdown-toggle @(isActive("IT", new string[] { "Course", "CreateCourse", "EditCourse", "AssignTeacher", "ManageStudentCourses" }))"
                                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         Courses
                                     </a>
@@ -87,11 +88,6 @@
                                         <li>
                                             <a class="dropdown-item @(isActive("IT", new string[] { "Course" }))"
                                                href="@Url.Action("Course", "IT")">All Courses</a>
-                                        </li>
-
-                                        <li>
-                                            <a class="dropdown-item @(isActive("IT", new string[] { "AssignedCourses" }))"
-                                               href="@Url.Action("AssignedCourses", "IT")">Assign Courses</a>
                                         </li>
                                         <li>
                                             <a class="dropdown-item @(isActive("IT", new string[] { "ManageStudentCourses" }))"
@@ -104,7 +100,6 @@
                                         </li>
                                     </ul>
                                 </div>
-                                <a href="@Url.Action("Schedule", "IT")" class="nav-link @(isActive("IT", new string[] { "Schedule" }))">Schedules</a>
                                 <a href="@Url.Action("Profile", "IT")" class="nav-link @(isActive("IT", new string[] { "Profile" }))">Profile</a>
                             }
 

@@ -2,6 +2,9 @@
     ViewBag.Title = "My Courses";
 }
 
+@model IEnumerable<dynamic>
+
+
 <link rel="stylesheet" href="~/Content/teacherCourse.css" />
 
 <div class="admin-container">
@@ -17,114 +20,56 @@
     <div class="courses-container">
         <div class="courses-grid" id="coursesGrid">
 
-            <!-- Sample course cards -->
-            <div class="course-card ongoing">
-                <div class="course-header">
-                    <span class="course-code">IT101</span>
-                </div>
+            @if (Model != null && Model.Any())
+            {
+                <!-- Course cards -->
+                foreach (var item in Model)
+                {
+                    <div class="course-card ongoing">
+                        <div class="course-header">
+                            <span class="course-code">@item.CourseCode</span>
+                        </div>
 
-                <div class="teacher-section">
-                    <div class="teacher-avatar">
-                        <span>3A</span>
-                    </div>
-                    <div class="course-info">
-                        <h4>Introduction to Programming</h4>
-                        <p>
-                            <i class="fa-regular fa-calendar"></i>
-                            MON - 8:00 AM - 10:00 AM
-                        </p>
-                    </div>
-                </div>
+                        <div class="teacher-section">
+                            <div class="teacher-avatar">
+                                <span>@item.SectionName</span>
+                            </div>
+                            <div class="course-info">
+                                <h4>@item.CourseName</h4>
+                                <p>
+                                    <i class="fa-regular fa-calendar"></i>
+                                    @item.Day - @item.Time
+                                </p>
+                            </div>
+                        </div>
 
-                <div class="course-stats">
-                    <div class="stat-item">
-                        <i class="fas fa-users"></i>
-                        <span>25 Students</span>
-                    </div>
-                    <div class="stat-item">
-                        <i class="fas fa-clock"></i>
-                        <span>2025 - 2026</span>
-                    </div>
-                </div>
+                        <div class="course-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-users"></i>
+                                <span>@item.Students Students</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-clock"></i>
+                                <span>@item.SchoolYear</span>
+                            </div>
+                        </div>
 
-                <div class="course-footer">
-                    <button class="btn-view-course">
-                        <i class="fas fa-eye"></i> View
-                    </button>
-                </div>
-            </div>
-
-            <div class="course-card ongoing">
-                <div class="course-header">
-                    <span class="course-code">CS202</span>
-                </div>
-
-                <div class="teacher-section">
-                    <div class="teacher-avatar">
-                        <span>2B</span>
+                        <div class="course-footer">
+                            <a href="@Url.Action("Material", "Teacher", new { id = item.CourseId })" class="btn-view-course">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </div>
                     </div>
-                    <div class="course-info">
-                        <h4>Data Structures and Algorithms</h4>
-                        <p>
-                            <i class="fa-regular fa-calendar"></i>
-                            WED - 10:00 AM - 12:00 PM
-                        </p>
-                    </div>
+                }
+            }
+            else
+            {
+                <div class="no-courses-message" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                    <i class="fas fa-book-open" style="font-size: 4rem; color: #ccc; margin-bottom: 1rem;"></i>
+                    <h3 style="color: #666; margin-bottom: 0.5rem;">No Courses Assigned Yet</h3>
+                    <p style="color: #999;">You don't have any courses assigned to you at the moment. Please contact the administrator if you believe this is an error.</p>
                 </div>
-
-                <div class="course-stats">
-                    <div class="stat-item">
-                        <i class="fas fa-users"></i>
-                        <span>30 Students</span>
-                    </div>
-                    <div class="stat-item">
-                        <i class="fas fa-clock"></i>
-                        <span>2025 - 2026</span>
-                    </div>
-                </div>
-
-                <div class="course-footer">
-                    <button class="btn-view-course">
-                        <i class="fas fa-eye"></i> View
-                    </button>
-                </div>
-            </div>
-
-            <div class="course-card ongoing">
-                <div class="course-header">
-                    <span class="course-code">IT305</span>
-                </div>
-
-                <div class="teacher-section">
-                    <div class="teacher-avatar">
-                        <span>4C</span>
-                    </div>
-                    <div class="course-info">
-                        <h4>Database Management Systems</h4>
-                        <p>
-                            <i class="fa-regular fa-calendar"></i>
-                            FRI - 1:00 PM - 3:00 PM
-                        </p>
-                    </div>
-                </div>
-
-                <div class="course-stats">
-                    <div class="stat-item">
-                        <i class="fas fa-users"></i>
-                        <span>28 Students</span>
-                    </div>
-                    <div class="stat-item">
-                        <i class="fas fa-clock"></i>
-                        <span>2025 - 2026</span>
-                    </div>
-                </div>
-
-                <div class="course-footer">
-                    <button class="btn-view-course">
-                        <i class="fas fa-eye"></i> View
-                    </button>
-                </div>
-            </div>
+            }
 
         </div>
     </div>

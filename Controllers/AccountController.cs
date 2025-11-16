@@ -359,7 +359,8 @@ namespace LMS.Controllers
         public ActionResult CreateAccount(string role, string firstName, string lastName, string userId, 
             string email, int? semester, int? programId, int? yearLevel, int? sectionId)
         {
-
+            try
+            {
                 if (string.IsNullOrWhiteSpace(role) || string.IsNullOrWhiteSpace(firstName) ||
                     string.IsNullOrWhiteSpace(lastName) || string.IsNullOrWhiteSpace(userId) ||
                     string.IsNullOrWhiteSpace(email))
@@ -408,6 +409,35 @@ namespace LMS.Controllers
                     AutoAssignCoursesToStudent(user.Id, programId.Value, sectionId.Value, yearLevel.Value, currentSemester);
                 }
 
+                // Send email notification
+                try
+                {
+                    var htmlBody = EmailHelper.GenerateEmailTemplate(
+                        EmailType.AccountCreated,
+                        new
+                        {
+                            Name = $"{firstName} {lastName}",
+                            Email = email,
+                            Password = generatedPassword
+                        }
+                    );
+
+                    bool emailSent = EmailHelper.SendEmail(
+                        toEmail: email,
+                        subject: "Your G2 Academy LMS Account",
+                        htmlBody: htmlBody
+                    );
+
+                    if (!emailSent)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"WARNING: Email failed to send to {email}");
+                    }
+                }
+                catch (Exception emailEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Email Error: {emailEx.Message}");
+                    // Continue even if email fails - account was created successfully
+                }
 
                 return Json(new
                 {
@@ -424,6 +454,12 @@ namespace LMS.Controllers
                     }
                 });
             }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"CreateAccount Error: {ex.Message}");
+                return Json(new { success = false, message = "Error creating account: " + ex.Message });
+            }
+        }
 
         // POST: Account/DeleteUser
         [HttpPost]

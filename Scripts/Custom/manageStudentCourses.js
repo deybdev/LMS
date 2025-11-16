@@ -1,4 +1,3 @@
-
 let selectedStudent = null;
 let enrolledCourses = [];
 let selectedCoursesToAdd = [];
@@ -23,16 +22,15 @@ function initializeEventHandlers() {
         }
     });
 
+    // Course filter input
+    $('#courseFilterInput').on('input', debounce(function () {
+        filterEnrolledCourses();
+    }, 300));
+
     // Modal course search
     $('#modalCourseSearch').on('input', debounce(function () {
         searchCoursesForModal();
     }, 300));
-
-    $('#addCourseYearLevel, #addCourseSemester').on('change', function () {
-        $('#modalCourseSearch').val('');
-        $('#modalCourseSearchDropdown').hide();
-        clearModalSelection();
-    });
 
     $('#confirmAddCoursesBtn').on('click', confirmAddCourses);
 
@@ -43,12 +41,17 @@ function initializeEventHandlers() {
             !$(e.target).closest('.student-search-dropdown').length) {
             $('#studentSearchResults').hide();
         }
-        if (!$(e.target).closest('.search-dropdown-wrapper').length) {
+        if (!$(e.target).closest('.search-dropdown-wrapper').length &&
+            !$(e.target).closest('#modalCourseSearchDropdown').length) {
             $('#modalCourseSearchDropdown').hide();
         }
     });
     
     $('#studentSearchResults').on('click', function(e) {
+        e.stopPropagation();
+    });
+
+    $('#modalCourseSearchDropdown').on('click', function(e) {
         e.stopPropagation();
     });
 }
@@ -172,7 +175,7 @@ function loadEnrolledCourses(studentId) {
     // Show loading state
     $('#enrolledCoursesTable').html(`
         <tr>
-            <td colspan="6" class="text-center" style="padding: 2rem;">
+            <td colspan="7" class="text-center" style="padding: 2rem;">
                 <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
                 <p style="margin-top: 1rem;">Loading courses...</p>
             </td>
@@ -185,18 +188,28 @@ function loadEnrolledCourses(studentId) {
         type: 'GET',
         data: { studentId: studentId },
         success: function(response) {
+            console.log('GetStudentCourses Response:', response); // Debug log
             if (response.success) {
                 enrolledCourses = response.courses || [];
+                
+                // Ensure sectionId is included in enrolledCourses
+                enrolledCourses = enrolledCourses.map(course => ({
+                    ...course,
+                    sectionId: course.sectionId || 0 // Fallback to 0 if not provided
+                }));
+                
+                console.log('Enrolled Courses with sectionId:', enrolledCourses); // Debug log
                 displayEnrolledCourses(enrolledCourses);
             } else {
-                showAlert('danger', response.message || 'Error loading student courses');
+                showAlert('danger', response.message || 'Failed to load student courses');
                 enrolledCourses = [];
                 displayEnrolledCourses(enrolledCourses);
             }
         },
         error: function(xhr, status, error) {
             console.error('Load courses error:', error);
-            showAlert('danger', 'Error loading student courses. Please try again.');
+            console.error('Response:', xhr.responseText); // Debug log
+            showAlert('danger', 'Failed to load student courses');
             enrolledCourses = [];
             displayEnrolledCourses(enrolledCourses);
         }
@@ -208,10 +221,12 @@ function displayEnrolledCourses(courses) {
     const $table = $('#enrolledCoursesTable');
     $table.empty();
 
+    console.log('displayEnrolledCourses called with:', courses); // Debug log
+
     if (courses.length === 0) {
         $table.append(`
             <tr id="noCoursesRow">
-                <td colspan="6" class="text-center" style="padding: 3rem; color: var(--gray-text);">
+                <td colspan="8" class="text-center" style="padding: 3rem; color: var(--gray-text);">
                     <i class="fas fa-inbox" style="font-size: 3rem; color: #dee2e6; margin-bottom: 1rem; display: block;"></i>
                     <h5 style="margin-bottom: 0.5rem;">No courses enrolled</h5>
                     <p style="margin: 0;">This student is not currently enrolled in any courses.</p>
@@ -221,31 +236,56 @@ function displayEnrolledCourses(courses) {
         $('#enrolledCoursesCount').text('0 Courses');
     } else {
         courses.forEach(course => {
-            // Handle date - it could be a string or Date object
-            let dateEnrolled = course.dateEnrolled;
-            if (typeof dateEnrolled === 'string') {
-                // Parse the date string (format: "/Date(1234567890)/" or ISO string)
-                if (dateEnrolled.indexOf('/Date(') === 0) {
-                    const timestamp = parseInt(dateEnrolled.replace(/\/Date\((\d+)\)\//, '$1'));
-                    dateEnrolled = new Date(timestamp);
-                } else {
-                    dateEnrolled = new Date(dateEnrolled);
+            console.log('Processing course:', course); // Debug log
+            
+            // Format teacher info
+            let teacherDisplay = 'Not Assigned';
+            let teacherClass = 'text-muted';
+            if (course.teacherName) {
+                console.log('Teacher found:', course.teacherName); // Debug log
+                teacherDisplay = `<div class="teacher-name-display">${course.teacherName}</div>`;
+                if (course.teacherEmail) {
+                    teacherDisplay += `<small class="teacher-email-display">${course.teacherEmail}</small>`;
                 }
+                teacherClass = '';
+            } else {
+                console.log('No teacher assigned'); // Debug log
+                teacherDisplay = '<span class="badge bg-warning text-dark">Not Assigned</span>';
             }
 
-            const $row = $(`
+            // Format time from
+            let timeFromDisplay = 'Not Set';
+            if (course.timeFrom) {
+                console.log('TimeFrom:', course.timeFrom); // Debug log
+                const timeFromDate = new Date(course.timeFrom);
+                timeFromDisplay = formatTime(timeFromDate);
+            } else {
+                console.log('TimeFrom is null'); // Debug log
+                timeFromDisplay = '<span class="text-muted fst-italic">Not Set</span>';
+            }
+
+            // Format time to
+            let timeToDisplay = 'Not Set';
+            if (course.timeTo) {
+                console.log('TimeTo:', course.timeTo); // Debug log
+                const timeToDate = new Date(course.timeTo);
+                timeToDisplay = formatTime(timeToDate);
+            } else {
+                console.log('TimeTo is null'); // Debug log
+                timeToDisplay = '<span class="text-muted fst-italic">Not Set</span>';
+            }
+
+            const $row = `
                 <tr class="default-row" 
                     data-course-id="${course.courseId}" 
                     data-year="${course.yearLevel}" 
                     data-semester="${course.semester}">
                     <td><span class="course-code-tag">${course.courseCode}</span></td>
                     <td class="course-title-col">${course.courseTitle}</td>
-                    <td>${course.yearLevel}${getYearSuffix(course.yearLevel)} Year</td>
+                    <td class="${teacherClass}">${teacherDisplay}</td>
                     <td>${getSemesterName(course.semester)}</td>
-                    <td class="last-login">
-                        <div>${formatDate(dateEnrolled)}</div>
-                        <div class="login-time">${formatTime(dateEnrolled)}</div>
-                    </td>
+                    <td class="time-display">${timeFromDisplay}</td>
+                    <td class="time-display">${timeToDisplay}</td>
                     <td class="action-buttons">
                         <button class="action-btn delete-btn" 
                                 onclick="openRemoveCourseModal(${course.id}, ${course.courseId}, '${course.courseCode} - ${course.courseTitle}')"
@@ -254,7 +294,7 @@ function displayEnrolledCourses(courses) {
                         </button>
                     </td>
                 </tr>
-            `);
+            `;
             $table.append($row);
         });
         $('#enrolledCoursesCount').text(`${courses.length} Course${courses.length > 1 ? 's' : ''}`);
@@ -284,16 +324,11 @@ function filterEnrolledCourses() {
 // Search courses for modal (Add Course)
 function searchCoursesForModal() {
     const searchTerm = $('#modalCourseSearch').val().trim();
-    const yearLevel = $('#addCourseYearLevel').val();
-    const semester = $('#addCourseSemester').val();
+
+    console.log('searchCoursesForModal called with:', searchTerm); // Debug
 
     if (searchTerm.length < 2) {
         $('#modalCourseSearchDropdown').hide();
-        return;
-    }
-
-    if (!yearLevel || !semester) {
-        showAlert('warning', 'Please select Year Level and Semester first');
         return;
     }
 
@@ -301,6 +336,8 @@ function searchCoursesForModal() {
         showAlert('warning', 'No student selected');
         return;
     }
+
+    console.log('Searching courses for student:', selectedStudent.id); // Debug
 
     // Show loading state
     $('#modalCourseSearchDropdown').show();
@@ -314,11 +351,10 @@ function searchCoursesForModal() {
         type: 'GET',
         data: {
             studentId: selectedStudent.id,
-            yearLevel: yearLevel,
-            semester: semester,
             searchTerm: searchTerm
         },
-        success: function(response) {
+        success: function (response) {
+            console.log('Course search response:', response); // Debug
             $('#modalCourseLoading').hide();
 
             if (response.success && response.courses && response.courses.length > 0) {
@@ -328,11 +364,14 @@ function searchCoursesForModal() {
             } else {
                 $('#modalCourseNoResults').show();
                 $('#modalCourseCount').text('0 courses found');
+                console.log('No courses found or error:', response.message); // Debug
             }
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             $('#modalCourseLoading').hide();
             console.error('Search courses error:', error);
+            console.error('Response status:', status);
+            console.error('Response text:', xhr.responseText);
             showAlert('danger', 'Error searching for courses. Please try again.');
             $('#modalCourseNoResults').show();
             $('#modalCourseCount').text('0 courses found');
@@ -345,17 +384,56 @@ function displayModalCourseResults(courses) {
     const $list = $('#modalCourseList');
     $list.empty();
 
-    courses.forEach(course => {
-        // Skip if already enrolled
-        const isEnrolled = enrolledCourses.some(ec => ec.courseId === course.id);
-        const isSelected = selectedCoursesToAdd.some(sc => sc.id === course.id);
+    console.log('Enrolled courses:', enrolledCourses); // Debug
+    console.log('Available courses:', courses); // Debug
 
-        if (isEnrolled) return;
+    courses.forEach(course => {
+        // Check if already enrolled - compare both courseId and sectionId
+        const isEnrolled = enrolledCourses.some(ec => {
+            const enrolled = ec.courseId === course.id && ec.sectionId === course.sectionId;
+            console.log(`Checking enrollment: Course ${course.id}, Section ${course.sectionId} - Enrolled: ${enrolled}`);
+            return enrolled;
+        });
+        
+        const isSelected = selectedCoursesToAdd.some(sc => sc.id === course.id && sc.sectionId === course.sectionId);
+
+        console.log(`Course ${course.code} (Section ${course.sectionName}) - Enrolled: ${isEnrolled}, Selected: ${isSelected}`);
+
+        if (isEnrolled) {
+            console.log(`Skipping ${course.code} - ${course.sectionName} (already enrolled)`);
+            return; // Skip if already enrolled
+        }
+
+        // Format time display
+        let timeDisplay = '<span class="text-muted fst-italic">Not set</span>';
+        if (course.timeFrom && course.timeTo) {
+            const timeFrom = formatTime(new Date(course.timeFrom));
+            const timeTo = formatTime(new Date(course.timeTo));
+            timeDisplay = `<span class="time-info">${timeFrom} - ${timeTo}</span>`;
+        }
 
         const $item = $(`
-            <div class="course-result-item ${isSelected ? 'disabled' : ''}" data-course-id="${course.id}">
-                <span class="course-code">${course.code}</span>
-                <span class="course-title">${course.title}</span>
+            <div class="course-result-item ${isSelected ? 'disabled' : ''}" 
+                 data-course-id="${course.id}"
+                 data-section-id="${course.sectionId}">
+                <div class="course-item-header">
+                    <span class="course-code">${course.code}</span>
+                    <span class="course-title">${course.title}</span>
+                </div>
+                <div class="course-item-details">
+                    <span class="detail-badge year-badge">
+                        <i class="fas fa-layer-group"></i> ${course.yearLevel}${getYearSuffix(course.yearLevel)} Year
+                    </span>
+                    <span class="detail-badge section-badge">
+                        <i class="fas fa-users"></i> Section ${course.sectionName}
+                    </span>
+                    <span class="detail-badge semester-badge">
+                        <i class="fas fa-calendar-alt"></i> ${getSemesterName(course.semester)}
+                    </span>
+                    <span class="detail-badge time-badge">
+                        <i class="fas fa-clock"></i> ${timeDisplay}
+                    </span>
+                </div>
             </div>
         `);
 
@@ -365,15 +443,16 @@ function displayModalCourseResults(courses) {
 
         $list.append($item);
     });
-}
 
-// Add course to selection
-function addCourseToSelection(course) {
-    if (selectedCoursesToAdd.some(c => c.id === course.id)) return;
-
-    selectedCoursesToAdd.push(course);
-    updateModalSelectedCourses();
-    searchCoursesForModal(); // Refresh to show updated state
+    if ($list.children().length === 0) {
+        $list.append(`
+            <div class="no-results-message" style="padding: 2rem; text-align: center;">
+                <i class="fas fa-check-circle" style="font-size: 2rem; color: #28a745; display: block; margin-bottom: 0.5rem;"></i>
+                <p style="margin: 0.5rem 0 0.25rem 0; font-weight: 600; color: var(--dark-primary-color);">All matching courses enrolled</p>
+                <small style="color: var(--gray-text);">The student is already enrolled in all matching courses</small>
+            </div>
+        `);
+    }
 }
 
 // Update modal selected courses display
@@ -392,11 +471,35 @@ function updateModalSelectedCourses() {
     $list.empty();
 
     selectedCoursesToAdd.forEach((course, index) => {
+        // Format time display
+        let timeDisplay = 'Not set';
+        if (course.timeFrom && course.timeTo) {
+            const timeFrom = formatTime(new Date(course.timeFrom));
+            const timeTo = formatTime(new Date(course.timeTo));
+            timeDisplay = `${timeFrom} - ${timeTo}`;
+        }
+
         const $item = $(`
             <div class="selected-course-item">
                 <div class="selected-course-info">
-                    <span class="course-code">${course.code}</span>
-                    <span class="course-title">${course.title}</span>
+                    <div class="selected-course-main">
+                        <span class="course-code">${course.code}</span>
+                        <span class="course-title">${course.title}</span>
+                    </div>
+                    <div class="selected-course-meta">
+                        <small class="meta-detail">
+                            <i class="fas fa-layer-group"></i> ${course.yearLevel}${getYearSuffix(course.yearLevel)} Year
+                        </small>
+                        <small class="meta-detail">
+                            <i class="fas fa-users"></i> Section ${course.sectionName}
+                        </small>
+                        <small class="meta-detail">
+                            <i class="fas fa-calendar-alt"></i> ${getSemesterName(course.semester)}
+                        </small>
+                        <small class="meta-detail">
+                            <i class="fas fa-clock"></i> ${timeDisplay}
+                        </small>
+                    </div>
                 </div>
                 <button type="button" class="btn-remove-selected" onclick="removeCourseFromSelection(${index})">
                     <i class="fas fa-times"></i>
@@ -407,33 +510,22 @@ function updateModalSelectedCourses() {
     });
 }
 
-// Remove course from selection
-function removeCourseFromSelection(index) {
-    selectedCoursesToAdd.splice(index, 1);
-    updateModalSelectedCourses();
-    searchCoursesForModal(); // Refresh to show updated state
-}
-
-// Clear modal selection
-function clearModalSelection() {
-    selectedCoursesToAdd = [];
-    updateModalSelectedCourses();
-    searchCoursesForModal();
-}
-
 // Confirm add courses
 function confirmAddCourses() {
     if (selectedCoursesToAdd.length === 0) return;
 
     const studentId = $('#modalStudentId').val();
-    const yearLevel = $('#addCourseYearLevel').val();
-    const semester = $('#addCourseSemester').val();
 
-    // Prepare course IDs
-    const courseIds = selectedCoursesToAdd.map(c => c.id).join(',');
+    // Prepare course data with section IDs
+    const courseData = selectedCoursesToAdd.map(c => ({
+        courseId: c.id,
+        sectionId: c.sectionId
+    }));
 
     // Get anti-forgery token
     const token = $('input[name="__RequestVerificationToken"]').val();
+
+    console.log('Adding courses:', courseData); // Debug
 
     // AJAX call to add courses
     $.ajax({
@@ -442,18 +534,17 @@ function confirmAddCourses() {
         data: {
             __RequestVerificationToken: token,
             studentId: studentId,
-            courseIds: courseIds
+            courseDataJson: JSON.stringify(courseData)
         },
         success: function(response) {
             if (response.success) {
                 // Reload enrolled courses
                 loadEnrolledCourses(selectedStudent.id);
-                showAlert('success', response.message || `Successfully added ${selectedCoursesToAdd.length} course(s) to ${selectedStudent.firstName} ${selectedStudent.lastName}`);
+                showAlert('success', response.message || `Successfully added ${selectedCoursesToAdd.length} course(s)`);
 
                 // Reset modal
                 selectedCoursesToAdd = [];
                 $('#addCourseModal').modal('hide');
-                $('#addCourseForm')[0].reset();
                 $('#modalCourseSearch').val('');
                 $('#modalCourseSearchDropdown').hide();
                 updateModalSelectedCourses();
@@ -463,13 +554,42 @@ function confirmAddCourses() {
         },
         error: function(xhr, status, error) {
             console.error('Add courses error:', error);
+            console.error('Response:', xhr.responseText);
             showAlert('danger', 'Error adding courses. Please try again.');
         }
     });
 }
 
+// Add course to selection
+function addCourseToSelection(course) {
+    if (selectedCoursesToAdd.some(c => c.id === course.id && c.sectionId === course.sectionId)) return;
+
+    selectedCoursesToAdd.push(course);
+    updateModalSelectedCourses();
+    searchCoursesForModal(); // Refresh to show updated state
+}
+
+// Remove course from selection
+function removeCourseFromSelection(index) {
+    selectedCoursesToAdd.splice(index, 1);
+    updateModalSelectedCourses();
+    searchCoursesForModal();
+}
+
+// Clear modal selection
+function clearModalSelection() {
+    selectedCoursesToAdd = [];
+    updateModalSelectedCourses();
+    searchCoursesForModal();
+}
+
 // Open remove course modal
 function openRemoveCourseModal(studentCourseId, courseId, courseName) {
+    if (!selectedStudent) {
+        showAlert('warning', 'No student selected');
+        return;
+    }
+
     $('#removeStudentCourseId').val(studentCourseId);
     $('#removeCourseId').val(courseId);
     $('#removeStudentName').text(`${selectedStudent.firstName} ${selectedStudent.lastName}`);
@@ -480,6 +600,11 @@ function openRemoveCourseModal(studentCourseId, courseId, courseName) {
 // Confirm remove course
 function confirmRemoveCourse() {
     const studentCourseId = parseInt($('#removeStudentCourseId').val());
+
+    if (!studentCourseId || isNaN(studentCourseId)) {
+        showAlert('danger', 'Invalid course selection');
+        return;
+    }
 
     // Get anti-forgery token
     const token = $('input[name="__RequestVerificationToken"]').val();
@@ -527,6 +652,8 @@ function formatDate(date) {
 }
 
 function formatTime(date) {
+    if (!date) return 'Not Set';
+    
     const d = new Date(date);
     let hours = d.getHours();
     const minutes = d.getMinutes();

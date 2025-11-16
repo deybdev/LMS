@@ -247,6 +247,22 @@
     <Compile Include="Migrations\202511131532016_AssignProgUpd.Designer.cs">
       <DependentUpon>202511131532016_AssignProgUpd.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202511141407321_RemoveTCCourse.cs" />
+    <Compile Include="Migrations\202511141407321_RemoveTCCourse.Designer.cs">
+      <DependentUpon>202511141407321_RemoveTCCourse.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511160737088_removecourseidinmaterial.cs" />
+    <Compile Include="Migrations\202511160737088_removecourseidinmaterial.Designer.cs">
+      <DependentUpon>202511160737088_removecourseidinmaterial.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511160804465_RemoveCourseIdFromMaterial.cs" />
+    <Compile Include="Migrations\202511160804465_RemoveCourseIdFromMaterial.Designer.cs">
+      <DependentUpon>202511160804465_RemoveCourseIdFromMaterial.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511160828102_updMaterial.cs" />
+    <Compile Include="Migrations\202511160828102_updMaterial.Designer.cs">
+      <DependentUpon>202511160828102_updMaterial.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AuditLog.cs" />
     <Compile Include="Models\Course.cs" />
@@ -336,6 +352,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\Teacher\teacherViewCourse.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -364,7 +381,7 @@
     <Content Include="Views\Admin\Course.cshtml" />
     <Content Include="Views\Admin\Logs.cshtml" />
     <Content Include="Views\Teacher\CreateCourse.cshtml" />
-    <Content Include="Views\Teacher\ViewCourse.cshtml" />
+    <Content Include="Views\Teacher\Course\Material.cshtml" />
     <Content Include="Views\Admin\Programs.cshtml" />
     <Content Include="Views\IT\Index.cshtml" />
     <Content Include="Views\IT\Course.cshtml" />
@@ -379,6 +396,9 @@
     <Content Include="Views\IT\EditAssignedCourses.cshtml" />
     <Content Include="Views\IT\AssignTeacher.cshtml" />
     <Content Include="Views\IT\ManageStudentCourses.cshtml" />
+    <Content Include="Views\Teacher\Course\Gradebook.cshtml" />
+    <Content Include="_COURSEID_REMOVAL_SUMMARY.md" />
+    <Content Include="_FILE_UPLOAD_ENHANCEMENT_SUMMARY.md" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -431,6 +451,18 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202511131532016_AssignProgUpd.resx">
       <DependentUpon>202511131532016_AssignProgUpd.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511141407321_RemoveTCCourse.resx">
+      <DependentUpon>202511141407321_RemoveTCCourse.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511160737088_removecourseidinmaterial.resx">
+      <DependentUpon>202511160737088_removecourseidinmaterial.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511160804465_RemoveCourseIdFromMaterial.resx">
+      <DependentUpon>202511160804465_RemoveCourseIdFromMaterial.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511160828102_updMaterial.resx">
+      <DependentUpon>202511160828102_updMaterial.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

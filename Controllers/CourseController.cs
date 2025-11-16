@@ -30,10 +30,8 @@ namespace LMS.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult CreateCourse(Course model)
         {
-            // Check for duplicate course title
             bool titleExists = db.Courses.Any(c => c.CourseTitle.Trim().ToLower() == model.CourseTitle.Trim().ToLower());
             
-            // Check for duplicate course code
             bool codeExists = db.Courses.Any(c => c.CourseCode.Trim().ToLower() == model.CourseCode.Trim().ToLower());
 
             if (titleExists)
@@ -48,11 +46,9 @@ namespace LMS.Controllers
 
             if (titleExists || codeExists)
             {
-                // Return the view from the IT folder
                 return View("~/Views/IT/CreateCourse.cshtml", model);
             }
 
-            // Add new course
             model.DateCreated = DateTime.Now;
             db.Courses.Add(model);
             db.SaveChanges();
@@ -110,51 +106,52 @@ namespace LMS.Controllers
         // AddCoursesToStudent
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public JsonResult AddCoursesToStudent(int studentId, string courseIds)
+        public JsonResult AddCoursesToStudent(int studentId, string courseDataJson)
         {
             try
             {
-                if (string.IsNullOrEmpty(courseIds))
+                if (string.IsNullOrEmpty(courseDataJson))
                 {
                     return Json(new { success = false, message = "No courses selected" });
                 }
 
-                var courseIdArray = courseIds.Split(',')
-                    .Where(id => !string.IsNullOrWhiteSpace(id))
-                    .Select(id => int.Parse(id.Trim()))
-                    .ToArray();
-
-                // Get student's section
-                var studentCourse = db.StudentCourses
-                    .Where(sc => sc.StudentId == studentId)
-                    .OrderByDescending(sc => sc.DateEnrolled)
-                    .FirstOrDefault();
-
-                if (studentCourse == null)
+                var courseDataList = new List<dynamic>();
+                
+                var jsonArray = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(courseDataJson);
+                
+                if (jsonArray == null || jsonArray.Count == 0)
                 {
-                    return Json(new { success = false, message = "Student section not found" });
+                    return Json(new { success = false, message = "No courses selected" });
                 }
 
                 int addedCount = 0;
-                foreach (var courseId in courseIdArray)
+                foreach (var item in jsonArray)
                 {
-                    // Check if already enrolled
+                    int courseId = Convert.ToInt32(item["courseId"]);
+                    int sectionId = Convert.ToInt32(item["sectionId"]);
+
                     var exists = db.StudentCourses
-                        .Any(sc => sc.StudentId == studentId && sc.CourseId == courseId);
+                        .Any(sc => sc.StudentId == studentId && sc.CourseId == courseId && sc.SectionId == sectionId);
 
                     if (!exists)
                     {
+                        var existingCourseTime = db.StudentCourses
+                            .FirstOrDefault(sc => sc.CourseId == courseId && sc.SectionId == sectionId);
+
                         var newEnrollment = new StudentCourse
                         {
                             StudentId = studentId,
                             CourseId = courseId,
-                            SectionId = studentCourse.SectionId,
+                            SectionId = sectionId,
+                            TimeFrom = existingCourseTime?.TimeFrom,
+                            TimeTo = existingCourseTime?.TimeTo,
                             DateEnrolled = DateTime.Now
                         };
 
                         db.StudentCourses.Add(newEnrollment);
                         addedCount++;
                     }
+                    
                 }
 
                 db.SaveChanges();
@@ -168,7 +165,6 @@ namespace LMS.Controllers
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"AddCoursesToStudent Error: {ex.Message}");
                 return Json(new { success = false, message = "Error: " + ex.Message });
             }
         }
@@ -208,13 +204,13 @@ namespace LMS.Controllers
 
         // GetAvailableCoursesForStudent
         [HttpGet]
-        public JsonResult GetAvailableCoursesForStudent(int studentId, int yearLevel, int semester, string searchTerm)
+        public JsonResult GetAvailableCoursesForStudent(int studentId, string searchTerm)
         {
             try
             {
-                // Get student's program
                 var studentCourse = db.StudentCourses
                     .Include("Section")
+                    .Include("Section.Program")
                     .Where(sc => sc.StudentId == studentId)
                     .OrderByDescending(sc => sc.DateEnrolled)
                     .FirstOrDefault();
@@ -225,40 +221,58 @@ namespace LMS.Controllers
                 }
 
                 int programId = studentCourse.Section.ProgramId;
+                string programCode = studentCourse.Section.Program.ProgramCode;
 
-                // Get curriculum courses for the program, year, and semester
-                var availableCourses = db.CurriculumCourses
-                    .Where(cc => cc.ProgramId == programId
-                        && cc.YearLevel == yearLevel
-                        && cc.Semester == semester)
-                    .Include("Course")
-                    .Select(cc => cc.Course)
-                    .Where(c => c.CourseCode.Contains(searchTerm) || c.CourseTitle.Contains(searchTerm))
-                    .Take(20)
-                    .ToList();
-
-                // Get already enrolled course IDs
                 var enrolledCourseIds = db.StudentCourses
                     .Where(sc => sc.StudentId == studentId)
                     .Select(sc => sc.CourseId)
+                    .Distinct()
                     .ToList();
 
-                // Filter out already enrolled courses
-                var filteredCourses = availableCourses
-                    .Where(c => !enrolledCourseIds.Contains(c.Id))
-                    .Select(c => new
+
+                var searchTermLower = searchTerm.ToLower();
+                var curriculumCourses = db.CurriculumCourses
+                    .Where(cc => cc.ProgramId == programId)
+                    .Include(cc => cc.Course)
+                    .Include(cc => cc.Program)
+                    .ToList()
+                    .Where(cc => !enrolledCourseIds.Contains(cc.CourseId) &&
+                                (cc.Course.CourseCode.ToLower().Contains(searchTermLower) || 
+                                cc.Course.CourseTitle.ToLower().Contains(searchTermLower)))
+                    .ToList();
+
+                var courseResults = new List<object>();
+                foreach (var cc in curriculumCourses)
+                {
+                    var sections = db.Sections
+                        .Where(s => s.ProgramId == cc.ProgramId && s.YearLevel == cc.YearLevel)
+                        .ToList();
+
+                    foreach (var section in sections)
                     {
-                        id = c.Id,
-                        code = c.CourseCode,
-                        title = c.CourseTitle
-                    })
-                    .ToList();
+                        var existingCourseTime = db.StudentCourses
+                            .FirstOrDefault(sc => sc.CourseId == cc.CourseId && sc.SectionId == section.Id);
 
-                return Json(new { success = true, courses = filteredCourses }, JsonRequestBehavior.AllowGet);
+                        courseResults.Add(new
+                        {
+                            id = cc.CourseId,
+                            code = cc.Course.CourseCode,
+                            title = cc.Course.CourseTitle,
+                            yearLevel = cc.YearLevel,
+                            semester = cc.Semester,
+                            sectionId = section.Id,
+                            sectionName = section.SectionName,
+                            programCode = programCode,
+                            timeFrom = existingCourseTime?.TimeFrom,
+                            timeTo = existingCourseTime?.TimeTo
+                        });
+                    }
+                }
+
+                return Json(new { success = true, courses = courseResults }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"GetAvailableCoursesForStudent Error: {ex.Message}");
                 return Json(new { success = false, message = "Error: " + ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
@@ -269,21 +283,39 @@ namespace LMS.Controllers
         {
             try
             {
-                var studentCourses = db.StudentCourses
+                var studentCoursesData = db.StudentCourses
                     .Where(sc => sc.StudentId == studentId)
-                    .Include("Course")
-                    .Include("Section")
-                    .Include("Section.Program")
-                    .ToList()
-                    .Select(sc => new
+                    .Include(sc => sc.Course)
+                    .Include(sc => sc.Section)
+                    .Include(sc => sc.Section.Program)
+                    .ToList();
+
+                var studentCourses = studentCoursesData
+                    .Select(sc =>
                     {
-                        id = sc.Id,
-                        courseId = sc.Course.Id,
-                        courseCode = sc.Course.CourseCode,
-                        courseTitle = sc.Course.CourseTitle,
-                        yearLevel = sc.Section.YearLevel,
-                        semester = GetSemesterFromCurriculum(sc.Section.ProgramId, sc.Course.Id, sc.Section.YearLevel),
-                        dateEnrolled = sc.DateEnrolled
+                        var semester = GetSemesterFromCurriculum(sc.Section.ProgramId, sc.CourseId, sc.Section.YearLevel);
+
+                        var teacherAssignment = db.TeacherCourseSections
+                            .Include(tcs => tcs.Teacher)
+                            .FirstOrDefault(tcs => tcs.CourseId == sc.CourseId 
+                                                && tcs.SectionId == sc.SectionId 
+                                                && tcs.Semester == semester);
+
+                        return new
+                        {
+                            id = sc.Id,
+                            courseId = sc.CourseId,
+                            sectionId = sc.SectionId,
+                            courseCode = sc.Course.CourseCode,
+                            courseTitle = sc.Course.CourseTitle,
+                            yearLevel = sc.Section.YearLevel,
+                            semester = semester,
+                            timeFrom = sc.TimeFrom,
+                            timeTo = sc.TimeTo,
+                            teacherName = teacherAssignment != null ? $"{teacherAssignment.Teacher.FirstName} {teacherAssignment.Teacher.LastName}" : null,
+                            teacherEmail = teacherAssignment != null ? teacherAssignment.Teacher.Email : null,
+                            dateEnrolled = sc.DateEnrolled
+                        };
                     })
                     .ToList();
 
@@ -291,7 +323,6 @@ namespace LMS.Controllers
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"GetStudentCourses Error: {ex.Message}");
                 return Json(new { success = false, message = "Error: " + ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }

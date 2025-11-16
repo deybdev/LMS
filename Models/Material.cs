@@ -6,14 +6,16 @@ namespace LMS.Models
     public class Material
     {
         public int Id { get; set; }
-        public int CourseId { get; set; }
+        
+        public int TeacherCourseSectionId { get; set; }
+        
         public string Title { get; set; }
         public string Type { get; set; } // Lecture Video, Notes, etc.
         public string Description { get; set; }
         public DateTime UploadedAt { get; set; }
 
         // Navigation properties
-        public virtual Course Course { get; set; }
+        public virtual TeacherCourseSection TeacherCourseSection { get; set; }
         public virtual ICollection<MaterialFile> MaterialFiles { get; set; } = new List<MaterialFile>();
     }
 

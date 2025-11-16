@@ -19,6 +19,164 @@ namespace LMS.Controllers
             return View();
         }
 
+        // GET: IT/GetDashboardStats - AJAX endpoint for dashboard statistics
+        [HttpGet]
+        public JsonResult GetDashboardStats()
+        {
+            try
+            {
+                var totalCourses = db.Courses.Count();
+                var totalAssignments = db.TeacherCourseSections.Count();
+
+                var unassignedCount = db.CurriculumCourses
+                    .Include(cc => cc.Course)
+                    .ToList()
+                    .Sum(cc =>
+                    {
+                        var sections = db.Sections
+                            .Where(s => s.ProgramId == cc.ProgramId && s.YearLevel == cc.YearLevel)
+                            .ToList();
+
+                        return sections.Count(section =>
+                            !db.TeacherCourseSections.Any(tcs =>
+                                tcs.CourseId == cc.CourseId &&
+                                tcs.SectionId == section.Id &&
+                                tcs.Semester == cc.Semester)
+                        );
+                    });
+
+                return Json(new
+                {
+                    success = true,
+                    totalCourses = totalCourses,
+                    totalAssignments = totalAssignments,
+                    unassignedCourses = unassignedCount
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetDashboardStats Error: {ex.Message}");
+                return Json(new { success = false, message = "Error: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // GET: IT/GetRecentActivities - AJAX endpoint for recent activities
+        [HttpGet]
+        public JsonResult GetRecentActivities()
+        {
+            try
+            {
+                var activities = new List<object>();
+
+                var recentCourses = db.Courses
+                    .OrderByDescending(c => c.DateCreated)
+                    .Take(2)
+                    .ToList()
+                    .Select(c => new
+                    {
+                        type = "Course",
+                        message = $"New course created: <strong>{c.CourseCode} - {c.CourseTitle}</strong>",
+                        timestamp = c.DateCreated
+                    });
+
+                activities.AddRange(recentCourses);
+
+                var recentAssignments = db.TeacherCourseSections
+                    .Include(tcs => tcs.Teacher)
+                    .Include(tcs => tcs.Course)
+                    .Include(tcs => tcs.Section)
+                    .Include(tcs => tcs.Section.Program)
+                    .OrderByDescending(tcs => tcs.DateAssigned)
+                    .Take(2)
+                    .ToList()
+                    .Select(tcs => new
+                    {
+                        type = "Assignment",
+                        message = $"<strong>{tcs.Teacher.FirstName} {tcs.Teacher.LastName}</strong> assigned to {tcs.Course.CourseCode} ({tcs.Section.Program.ProgramCode} {tcs.Section.YearLevel}-{tcs.Section.SectionName})",
+                        timestamp = tcs.DateAssigned
+                    });
+
+                activities.AddRange(recentAssignments);
+
+                var recentEnrollments = db.StudentCourses
+                    .Include(sc => sc.Student)
+                    .Include(sc => sc.Course)
+                    .OrderByDescending(sc => sc.DateEnrolled)
+                    .Take(2)
+                    .ToList()
+                    .Select(sc => new
+                    {
+                        type = "Enrollment",
+                        message = $"Student <strong>{sc.Student.FirstName} {sc.Student.LastName}</strong> enrolled in {sc.Course.CourseCode}",
+                        timestamp = sc.DateEnrolled
+                    });
+
+                activities.AddRange(recentEnrollments);
+
+                var sortedActivities = activities
+                    .OrderByDescending(a => ((dynamic)a).timestamp)
+                    .Take(4)
+                    .ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    activities = sortedActivities
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetRecentActivities Error: {ex.Message}");
+                return Json(new { success = false, message = "Error: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // GET: IT/GetRecentTeacherAssignments - AJAX endpoint for recent teacher assignments
+        [HttpGet]
+        public JsonResult GetRecentTeacherAssignments()
+        {
+            try
+            {
+                var recentAssignments = db.TeacherCourseSections
+                    .Include(tcs => tcs.Teacher)
+                    .Include(tcs => tcs.Course)
+                    .Include(tcs => tcs.Section)
+                    .Include(tcs => tcs.Section.Program)
+                    .OrderByDescending(tcs => tcs.DateAssigned)
+                    .Take(5)
+                    .ToList()
+                    .Select(tcs => new
+                    {
+                        teacherId = tcs.TeacherId,
+                        teacherName = $"{tcs.Teacher.FirstName} {tcs.Teacher.LastName}",
+                        teacherEmail = tcs.Teacher.Email,
+                        courseId = tcs.CourseId,
+                        courseCode = tcs.Course.CourseCode,
+                        courseTitle = tcs.Course.CourseTitle,
+                        sectionId = tcs.SectionId,
+                        sectionName = tcs.Section.SectionName,
+                        programCode = tcs.Section.Program.ProgramCode,
+                        yearLevel = tcs.Section.YearLevel,
+                        semester = tcs.Semester,
+                        fullSectionName = $"{tcs.Section.Program.ProgramCode} {tcs.Section.YearLevel}-{tcs.Section.SectionName}",
+                        dateAssigned = tcs.DateAssigned,
+                        studentCount = db.StudentCourses.Count(sc => sc.SectionId == tcs.SectionId && sc.CourseId == tcs.CourseId)
+                    })
+                    .ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    assignments = recentAssignments
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetRecentTeacherAssignments Error: {ex.Message}");
+                return Json(new { success = false, message = "Error: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
         public ActionResult Course()
 
         {
@@ -53,12 +211,11 @@ namespace LMS.Controllers
         {
             try
             {
-                // Get all curriculum courses grouped by Program, Year Level, and Semester
                 var curriculumGroups = db.CurriculumCourses
                     .Include(cc => cc.Program)
                     .Include(cc => cc.Program.Department)
                     .Include(cc => cc.Course)
-                    .ToList() // Load all data first
+                    .ToList()
                     .GroupBy(cc => new
                     {
                         cc.ProgramId,
@@ -72,7 +229,7 @@ namespace LMS.Controllers
                         ProgramId = g.Key.ProgramId,
                         YearLevel = g.Key.YearLevel,
                         Semester = g.Key.Semester,
-                        ProgramName = FormatProgramName(g.Key.ProgramName),  // Format the name
+                        ProgramName = FormatProgramName(g.Key.ProgramName),
                         ProgramCode = g.Key.ProgramCode,
                         Courses = g.Select(cc => cc.Course).ToList(),
                         CourseCount = g.Count()
@@ -94,7 +251,6 @@ namespace LMS.Controllers
             if (string.IsNullOrEmpty(programName))
                 return programName;
 
-            // Common patterns to replace
             programName = programName.Replace("Bachelor of Science in ", "BS in ");
             programName = programName.Replace("Bachelor of Arts in ", "BA in ");
             programName = programName.Replace("Bachelor of ", "B ");
@@ -110,7 +266,6 @@ namespace LMS.Controllers
             ViewBag.Programs = db.Programs.ToList();
             ViewBag.Departments = db.Departments.ToList();
 
-            // Get existing curriculum combinations
             var existingCombinations = db.CurriculumCourses
                 .Select(cc => new
                 {
@@ -123,6 +278,11 @@ namespace LMS.Controllers
 
             ViewBag.ExistingCombinations = existingCombinations;
 
+            return View();
+        }
+
+        public ActionResult ManageStudentCourses()
+        {
             return View();
         }
 
@@ -151,6 +311,7 @@ namespace LMS.Controllers
                 return Json(new { error = true, message = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
+
 
         public ActionResult AssignTeacher()
         {
@@ -197,7 +358,6 @@ namespace LMS.Controllers
                     .Include(tcs => tcs.Section.Program)
                     .AsQueryable();
 
-                // Apply filters if provided
                 if (programId.HasValue)
                 {
                     query = query.Where(tcs => tcs.Section.ProgramId == programId.Value);
@@ -254,34 +414,29 @@ namespace LMS.Controllers
         {
             try
             {
-                // Validate input
                 if (teacherId <= 0 || courseId <= 0 || sectionId <= 0 || semester <= 0)
                 {
                     return Json(new { success = false, message = "Invalid input. Please fill all required fields." });
                 }
 
-                // Check if teacher exists
                 var teacher = db.Users.FirstOrDefault(u => u.Id == teacherId && u.Role == "Teacher");
                 if (teacher == null)
                 {
                     return Json(new { success = false, message = "Teacher not found." });
                 }
 
-                // Check if course exists
                 var course = db.Courses.Find(courseId);
                 if (course == null)
                 {
                     return Json(new { success = false, message = "Course not found." });
                 }
 
-                // Check if section exists
                 var section = db.Sections.Include(s => s.Program).FirstOrDefault(s => s.Id == sectionId);
                 if (section == null)
                 {
                     return Json(new { success = false, message = "Section not found." });
                 }
 
-                // Check if this course-section-semester combination already has ANY teacher assigned
                 var existingCourseAssignment = db.TeacherCourseSections
                     .FirstOrDefault(tcs => tcs.CourseId == courseId 
                                         && tcs.SectionId == sectionId 
@@ -296,7 +451,6 @@ namespace LMS.Controllers
                     });
                 }
 
-                // Check if this same teacher is already assigned (redundant check, but kept for safety)
                 var existingTeacherAssignment = db.TeacherCourseSections
                     .FirstOrDefault(tcs => tcs.TeacherId == teacherId 
                                         && tcs.CourseId == courseId 
@@ -311,7 +465,6 @@ namespace LMS.Controllers
                     });
                 }
 
-                // Create new assignment
                 var assignment = new TeacherCourseSection
                 {
                     TeacherId = teacherId,
@@ -324,7 +477,6 @@ namespace LMS.Controllers
                 db.TeacherCourseSections.Add(assignment);
                 db.SaveChanges();
 
-                // Get student count
                 var studentCount = db.StudentCourses.Count(sc => sc.SectionId == sectionId && sc.CourseId == courseId);
 
                 return Json(new
@@ -367,13 +519,11 @@ namespace LMS.Controllers
         {
             try
             {
-                // Validate input
                 if (assignmentId <= 0 || teacherId <= 0 || courseId <= 0 || sectionId <= 0 || semester <= 0)
                 {
                     return Json(new { success = false, message = "Invalid input. Please fill all required fields." });
                 }
 
-                // Get the existing assignment
                 var assignment = db.TeacherCourseSections
                     .Include(tcs => tcs.Teacher)
                     .Include(tcs => tcs.Course)
@@ -386,32 +536,27 @@ namespace LMS.Controllers
                     return Json(new { success = false, message = "Assignment not found." });
                 }
 
-                // Check if new teacher exists
                 var newTeacher = db.Users.FirstOrDefault(u => u.Id == teacherId && u.Role == "Teacher");
                 if (newTeacher == null)
                 {
                     return Json(new { success = false, message = "Teacher not found." });
                 }
 
-                // Check if course exists
                 var course = db.Courses.Find(courseId);
                 if (course == null)
                 {
                     return Json(new { success = false, message = "Course not found." });
                 }
 
-                // Check if section exists
                 var section = db.Sections.Include(s => s.Program).FirstOrDefault(s => s.Id == sectionId);
                 if (section == null)
                 {
                     return Json(new { success = false, message = "Section not found." });
                 }
 
-                // Store old teacher info for message
                 var oldTeacherName = $"{assignment.Teacher.FirstName} {assignment.Teacher.LastName}";
                 var newTeacherName = $"{newTeacher.FirstName} {newTeacher.LastName}";
 
-                // Update the assignment
                 assignment.TeacherId = teacherId;
                 assignment.CourseId = courseId;
                 assignment.SectionId = sectionId;
@@ -420,7 +565,6 @@ namespace LMS.Controllers
 
                 db.SaveChanges();
 
-                // Get student count
                 var studentCount = db.StudentCourses.Count(sc => sc.SectionId == sectionId && sc.CourseId == courseId);
 
                 var message = oldTeacherName == newTeacherName 
@@ -494,13 +638,11 @@ namespace LMS.Controllers
         {
             try
             {
-                // Get all curriculum courses with their sections
                 var query = db.CurriculumCourses
                     .Include(cc => cc.Course)
                     .Include(cc => cc.Program)
                     .AsQueryable();
 
-                // Apply filters if provided
                 if (programId.HasValue)
                 {
                     query = query.Where(cc => cc.ProgramId == programId.Value);
@@ -522,14 +664,12 @@ namespace LMS.Controllers
 
                 foreach (var cc in curriculumCourses)
                 {
-                    // Get all sections for this program and year level
                     var sections = db.Sections
                         .Where(s => s.ProgramId == cc.ProgramId && s.YearLevel == cc.YearLevel)
                         .ToList();
 
                     foreach (var section in sections)
                     {
-                        // Check if there's a teacher assigned to this course-section combination
                         var assignment = db.TeacherCourseSections
                             .Include(tcs => tcs.Teacher)
                             .FirstOrDefault(tcs => tcs.CourseId == cc.CourseId 
@@ -541,7 +681,6 @@ namespace LMS.Controllers
 
                         if (assignment != null)
                         {
-                            // Assigned - include teacher info
                             allCourseSections.Add(new
                             {
                                 id = assignment.Id,

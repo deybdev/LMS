@@ -119,15 +119,16 @@
                             <tr>
                                 <th>Course Code</th>
                                 <th>Course Title</th>
-                                <th>Year Level</th>
+                                <th>Teacher Assigned</th>
                                 <th>Semester</th>
-                                <th>Date Enrolled</th>
+                                <th>Time From</th>
+                                <th>Time To</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="enrolledCoursesTable">
                             <tr id="noCoursesRow">
-                                <td colspan="6" class="text-center" style="padding: 3rem; color: var(--gray-text);">
+                                <td colspan="8" class="text-center" style="padding: 3rem; color: var(--gray-text);">
                                     <i class="fas fa-inbox" style="font-size: 3rem; color: #dee2e6; margin-bottom: 1rem; display: block;"></i>
                                     <h5 style="margin-bottom: 0.5rem;">No courses enrolled</h5>
                                     <p style="margin: 0;">This student is not currently enrolled in any courses.</p>
@@ -172,28 +173,6 @@
                     
                     <input type="hidden" id="modalStudentId" name="studentId" />
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Year Level *</label>
-                            <select class="form-select" id="addCourseYearLevel" required>
-                                <option value="">Select Year Level</option>
-                                <option value="1">1st Year</option>
-                                <option value="2">2nd Year</option>
-                                <option value="3">3rd Year</option>
-                                <option value="4">4th Year</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Semester *</label>
-                            <select class="form-select" id="addCourseSemester" required>
-                                <option value="">Select Semester</option>
-                                <option value="1">1st Semester</option>
-                                <option value="2">2nd Semester</option>
-                                <option value="3">Summer</option>
-                            </select>
-                        </div>
-                    </div>
-
                     <div class="mb-3">
                         <label class="form-label">Search Course *</label>
                         <div class="search-dropdown-wrapper">
@@ -222,6 +201,7 @@
                                 </div>
                             </div>
                         </div>
+                        <small class="form-text text-muted">Search for any course in your program curriculum</small>
                     </div>
 
                     <!-- Selected Courses for Adding -->
@@ -653,8 +633,8 @@
     .selected-course-item {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        padding: 0.75rem 1rem;
+        align-items: flex-start;
+        padding: 1rem;
         background: #f8f9fa;
         border: 1px solid var(--border-color);
         border-radius: 8px;
@@ -662,6 +642,10 @@
 
     .selected-course-info {
         flex: 1;
+    }
+
+    .selected-course-main {
+        margin-bottom: 0.5rem;
     }
 
     .selected-course-info .course-code {
@@ -674,31 +658,55 @@
         color: var(--dark-primary-color);
     }
 
-    .btn-remove-selected {
-        background: transparent;
-        border: none;
-        color: var(--danger-color);
-        cursor: pointer;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        transition: all 0.2s ease;
+    .selected-course-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
     }
 
-    .btn-remove-selected:hover {
-        background: var(--danger-color);
-        color: white;
+    .meta-detail {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: var(--gray-text);
+        font-size: 0.75rem;
     }
 
-    .removal-details {
-        background: #f8f9fa;
-        padding: 1rem;
-        border-radius: 8px;
-        margin-top: 1rem;
+    .meta-detail i {
+        color: var(--primary-color);
+        font-size: 0.7rem;
     }
 
-    .removal-details p {
-        margin: 0.5rem 0;
+    .time-display {
         font-family: var(--archivo-plain-font);
+        font-weight: 500;
+        color: var(--dark-primary-color);
+    }
+
+    .time-display .text-muted {
+        font-weight: 400;
+    }
+
+    /* Badge for not assigned */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-family: var(--archivo-plain-font);
+    }
+
+    .badge.bg-warning {
+        background-color: #fff3cd !important;
+        color: #856404 !important;
+        border: 1px solid #ffc107;
+    }
+
+    .badge i {
+        font-size: 0.7rem;
     }
 
     /* Search Dropdown Styles */
@@ -748,7 +756,7 @@
     }
 
     .course-result-item {
-        padding: 0.75rem 1rem;
+        padding: 1rem;
         border: 1px solid var(--border-color);
         border-radius: 6px;
         margin-bottom: 0.5rem;
@@ -760,6 +768,8 @@
     .course-result-item:hover {
         background: var(--light-blue);
         border-color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(24, 82, 172, 0.15);
     }
 
     .course-result-item.disabled {
@@ -767,55 +777,76 @@
         cursor: not-allowed;
     }
 
+    .course-result-item.disabled:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .course-item-header {
+        margin-bottom: 0.75rem;
+    }
+
     .course-result-item .course-code {
         font-weight: 600;
         color: var(--primary-color);
         margin-right: 0.5rem;
+        font-size: 0.95rem;
     }
 
     .course-result-item .course-title {
         color: var(--dark-primary-color);
+        font-weight: 500;
     }
 
-    .no-results-message, .loading-results {
-        padding: 2rem;
-        text-align: center;
-        color: var(--gray-text);
+    .course-item-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
     }
 
-    .no-results-message i, .loading-results i {
-        font-size: 2rem;
-        color: #dee2e6;
-        display: block;
-        margin-bottom: 0.5rem;
-    }
-
-    .no-results-message p {
-        margin: 0.5rem 0 0.25rem 0;
-        font-weight: 600;
-        color: var(--dark-primary-color);
-    }
-
-    .no-results-message small {
-        color: var(--gray-text);
-    }
-
-    /* Course Code Tag */
-    .course-code-tag {
-        display: inline-block;
-        background: var(--light-blue);
-        color: var(--primary-color);
-        padding: 0.35rem 0.65rem;
+    .detail-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.25rem 0.65rem;
         border-radius: 4px;
-        font-size: 0.85rem;
-        font-weight: 600;
+        font-size: 0.75rem;
+        font-weight: 500;
         font-family: var(--archivo-plain-font);
     }
 
-    .course-title-col {
-        font-weight: 600;
-        color: var(--dark-primary-color);
-        font-family: var(--archivo-plain-font);
+    .year-badge {
+        background: #e3f2fd;
+        color: #1976d2;
+        border: 1px solid #bbdefb;
+    }
+
+    .section-badge {
+        background: #f3e5f5;
+        color: #7b1fa2;
+        border: 1px solid #e1bee7;
+    }
+
+    .semester-badge {
+        background: #fff3e0;
+        color: #f57c00;
+        border: 1px solid #ffe0b2;
+    }
+
+    .time-badge {
+        background: #e8f5e9;
+        color: #388e3c;
+        border: 1px solid #c8e6c9;
+    }
+
+    .detail-badge i {
+        font-size: 0.7rem;
+    }
+
+    .time-info {
+        font-weight: 500;
+        color: inherit;
     }
 
     /* Responsive Design */

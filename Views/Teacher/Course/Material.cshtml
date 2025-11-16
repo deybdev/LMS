@@ -1,0 +1,216 @@
+﻿@model LMS.Models.Course
+
+@{
+    ViewBag.Title = "Materials";
+    int courseId = ViewBag.CourseId ?? Model.Id;
+}
+
+<link rel="stylesheet" href="~/Content/teacherCourse.css" />
+<link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
+
+<div class="admin-container">
+    <!-- Course Header -->
+    <div class="page-header">
+        <div class="course-title-section">
+            <h1>@Model.CourseTitle</h1>
+            <span class="course-schedule">
+                @Model.CourseCode
+                @if (ViewBag.SectionName != null)
+                {
+                    <text> • @ViewBag.SectionName</text>
+                }
+                @if (ViewBag.Semester != null)
+                {
+                    int semester = ViewBag.Semester;
+                    string semesterName = semester == 1 ? "1st Semester" : semester == 2 ? "2nd Semester" : semester == 3 ? "Summer" : "Semester " + semester;
+                    <text> • @semesterName</text>
+                }
+            </span>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="course-navigation">
+        <div class="nav-tabs">
+            <button class="nav-tab active"
+                    onclick="window.location.href='@Url.Action("Material", "Teacher", new { id = courseId })'">
+                Learning Materials
+            </button>
+            <button class="nav-tab"
+                    onclick="window.location.href='@Url.Action("Gradebook", "Teacher", new { id = courseId })'">
+                Gradebook
+            </button>
+            <button class="nav-tab"
+                    onclick="window.location.href='@Url.Action("ClassList", "Teacher", new { id = courseId })'">
+                Class List
+            </button>
+            <button class="nav-tab"
+                    onclick="window.location.href='@Url.Action("Classwork", "Teacher", new { id = courseId })'">
+                Classwork
+            </button>
+            <button class="nav-tab"
+                    onclick="window.location.href='@Url.Action("Announcement", "Teacher", new { id = courseId })'">
+                Announcement
+            </button>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Learning Materials Tab -->
+        <div class="tab-pane active">
+            <div class="header-actions">
+                <button class="material-upload-btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#materialModal">
+                    <i class="fas fa-upload"></i> Upload Material
+                </button>
+            </div>
+
+            <div class="materials-grid">
+                @{
+                    var materials = ViewBag.Materials as List<LMS.Models.Material>;
+                }
+                @if (materials != null && materials.Any())
+                {
+                    foreach (var material in materials)
+                    {
+                        // Compute file count and total size inside normal C# code block
+                        var fileCount = material.MaterialFiles?.Count() ?? 0;
+                        var totalSizeMB = material.MaterialFiles?.Sum(f => f.SizeInMB) ?? 0;
+
+                        <div class="material-card">
+                            <div class="material-header">
+                                <div class="material-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div class="material-type">@material.Type</div>
+                            </div>
+
+                            <div class="material-info">
+                                <h4>@material.Title</h4>
+                                <small class="upload-info">
+                                    Files: @fileCount • Total Size: @totalSizeMB.ToString("0.##") MB
+                                </small><br />
+                                <small class="upload-info">
+                                    Uploaded: @material.UploadedAt.ToString("MMM dd, hh:mm tt")
+                                </small>
+                            </div>
+
+                            <div class="material-actions">
+                                <button type="button" class="action-btn view-btn" onclick="window.location='@Url.Action("DownloadMaterial", "Teacher", new { id = material.Id })'">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                <button class="action-btn edit-btn" title="Edit" onclick="openEditModal(@material.Id)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn" type="button"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-item-id="@material.Id"
+                                        data-item-name="@material.Title"
+                                        data-url="@Url.Action("DeleteMaterial", "Teacher")"
+                                        data-target-remove=".material-card">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="no-materials text-center p-6 border-dashed border-2 border-gray-300 rounded-lg bg-gray-50">
+                        <i class="fas fa-book-open fa-3x text-gray-400 mb-3"></i>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-2">No Learning Materials Yet</h3>
+                        <p class="text-gray-500 mb-4">It looks like there aren't any materials uploaded for this course yet.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="alertContainer" style="position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 400px;"></div>
+
+<!-- Material Modal (for both Upload and Edit) -->
+<div class="modal fade" id="materialModal" tabindex="-1" aria-labelledby="materialModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="materialModalLabel">
+                    <span id="modalTitleText">Upload Learning Material</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="materialForm" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="teacherCourseSectionId" value="@ViewBag.TeacherCourseSectionId" />
+                    <input type="hidden" name="id" id="materialId" />
+                    <input type="hidden" name="filesToDelete" id="filesToDelete" />
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="materialTitle" class="form-label">Material Title</label>
+                            <input type="text" id="materialTitle" name="materialTitle" class="form-control" required placeholder="Enter material title">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="materialType" class="form-label">Material Type</label>
+                            <select id="materialType" name="materialType" class="form-select" required>
+                                <option value="">Choose Type</option>
+                                <option value="Lecture Video">Lecture Video</option>
+                                <option value="Lecture Notes">Lecture Notes</option>
+                                <option value="Assignment">Assignment</option>
+                                <option value="Reading Material">Reading Material</option>
+                                <option value="Supplementary">Supplementary</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="materialDescription" class="form-label">Description (Optional)</label>
+                        <textarea id="materialDescription" name="materialDescription" class="form-control" rows="3" placeholder="Enter material description"></textarea>
+                    </div>
+
+                    <!-- Current Files (only shown in edit mode) -->
+                    <div class="mb-3" id="currentFilesSection" style="display: none;">
+                        <label class="form-label">Current Files</label>
+                        <ul id="currentFilesList" class="list-group"></ul>
+                    </div>
+
+                    <!-- File Upload -->
+                    <div class="mb-3">
+                        <label for="materialFile" class="form-label">
+                            <span id="fileInputLabel">Upload Files</span>
+                        </label>
+                        <input type="file" id="materialFile" name="materialFile" class="form-control" multiple>
+                        <div class="form-text">
+                            Supported formats: PDF, DOC, DOCX, PPT, PPTX, MP4, AVI, MOV, ZIP, RAR (Max size: 500MB per file)
+                        </div>
+                        <ul id="fileList" class="list-group mt-2"></ul>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn cancel-btn" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" form="materialForm">
+                    <i class="fas fa-save"></i> <span id="submitButtonText">Upload Material</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        // Configure URL endpoints for AJAX calls
+        window.urlConfig = {
+            uploadMaterial: '@Url.Action("UploadMaterial", "Teacher")',
+            updateMaterial: '@Url.Action("UpdateMaterial", "Teacher")',
+            getMaterial: '@Url.Action("GetMaterial", "Teacher")'
+        };
+    </script>
+    <script src="~/Scripts/Custom/deleteHandler.js"></script>
+    <script src="~/Scripts/Teacher/teacherViewCourse.js"></script>
+}
+

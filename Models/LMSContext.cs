@@ -16,6 +16,5 @@ public class LMSContext : DbContext
     public DbSet<Program> Programs { get; set; }
     public DbSet<Section> Sections { get; set; }
     public DbSet<StudentCourse> StudentCourses { get; set; }
-    public DbSet<TeacherCourse> TeacherCourses { get; set; }
     public DbSet<TeacherCourseSection> TeacherCourseSections { get; set; }
 }

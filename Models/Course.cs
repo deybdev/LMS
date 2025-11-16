@@ -14,11 +14,6 @@ namespace LMS.Models
         public DateTime DateCreated { get; set; }
         public int CourseUnit { get; set; }
         
-        // Navigation properties
-        public virtual ICollection<Material> Materials { get; set; } = new List<Material>();
-        
-        // Note: No direct relationship with Program
-        // Courses are linked to Programs through the CurriculumCourse junction table
     }
 
     public class CurriculumCourse
@@ -40,31 +35,5 @@ namespace LMS.Models
         [ForeignKey("CourseId")]
         public Course Course { get; set; }
     }
-
-
-    public class TeacherCourse
-    {
-            [Key]
-            public int Id { get; set; }
-
-            [Required]
-            public int TeacherId { get; set; }
-
-            [Required]
-            public int CurriculumCourseId { get; set; }
-
-            [Required]
-            public DateTime DateAssigned { get; set; } = DateTime.Now;
-
-            // Navigation properties
-            [ForeignKey("TeacherId")]
-            public User Teacher { get; set; }
-
-            [ForeignKey("CurriculumCourseId")]
-            public CurriculumCourse CurriculumCourse { get; set; }
-
-
-    }
-
 
 }

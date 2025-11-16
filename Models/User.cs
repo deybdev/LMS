@@ -13,7 +13,6 @@ namespace LMS.Models
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
-        // Contact & Department Info
         public string Email { get; set; }
         // Role: "Student", "Teacher", "IT", "Admin"
         public string Role { get; set; }

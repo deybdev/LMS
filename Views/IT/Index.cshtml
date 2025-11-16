@@ -1,9 +1,419 @@
-﻿
-@{
-    ViewBag.Title = "Index";
+﻿@{
+    ViewBag.Title = "IT Dashboard";
 }
 
-<button type="button" class="btn btn-danger px-4 mb-3" data-bs-toggle="modal" data-bs-target="#logoutModal">
-    <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Logout
-</button>
+<link rel="stylesheet" href="~/Content/adminDashboard.css" />
+<link rel="stylesheet" href="~/Content/Site.css" />
+
+<div class="admin-dashboard">
+    <button type="button" class="btn btn-danger px-4 mb-3" data-bs-toggle="modal" data-bs-target="#logoutModal">
+        <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Logout
+    </button>
+
+    <!-- Dashboard Header -->
+    <div class="dashboard-header d-flex justify-content-between align-items-center">
+        <div>
+            @if (Session["FirstName"] != null)
+            {
+                <h1>Welcome, @Session["FirstName"] @Session["LastName"]</h1>
+            }
+            else
+            {
+                <h1>IT Dashboard</h1>
+            }
+            <p>Course Management & Academic System Administration</p>
+        </div>
+        <div class="date-time">
+            <div id="currentTime" class="current-time"></div>
+            <div id="currentDate" class="current-date"></div>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card students">
+            <div class="stat-icon"><i class="fas fa-book-open"></i></div>
+            <div class="stat-content">
+                <p class="stat-number" id="totalCourses" data-target="0">0</p>
+                <p class="stat-label">Total Courses</p>
+            </div>
+        </div>
+
+        <div class="stat-card teachers">
+            <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+            <div class="stat-content">
+                <p class="stat-number" id="totalAssignments" data-target="0">0</p>
+                <p class="stat-label">Teacher Assignments</p>
+            </div>
+        </div>
+
+        <div class="stat-card courses unassigned-warning">
+            <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="stat-content">
+                <p class="stat-number" id="unassignedCourses" data-target="0">0</p>
+                <p class="stat-label">Unassigned Courses</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Grid - Two Cards Side by Side -->
+    <div class="dashboard-grid">
+        <!-- Recent Course Activities Card -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fas fa-history"></i> Recent Course Activities</h3>
+            </div>
+            <div class="card-content">
+                <div class="activity-list" id="courseActivities">
+                    <div class="text-center py-4">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+                        <p class="mt-3 text-muted">Loading activities...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Teacher Assignments Card -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fas fa-user-check"></i> Recent Teacher Assignments</h3>
+            </div>
+            <div class="card-content">
+                <div class="teacher-assignments-list" id="recentTeacherAssignments">
+                    <div class="text-center py-4">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; color: var(--primary-color);"></i>
+                        <p class="mt-2 text-muted" style="font-size: 0.9rem;">Loading assignments...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            initializeDashboard();
+            loadDashboardData();
+            loadCourseActivities();
+            loadRecentTeacherAssignments();
+        });
+
+        function initializeDashboard() {
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+        }
+
+        function updateDateTime() {
+            const now = new Date();
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+
+            $('#currentDate').text(now.toLocaleDateString('en-US', dateOptions));
+            $('#currentTime').text(now.toLocaleTimeString('en-US', timeOptions));
+        }
+
+        function loadDashboardData() {
+            $.ajax({
+                url: '/IT/GetDashboardStats',
+                type: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        // Update stats with animation
+                        animateCounter($('#totalCourses'), response.totalCourses);
+                        animateCounter($('#totalAssignments'), response.totalAssignments);
+                        animateCounter($('#unassignedCourses'), response.unassignedCourses);
+
+                        // Add warning class if there are unassigned courses
+                        if (response.unassignedCourses > 0) {
+                            $('.unassigned-warning .stat-number').addClass('text-warning-emphasis');
+                        } else {
+                            $('.unassigned-warning .stat-number').removeClass('text-warning-emphasis').addClass('text-success');
+                        }
+                    }
+                },
+                error: function () {
+                    console.error('Failed to load dashboard data');
+                }
+            });
+        }
+
+        function animateCounter($element, target) {
+            $element.data('target', target);
+            const duration = 2000;
+            const stepTime = 20;
+            const steps = duration / stepTime;
+            let count = 0;
+            const increment = target / steps;
+
+            const counter = setInterval(() => {
+                count += increment;
+                if (count >= target) {
+                    $element.text(target);
+                    clearInterval(counter);
+                } else {
+                    $element.text(Math.floor(count));
+                }
+            }, stepTime);
+        }
+
+        function loadRecentTeacherAssignments() {
+            $.ajax({
+                url: '/IT/GetRecentTeacherAssignments',
+                type: 'GET',
+                success: function (response) {
+                    if (response.success && response.assignments && response.assignments.length > 0) {
+                        displayTeacherAssignments(response.assignments);
+                    } else {
+                        $('#recentTeacherAssignments').html(`
+                            <div class="text-center py-4">
+                                <i class="fas fa-inbox" style="font-size: 2rem; color: #dee2e6;"></i>
+                                <p class="mt-2 text-muted" style="font-size: 0.9rem;">No recent teacher assignments</p>
+                            </div>
+                        `);
+                    }
+                },
+                error: function () {
+                    $('#recentTeacherAssignments').html(`
+                        <div class="text-center py-4">
+                            <i class="fas fa-exclamation-circle" style="font-size: 2rem; color: var(--danger-color);"></i>
+                            <p class="mt-2 text-danger" style="font-size: 0.9rem;">Failed to load assignments</p>
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        function displayTeacherAssignments(assignments) {
+            let html = '';
+            assignments.forEach((assignment, index) => {
+                if (index < 5) { // Show only top 5
+                    html += `
+                        <div class="teacher-assignment-item">
+                            <div class="teacher-avatar">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="assignment-info">
+                                <div class="teacher-name">${assignment.teacherName}</div>
+                                <div class="assignment-details">
+                                    <span class="course-badge">${assignment.courseCode}</span>
+                                    <span class="section-badge">${assignment.fullSectionName}</span>
+                                </div>
+                                <div class="assignment-time">${formatDate(assignment.dateAssigned)}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            $('#recentTeacherAssignments').html(html);
+        }
+
+        function loadCourseActivities() {
+            $.ajax({
+                url: '/IT/GetRecentActivities',
+                type: 'GET',
+                success: function (response) {
+                    if (response.success && response.activities) {
+                        displayActivities(response.activities);
+                    } else {
+                        $('#courseActivities').html('<p class="text-center text-muted py-4">No recent activities</p>');
+                    }
+                },
+                error: function () {
+                    $('#courseActivities').html('<p class="text-center text-danger py-4">Failed to load activities</p>');
+                }
+            });
+        }
+
+        function displayActivities(activities) {
+            let html = '';
+            const limit = 4; // Limit to 4 activities
+            activities.slice(0, limit).forEach(activity => {
+                const icon = getActivityIcon(activity.type);
+                const badge = getActivityBadge(activity.type);
+
+                html += `
+                    <div class="activity-item">
+                        <div class="activity-icon"><i class="${icon}"></i></div>
+                        <div class="activity-details">
+                            <p class="activity-text">${activity.message}</p>
+                            <p class="activity-time">${formatDate(activity.timestamp)}</p>
+                        </div>
+                        <div class="activity-type">
+                            <span class="type-badge ${badge}">${activity.type}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            $('#courseActivities').html(html || '<p class="text-center text-muted py-4">No recent activities</p>');
+        }
+
+        function getActivityIcon(type) {
+            const icons = {
+                'Course': 'fas fa-book',
+                'Assignment': 'fas fa-user-tie',
+                'Enrollment': 'fas fa-user-plus',
+                'System': 'fas fa-cogs',
+                'Update': 'fas fa-edit'
+            };
+            return icons[type] || 'fas fa-info-circle';
+        }
+
+        function getActivityBadge(type) {
+            const badges = {
+                'Course': 'course',
+                'Assignment': 'staff',
+                'Enrollment': 'enrollment',
+                'System': 'system',
+                'Update': 'material'
+            };
+            return badges[type] || 'info';
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+
+    </script>
+
+    <style>
+        /* Teacher Assignments */
+        .teacher-assignments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .teacher-assignments-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .teacher-assignments-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .teacher-assignments-list::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .teacher-assignment-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .teacher-assignment-item:hover {
+            background: var(--light-blue);
+            border-color: var(--primary-color);
+            transform: translateX(3px);
+        }
+
+        .teacher-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .assignment-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .teacher-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--dark-primary-color);
+            margin-bottom: 0.4rem;
+            font-family: var(--archivo-black-font);
+        }
+
+        .assignment-details {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .course-badge, .section-badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            font-family: var(--archivo-plain-font);
+        }
+
+        .course-badge {
+            background: rgba(24, 82, 172, 0.1);
+            color: var(--primary-color);
+        }
+
+        .section-badge {
+            background: rgba(111, 66, 193, 0.1);
+            color: #6f42c1;
+        }
+
+        .assignment-time {
+            font-size: 0.75rem;
+            color: var(--gray-text);
+            font-family: var(--archivo-plain-font);
+        }
+
+        /* Unassigned Warning Stat Card */
+        .stat-card.unassigned-warning .stat-icon {
+            background: var(--warning-color);
+        }
+
+        .text-warning-emphasis {
+            color: #dc3545 !important;
+        }
+
+        .text-success {
+            color: var(--success-color) !important;
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .dashboard-header .d-flex {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .date-time {
+                text-align: left;
+                margin-top: 1rem;
+            }
+
+            .teacher-assignments-list {
+                max-height: 300px;
+            }
+        }
+    </style>
+}
 
