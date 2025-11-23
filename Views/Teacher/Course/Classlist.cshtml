@@ -1,0 +1,185 @@
+﻿@model LMS.Models.Course
+
+@{
+    ViewBag.Title = "Classlist";
+    int courseId = ViewBag.CourseId ?? Model.Id;
+    ViewBag.ActiveTab = "ClassList";
+}
+
+<link rel="stylesheet" href="~/Content/Site.css" />
+<link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
+<link rel="stylesheet" href="~/Content/teacherClasslist.css" />
+
+<div class="admin-container">
+    @Html.Partial("_CourseHeader", Model)
+    
+    @Html.Partial("_CourseNavigation", Model)
+
+    <div class="tab-content">
+        <div class="tab-pane active">
+            <!-- Class List Header -->
+            <div class="classlist-header">
+                <div class="header-info">
+                    <h2><i class="fas fa-users"></i> Class List</h2>
+                </div>
+                <div class="view-selector">
+                    <label for="viewDropdown">View:</label>
+                    <select id="viewDropdown" class="view-dropdown">
+                        <option value="student-info">Student Information</option>
+                        <option value="attendance">Take Attendance</option>
+                        <option value="performance">Performance Overview</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Student Information View -->
+            <div id="studentInfoView" class="view-container active-view">
+                <div class="classlist-container">
+                    <div class="table-responsive">
+                        <table class="classlist-table">
+                            <thead>
+                                <tr>
+                                    <th>Student ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTableBody">
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Take Attendance View -->
+            <div id="attendanceView" class="view-container">
+                <div class="classlist-container">
+                    <div class="date-selector">
+                        <label for="attendanceDate">Date:</label>
+                        <input type="date" id="attendanceDate" class="form-control" value="2025-10-07">
+                    </div>  
+                    <div class="attendance-info">
+                        <div class="attendance-summary">
+                            <span class="summary-item"><strong>Total Students:</strong> <span id="totalStudents">0</span></span>
+                            <span class="summary-item"><strong>Present:</strong> <span id="presentCount">0</span></span>
+                            <span class="summary-item"><strong>Absent:</strong> <span id="absentCount">0</span></span>
+                            <span class="summary-item"><strong>Unmarked:</strong> <span id="unmarkedCount">0</span></span>
+                        </div>
+                        <div class="attendance-actions">
+                            <button class="btn-mark-all btn-success"><i class="fas fa-check"></i> Mark All Present</button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="classlist-table">
+                            <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Student Number</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Attendance Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceTableBody">
+                                <!-- Sample data -->
+                                <tr>
+                                    <td>1</td>
+                                    <td><span class="student-id">STU-2024-001</span></td>
+                                    <td><span class="student-name">Alice Johnson</span></td>
+                                    <td><span class="student-email">alice.johnson@school.edu</span></td>
+                                    <td>
+                                        <div class="attendance-buttons">
+                                            <button class="btn-attendance btn-present">Present</button>
+                                            <button class="btn-attendance btn-absent">Absent</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td><span class="student-id">STU-2024-002</span></td>
+                                    <td><span class="student-name">Bob Smith</span></td>
+                                    <td><span class="student-email">bob.smith@school.edu</span></td>
+                                    <td>
+                                        <div class="attendance-buttons">
+                                            <button class="btn-attendance btn-present">Present</button>
+                                            <button class="btn-attendance btn-absent">Absent</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="attendance-footer">
+                        <button class="btn-clear"><i class="fas fa-eraser"></i> Clear All</button>
+                        <button class="btn-save"><i class="fas fa-save"></i> Save Attendance</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Overview View -->
+            <div id="performanceView" class="view-container">
+                <div class="classlist-container">
+                    <div class="table-responsive">
+                        <table class="classlist-table performance-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>
+                                        Assignment 1
+                                        <div class="max-points">/50</div>
+                                    </th>
+                                    <th>
+                                        Quiz 1
+                                        <div class="max-points">/20</div>
+                                    </th>
+                                    <th>
+                                        Activity 1
+                                        <div class="max-points">/30</div>
+                                    </th>
+                                    <th>
+                                        Activity 2
+                                        <div class="max-points">/30</div>
+                                    </th>
+                                    <th>
+                                        Midterm Exam
+                                        <div class="max-points">/100</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="performanceTableBody">
+                                <!-- Sample data -->
+                                <tr>
+                                    <td><span class="student-name">Alice Johnson</span></td>
+                                    <td><span class="grade-score editable-grade" data-original="45" data-max="50" data-student-id="1" data-assignment="Assignment 1">45</span></td>
+                                    <td><span class="grade-score editable-grade" data-original="18" data-max="20" data-student-id="1" data-assignment="Quiz 1">18</span></td>
+                                    <td><span class="grade-score editable-grade" data-original="28" data-max="30" data-student-id="1" data-assignment="Activity 1">28</span></td>
+                                    <td><span class="grade-score editable-grade" data-original="29" data-max="30" data-student-id="1" data-assignment="Activity 2">29</span></td>
+                                    <td><span class="grade-score editable-grade" data-original="95" data-max="100" data-student-id="1" data-assignment="Midterm Exam">95</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="student-name">Bob Smith</span></td>
+                                    <td><span class="grade-score editable-grade" data-original="42" data-max="50" data-student-id="2" data-assignment="Assignment 1">42</span></td>
+                                    <td><span class="grade-score editable-grade" data-original="16" data-max="20" data-student-id="2" data-assignment="Quiz 1">16</span></td>
+                                    <td><span class="grade-score editable-grade" data-original="25" data-max="30" data-student-id="2" data-assignment="Activity 1">25</span></td>
+                                    <td><span class="grade-score editable-grade" data-original="27" data-max="30" data-student-id="2" data-assignment="Activity 2">27</span></td>
+                                    <td><span class="grade-score editable-grade" data-original="88" data-max="100" data-student-id="2" data-assignment="Midterm Exam">88</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        var teacherCourseSectionId = @ViewBag.TeacherCourseSectionId;
+        var courseId = @courseId;
+    </script>
+    <script src="~/Scripts/Custom/classlist.js"></script>
+}

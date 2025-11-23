@@ -46,6 +46,7 @@ namespace LMS.Controllers
                 Session["Role"] = user.Role;
                 Session["FirstName"] = user.FirstName;
                 Session["LastName"] = user.LastName;
+                Session["UserId"] = user.UserID;
 
 
                 user.LastLogin = DateTime.Now;

@@ -1,0 +1,420 @@
+﻿.classlist-header {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-info h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: var(--dark-primary-color);
+    font-family: var(--archivo-plain-font);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-info h2 i {
+    color: var(--primary-color);
+}
+
+.view-selector {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.view-selector label {
+    font-weight: 600;
+    color: var(--dark-primary-color);
+    font-family: var(--archivo-plain-font);
+}
+
+.view-dropdown {
+    padding: 0.5rem 2rem 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: white;
+    font-family: var(--archivo-plain-font);
+    font-size: 0.9rem;
+    cursor: pointer;
+    min-width: 200px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+}
+
+.view-dropdown:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(24, 82, 172, 0.1);
+}
+
+.view-container {
+    display: none;
+}
+
+.view-container.active-view {
+    display: block;
+}
+
+/* Attendance View Styles */
+.attendance-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.date-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.8rem;
+}
+
+.date-selector label {
+    font-weight: 600;
+    color: var(--dark-primary-color);
+}
+
+.date-selector input {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    max-width: 150px;
+    font-family: var(--archivo-plain-font);
+}
+
+.attendance-summary {
+    display: flex;
+    gap: 2rem;
+}
+
+.summary-item {
+    font-family: var(--archivo-plain-font);
+    font-size: 0.9rem;
+}
+
+.summary-item strong {
+    color: var(--dark-primary-color);
+}
+
+.attendance-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.attendance-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-mark-all {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: var(--archivo-plain-font);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-mark-all.btn-success {
+    background: var(--success-color);
+    color: white;
+}
+
+.btn-mark-all.btn-success:hover {
+    background: #27ae60;
+}
+
+.attendance-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-attendance {
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    font-family: var(--archivo-plain-font);
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.btn-attendance.btn-present:hover {
+    border-color: var(--success-color);
+    color: var(--success-color);
+}
+
+.btn-attendance.btn-present.active {
+    background: var(--success-color);
+    color: white;
+    border-color: var(--success-color);
+}
+
+.btn-attendance.btn-absent:hover {
+    border-color: var(--danger-color);
+    color: var(--danger-color);
+}
+
+.btn-attendance.btn-absent.active {
+    background: var(--danger-color);
+    color: white;
+    border-color: var(--danger-color);
+}
+
+.attendance-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-clear {
+    padding: 0.5rem 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: white;
+    color: var(--gray-text);
+    cursor: pointer;
+    font-family: var(--archivo-plain-font);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-clear:hover {
+    background: #f8f9fa;
+    border-color: var(--gray-text);
+}
+
+.btn-save {
+    padding: 0.5rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    background: var(--primary-color);
+    color: white;
+    cursor: pointer;
+    font-family: var(--archivo-plain-font);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-save:hover {
+    background: var(--primary-hover);
+}
+
+/* Performance View Styles */
+.performance-table th,
+.performance-table td {
+    text-align: center;
+}
+
+.performance-table td:first-child {
+    text-align: left;
+}
+
+.max-points {
+    font-size: 0.75rem;
+    color: var(--gray-text);
+    font-weight: 400;
+    margin-top: 0.25rem;
+}
+
+.total-score {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.grade-score {
+    font-weight: 600;
+    color: var(--dark-primary-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.editable-grade {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+    min-width: 50px;
+    text-align: center;
+}
+
+.editable-grade:hover {
+    background: #f8f9fa;
+    border: 1px dashed var(--primary-color);
+}
+
+.editable-grade.editing {
+    background: white;
+    border: 1px solid var(--primary-color);
+    padding: 0;
+}
+
+.editable-grade.modified {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    position: relative;
+}
+
+.editable-grade.modified::after {
+    content: '*';
+    color: #ffc107;
+    font-weight: bold;
+    margin-left: 2px;
+}
+
+.editable-grade.saving {
+    background: #e3f2fd;
+    border: 1px solid var(--primary-color);
+    position: relative;
+}
+
+.editable-grade.saving::after {
+    content: '⌛';
+    margin-left: 4px;
+    animation: pulse 1s infinite;
+}
+
+.editable-grade.saved {
+    background: #e8f5e8;
+    border: 1px solid var(--success-color);
+    position: relative;
+}
+
+.editable-grade.saved::after {
+    content: '✓';
+    color: var(--success-color);
+    font-weight: bold;
+    margin-left: 4px;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Table Styles */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.classlist-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--archivo-plain-font);
+}
+
+.classlist-table thead {
+    background: #f8f9fa;
+}
+
+.classlist-table th {
+    padding: 1rem;
+    font-weight: 600;
+    color: var(--dark-primary-color);
+    border-bottom: 2px solid var(--border-color);
+    font-size: 0.9rem;
+}
+
+.classlist-table tbody tr {
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s ease;
+}
+
+.classlist-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.classlist-table td {
+    padding: 0.5rem;
+    color: var(--dark-primary-color);
+}
+
+.student-id {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.student-name {
+    font-weight: 500;
+    font-size: .9rem
+}
+
+.student-email {
+    color: var(--gray-text);
+    font-size: 0.9rem;
+}
+
+.action-edit-btn {
+    background: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+}
+
+.action-edit-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .classlist-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .attendance-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .attendance-summary {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .attendance-actions {
+        flex-direction: column;
+    }
+
+    .attendance-footer {
+        flex-direction: column;
+    }
+}

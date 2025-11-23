@@ -1,0 +1,25 @@
+@model LMS.Models.Course
+
+@{
+    int courseId = ViewBag.CourseId ?? Model.Id;
+}
+
+<!-- Course Header -->
+<div class="page-header">
+    <div class="course-title-section">
+        <h1>@Model.CourseTitle</h1>
+        <span class="course-schedule">
+            @Model.CourseCode
+            @if (ViewBag.SectionName != null)
+            {
+                <text> • @ViewBag.SectionName</text>
+            }
+            @if (ViewBag.Semester != null)
+            {
+                int semester = ViewBag.Semester;
+                string semesterName = semester == 1 ? "1st Semester" : semester == 2 ? "2nd Semester" : semester == 3 ? "Summer" : "Semester " + semester;
+                <text> • @semesterName</text>
+            }
+        </span>
+    </div>
+</div>

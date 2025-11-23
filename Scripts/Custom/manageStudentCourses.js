@@ -236,43 +236,46 @@ function displayEnrolledCourses(courses) {
         $('#enrolledCoursesCount').text('0 Courses');
     } else {
         courses.forEach(course => {
-            console.log('Processing course:', course); // Debug log
+            
+            console.log('Processing course:', course.courseCode, 'Day value:', course.day); // Debug day value
             
             // Format teacher info
             let teacherDisplay = 'Not Assigned';
             let teacherClass = 'text-muted';
             if (course.teacherName) {
-                console.log('Teacher found:', course.teacherName); // Debug log
                 teacherDisplay = `<div class="teacher-name-display">${course.teacherName}</div>`;
                 if (course.teacherEmail) {
                     teacherDisplay += `<small class="teacher-email-display">${course.teacherEmail}</small>`;
                 }
                 teacherClass = '';
             } else {
-                console.log('No teacher assigned'); // Debug log
                 teacherDisplay = '<span class="badge bg-warning text-dark">Not Assigned</span>';
             }
 
             // Format time from
             let timeFromDisplay = 'Not Set';
             if (course.timeFrom) {
-                console.log('TimeFrom:', course.timeFrom); // Debug log
                 const timeFromDate = new Date(course.timeFrom);
                 timeFromDisplay = formatTime(timeFromDate);
             } else {
-                console.log('TimeFrom is null'); // Debug log
                 timeFromDisplay = '<span class="text-muted fst-italic">Not Set</span>';
             }
 
             // Format time to
             let timeToDisplay = 'Not Set';
             if (course.timeTo) {
-                console.log('TimeTo:', course.timeTo); // Debug log
                 const timeToDate = new Date(course.timeTo);
                 timeToDisplay = formatTime(timeToDate);
             } else {
-                console.log('TimeTo is null'); // Debug log
                 timeToDisplay = '<span class="text-muted fst-italic">Not Set</span>';
+            }
+
+            // Format day
+            let dayDisplay = 'Not Set';
+            if (course.day && course.day.trim() !== '') {
+                dayDisplay = course.day;
+            } else {
+                dayDisplay = '<span class="text-muted fst-italic">Not Set</span>';
             }
 
             const $row = `
@@ -284,6 +287,7 @@ function displayEnrolledCourses(courses) {
                     <td class="course-title-col">${course.courseTitle}</td>
                     <td class="${teacherClass}">${teacherDisplay}</td>
                     <td>${getSemesterName(course.semester)}</td>
+                    <td>${dayDisplay}</td>
                     <td class="time-display">${timeFromDisplay}</td>
                     <td class="time-display">${timeToDisplay}</td>
                     <td class="action-buttons">

@@ -15,6 +15,8 @@ namespace LMS.Models
 
         public DateTime DateEnrolled { get; set; } = DateTime.Now;
 
+        public string Day { get; set; }
+
         public DateTime? TimeFrom { get; set; }
         public DateTime? TimeTo { get; set; }
 

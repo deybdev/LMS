@@ -1,0 +1,32 @@
+@model LMS.Models.Course
+
+@{
+    int courseId = ViewBag.CourseId ?? Model.Id;
+    string activeTab = ViewBag.ActiveTab as string ?? "";
+}
+
+<!-- Navigation Tabs -->
+<div class="course-navigation">
+    <div class="nav-tabs">
+        <button class="nav-tab @(activeTab == "Material" ? "active" : "")"
+                onclick="window.location.href='@Url.Action("Material", "Teacher", new { id = courseId })'">
+            Learning Materials
+        </button>
+        <button class="nav-tab @(activeTab == "Gradebook" ? "active" : "")"
+                onclick="window.location.href='@Url.Action("Gradebook", "Teacher", new { id = courseId })'">
+            Gradebook
+        </button>
+        <button class="nav-tab @(activeTab == "ClassList" ? "active" : "")"
+                onclick="window.location.href='@Url.Action("ClassList", "Teacher", new { id = courseId })'">
+            Class List
+        </button>
+        <button class="nav-tab @(activeTab == "Classwork" ? "active" : "")"
+                onclick="window.location.href='@Url.Action("Classwork", "Teacher", new { id = courseId })'">
+            Classwork
+        </button>
+        <button class="nav-tab @(activeTab == "Announcement" ? "active" : "")"
+                onclick="window.location.href='@Url.Action("Announcement", "Teacher", new { id = courseId })'">
+            Announcement
+        </button>
+    </div>
+</div>

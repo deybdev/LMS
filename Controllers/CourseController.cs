@@ -143,6 +143,7 @@ namespace LMS.Controllers
                             StudentId = studentId,
                             CourseId = courseId,
                             SectionId = sectionId,
+                            Day = existingCourseTime?.Day,
                             TimeFrom = existingCourseTime?.TimeFrom,
                             TimeTo = existingCourseTime?.TimeTo,
                             DateEnrolled = DateTime.Now
@@ -263,6 +264,7 @@ namespace LMS.Controllers
                             sectionId = section.Id,
                             sectionName = section.SectionName,
                             programCode = programCode,
+                            day = existingCourseTime?.Day,
                             timeFrom = existingCourseTime?.TimeFrom,
                             timeTo = existingCourseTime?.TimeTo
                         });
@@ -310,6 +312,7 @@ namespace LMS.Controllers
                             courseTitle = sc.Course.CourseTitle,
                             yearLevel = sc.Section.YearLevel,
                             semester = semester,
+                            day = sc.Day,
                             timeFrom = sc.TimeFrom,
                             timeTo = sc.TimeTo,
                             teacherName = teacherAssignment != null ? $"{teacherAssignment.Teacher.FirstName} {teacherAssignment.Teacher.LastName}" : null,

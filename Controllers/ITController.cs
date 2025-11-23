@@ -281,6 +281,69 @@ namespace LMS.Controllers
             return View();
         }
 
+        // GET: IT/EditAssignedCourses
+        public ActionResult EditAssignedCourses(int programId, int yearLevel, int semester)
+        {
+            try
+            {
+                // Get program details
+                var program = db.Programs.Find(programId);
+                if (program == null)
+                {
+                    TempData["ErrorMessage"] = "Program not found.";
+                    return RedirectToAction("AssignedCourses");
+                }
+
+                // Get assigned courses for this curriculum
+                var assignedCourses = db.CurriculumCourses
+                    .Where(cc => cc.ProgramId == programId && cc.YearLevel == yearLevel && cc.Semester == semester)
+                    .Include(cc => cc.Course)
+                    .Select(cc => cc.Course)
+                    .ToList();
+
+                // Set ViewBag data
+                ViewBag.ProgramId = programId;
+                ViewBag.ProgramCode = program.ProgramCode;
+                ViewBag.ProgramName = program.ProgramName;
+                ViewBag.YearLevel = yearLevel;
+                ViewBag.Semester = semester;
+                ViewBag.AssignedCourses = assignedCourses;
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"EditAssignedCourses Error: {ex.Message}");
+                TempData["ErrorMessage"] = "Error loading curriculum: " + ex.Message;
+                return RedirectToAction("AssignedCourses");
+            }
+        }
+
+        // GET: IT/GetExistingCurriculumCombinations - AJAX endpoint for checking existing curriculum combinations
+        [HttpGet]
+        public JsonResult GetExistingCurriculumCombinations()
+        {
+            try
+            {
+                var existingCombinations = db.CurriculumCourses
+                    .Select(cc => new
+                    {
+                        programId = cc.ProgramId,
+                        yearLevel = cc.YearLevel,
+                        semester = cc.Semester
+                    })
+                    .Distinct()
+                    .ToList();
+
+                return Json(existingCombinations, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetExistingCurriculumCombinations Error: {ex.Message}");
+                return Json(new List<object>(), JsonRequestBehavior.AllowGet);
+            }
+        }
+
         public ActionResult ManageStudentCourses()
         {
             return View();
@@ -317,6 +380,13 @@ namespace LMS.Controllers
         {
             return View();
         }
+
+        public new ActionResult Profile()
+        {
+            return View();
+        }
+
+
 
         // GET: IT/GetTeachers - Get all teachers for dropdown
         [HttpGet]

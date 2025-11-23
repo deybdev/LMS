@@ -1,0 +1,92 @@
+﻿@model LMS.Models.Course
+
+@{
+    ViewBag.Title = "Classwork";
+    int courseId = ViewBag.CourseId ?? Model.Id;
+    ViewBag.ActiveTab = "Announcement";
+}
+
+
+<link rel="stylesheet" href="~/Content/teacherCourse.css" />
+<link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
+
+<div class="admin-container">
+    @Html.Partial("_CourseHeader", Model)
+    
+    @Html.Partial("_CourseNavigation", Model)
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Learning Materials Tab -->
+        <div class="tab-pane active">
+            <div class="header-actions">
+                <h2><i class="fa-solid fa-book"></i>Announcements and Discussions</h2>
+                <button class="material-upload-btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#materialModal">
+                    <i class="fa-solid fa-pen"></i> Post Something
+                </button>
+            </div>
+
+            <div class="materials-grid">
+                @{
+                    // Sample data for demonstration
+                    var activities = new[]
+                    {
+            new { Id = 1, Title = "Group Discussion: Climate Change", Type = "Discussion", FilesCount = 2, TotalSizeMB = 5.5, PostedAt = DateTime.Now.AddDays(-2), Points = 10 },
+            new { Id = 2, Title = "Math Quiz 1", Type = "Quiz", FilesCount = 1, TotalSizeMB = 1.2, PostedAt = DateTime.Now.AddDays(-1), Points = 100 }
+        };
+                }
+
+                @if (activities.Any())
+                {
+                    foreach (var activity in activities)
+                    {
+                        <div class="material-card">
+                            <div class="material-header">
+                                <div class="material-type">@activity.Type</div>
+
+                                <div class="activity-status">
+                                    <span class="active">Active</span>
+                                </div>
+                            </div>
+
+                            <div class="material-info">
+                                <h4>@activity.Title</h4>
+                                <small class="upload-info">
+                                    <i class="fa-regular fa-calendar me-1"></i> Due: @activity.PostedAt.ToString("MMM dd, hh:mm tt")
+                                </small><br />
+                                <small class="upload-info">
+                                    <i class="fa-regular fa-star me-1"></i> @activity.Points.ToString() Points
+                                </small><br />
+                                <small class="upload-info">
+                                    <i class="fa-solid fa-users me-1"></i> 0/40 Students Submitted
+                                </small>
+                            </div>
+
+                            <div class="material-actions">
+                                <button type="button" class="action-btn view-btn">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                <button class="action-btn edit-btn" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn" type="button">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="no-materials text-center p-6 border-dashed border-2 border-gray-300 rounded-lg bg-gray-50">
+                        <i class="fas fa-tasks fa-3x text-gray-400 mb-3"></i>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-2">No Announcements Yet</h3>
+                        <p class="text-gray-500 mb-4">It looks like there are no announcement posted for this course yet.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

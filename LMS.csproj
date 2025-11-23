@@ -263,8 +263,25 @@
     <Compile Include="Migrations\202511160828102_updMaterial.Designer.cs">
       <DependentUpon>202511160828102_updMaterial.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202511180111480_AddDayInCOurses.cs" />
+    <Compile Include="Migrations\202511180111480_AddDayInCOurses.Designer.cs">
+      <DependentUpon>202511180111480_AddDayInCOurses.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511230433092_AddClassword.cs" />
+    <Compile Include="Migrations\202511230433092_AddClassword.Designer.cs">
+      <DependentUpon>202511230433092_AddClassword.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511230528023_udpdatabase.cs" />
+    <Compile Include="Migrations\202511230528023_udpdatabase.Designer.cs">
+      <DependentUpon>202511230528023_udpdatabase.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511230536153_puroupdate.cs" />
+    <Compile Include="Migrations\202511230536153_puroupdate.Designer.cs">
+      <DependentUpon>202511230536153_puroupdate.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AuditLog.cs" />
+    <Compile Include="Models\Classwork.cs" />
     <Compile Include="Models\Course.cs" />
     <Compile Include="Models\CurriculumGroupViewModel.cs" />
     <Compile Include="Models\Department.cs" />
@@ -311,6 +328,7 @@
     <Content Include="Content\manageUser.css" />
     <Content Include="Content\programManagement.css" />
     <Content Include="Content\Site.css" />
+    <Content Include="Content\teacherClasslist.css" />
     <Content Include="Content\teacherCourse.css" />
     <Content Include="Content\teacherCreateCourse.css" />
     <Content Include="Content\teacherViewCourse.css" />
@@ -352,6 +370,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\Custom\classlist.js" />
     <Content Include="Scripts\Teacher\teacherViewCourse.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
@@ -397,8 +416,12 @@
     <Content Include="Views\IT\AssignTeacher.cshtml" />
     <Content Include="Views\IT\ManageStudentCourses.cshtml" />
     <Content Include="Views\Teacher\Course\Gradebook.cshtml" />
-    <Content Include="_COURSEID_REMOVAL_SUMMARY.md" />
-    <Content Include="_FILE_UPLOAD_ENHANCEMENT_SUMMARY.md" />
+    <Content Include="Views\Teacher\Course\Classlist.cshtml" />
+    <Content Include="Views\Teacher\Course\Classwork.cshtml" />
+    <Content Include="Views\Teacher\Course\Announcement.cshtml" />
+    <Content Include="Views\Shared\_CourseHeader.cshtml" />
+    <Content Include="Views\Shared\_CourseNavigation.cshtml" />
+    <Content Include="Views\Teacher\Course\CreateClasswork.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -463,6 +486,18 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202511160828102_updMaterial.resx">
       <DependentUpon>202511160828102_updMaterial.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511180111480_AddDayInCOurses.resx">
+      <DependentUpon>202511180111480_AddDayInCOurses.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511230433092_AddClassword.resx">
+      <DependentUpon>202511230433092_AddClassword.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511230528023_udpdatabase.resx">
+      <DependentUpon>202511230528023_udpdatabase.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511230536153_puroupdate.resx">
+      <DependentUpon>202511230536153_puroupdate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

@@ -71,10 +71,187 @@ namespace LMS.Controllers
             return LoadCourseTab(id, "Material");
         }
 
+        // GET: Teacher/ViewMaterial
+        public ActionResult ViewMaterial(int? id, int? materialId)
+        {
+            try
+            {
+                // Validate session
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    TempData["ErrorMessage"] = "Session expired. Please log in again.";
+                    return RedirectToAction("Login", "Home");
+                }
+
+                if (!id.HasValue || !materialId.HasValue)
+                {
+                    TempData["ErrorMessage"] = "Invalid course or material ID.";
+                    return RedirectToAction("Material", "Teacher", new { id = id });
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                // Get the course section
+                var assignment = db.TeacherCourseSections
+                    .Include(tcs => tcs.Course)
+                    .Include(tcs => tcs.Section)
+                    .Include(tcs => tcs.Section.Program)
+                    .FirstOrDefault(tcs => tcs.CourseId == id.Value && tcs.TeacherId == teacherId);
+
+                if (assignment == null)
+                {
+                    TempData["ErrorMessage"] = "Course section not found or you don't have access.";
+                    return RedirectToAction("Material", "Teacher", new { id = id });
+                }
+
+                // Get the material with files
+                var material = db.Materials
+                    .Include(m => m.MaterialFiles)
+                    .Include(m => m.TeacherCourseSection)
+                    .FirstOrDefault(m => m.Id == materialId.Value && m.TeacherCourseSectionId == assignment.Id);
+
+                if (material == null)
+                {
+                    TempData["ErrorMessage"] = "Material not found or you don't have access.";
+                    return RedirectToAction("Material", "Teacher", new { id = id });
+                }
+
+                // Verify teacher owns this material
+                if (material.TeacherCourseSection.TeacherId != teacherId)
+                {
+                    TempData["ErrorMessage"] = "You don't have access to this material.";
+                    return RedirectToAction("Material", "Teacher", new { id = id });
+                }
+
+                var course = assignment.Course;
+
+                // Set ViewBag data
+                ViewBag.Material = material;
+                ViewBag.Course = course;
+                ViewBag.SectionName = assignment.Section.Program.ProgramCode + "-" +
+                                      assignment.Section.YearLevel +
+                                      assignment.Section.SectionName;
+                ViewBag.CourseId = id.Value;
+                ViewBag.ActiveTab = "Material";
+
+                return View("~/Views/Teacher/Course/ViewMaterial.cshtml", course);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ViewMaterial Error: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred while loading the material.";
+                return RedirectToAction("Material", "Teacher", new { id = id });
+            }
+        }
+
         // GET: Teacher/Gradebook
         public ActionResult Gradebook(int? id)
         {
             return LoadCourseTab(id, "Gradebook");
+        }
+
+        // GET: Teacher/Classlist
+        public ActionResult Classlist(int? id)
+        {
+            return LoadCourseTab(id, "Classlist");
+        }
+
+        public ActionResult Classwork(int? id)
+        {
+            var result = LoadCourseTab(id, "Classwork");
+
+            if (id.HasValue)
+            {
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                int teacherCourseSectionId = db.TeacherCourseSections
+                    .Where(tcs => tcs.CourseId == id.Value && tcs.TeacherId == teacherId)
+                    .Select(tcs => tcs.Id)
+                    .FirstOrDefault();
+
+                // Get classwork for this section
+                var classworks = db.Classworks
+                    .Where(c => c.TeacherCourseSectionId == teacherCourseSectionId)
+                    .OrderByDescending(c => c.DateCreated)
+                    .ToList()
+                    .Select(c =>
+                    {
+                        dynamic item = new ExpandoObject();
+                        item.Id = c.Id;
+                        item.Title = c.Title;
+                        item.ClassworkType = c.ClassworkType;
+                        item.Points = c.Points;
+                        item.Deadline = c.Deadline;
+                        item.SubmittedCount = c.ClassworkSubmissions.Count(s => s.Status == "Submitted" || s.Status == "Graded");
+                        item.TotalStudents = c.ClassworkSubmissions.Count();
+                        return item;
+                    })
+                    .ToList();
+
+                ViewBag.Classworks = classworks;
+            }
+
+            return result;
+        }
+
+        public ActionResult CreateClasswork (int? id)
+        {
+            return LoadCourseTab(id, "CreateClasswork");
+        }
+
+        public ActionResult Announcement (int? id)
+        {
+            return LoadCourseTab(id, "Announcement");
+        }
+
+
+        // GET: Teacher/GetEnrolledStudents
+        [HttpGet]
+        public JsonResult GetEnrolledStudents(int teacherCourseSectionId)
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    return Json(new { success = false, message = "Unauthorized access" }, JsonRequestBehavior.AllowGet);
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                // Verify the teacher owns this course section
+                var teacherCourseSection = db.TeacherCourseSections
+                    .FirstOrDefault(tcs => tcs.Id == teacherCourseSectionId && tcs.TeacherId == teacherId);
+
+                if (teacherCourseSection == null)
+                {
+                    return Json(new { success = false, message = "You don't have access to this course section" }, JsonRequestBehavior.AllowGet);
+                }
+
+                // Get enrolled students
+                var students = db.StudentCourses
+                    .Where(sc => sc.CourseId == teacherCourseSection.CourseId && 
+                                 sc.SectionId == teacherCourseSection.SectionId)
+                    .Include(sc => sc.Student)
+                    .OrderBy(sc => sc.Student.LastName)
+                    .ThenBy(sc => sc.Student.FirstName)
+                    .Select(sc => new
+                    {
+                        id = sc.Student.Id,
+                        studentId = sc.Student.UserID,
+                        name = sc.Student.FirstName + " " + sc.Student.LastName,
+                        email = sc.Student.Email,
+                        grade = "-", // You can add actual grade logic later
+                        status = sc.Status ?? "Active"
+                    })
+                    .ToList();
+
+                return Json(new { success = true, students }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetEnrolledStudents Error: {ex.Message}");
+                return Json(new { success = false, message = "Error loading students: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
         }
 
         // POST: Upload Material
@@ -346,8 +523,8 @@ namespace LMS.Controllers
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine(ex);
-                return Json(new { success = false, message = "An error occurred while deleting the material." });
+                System.Diagnostics.Debug.WriteLine($"DeleteMaterial Error: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred while deleting the material: " + ex.Message });
             }
         }
 
@@ -386,6 +563,505 @@ namespace LMS.Controllers
         public new ActionResult Profile()
         {
             return View();
+        }
+
+        // POST: Create Classwork
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CreateClasswork(int TeacherCourseId, string title, string classworkType, 
+            DateTime? deadline, int points, string description, HttpPostedFileBase[] files, bool noDueDate = false)
+        {
+            try
+            {
+                // Validate session
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    TempData["ErrorMessage"] = "Session expired. Please log in again.";
+                    return RedirectToAction("Login", "Home");
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                // Find the TeacherCourseSection record
+                var teacherCourseSection = db.TeacherCourseSections
+                    .FirstOrDefault(tcs => tcs.CourseId == TeacherCourseId && tcs.TeacherId == teacherId);
+
+                if (teacherCourseSection == null)
+                {
+                    TempData["ErrorMessage"] = "Course section not found or you don't have access.";
+                    return RedirectToAction("Classwork", "Teacher", new { id = TeacherCourseId });
+                }
+
+                // Validate required fields
+                if (string.IsNullOrWhiteSpace(title))
+                {
+                    TempData["ErrorMessage"] = "Title is required.";
+                    return RedirectToAction("CreateClasswork", "Teacher", new { id = TeacherCourseId });
+                }
+
+                if (string.IsNullOrWhiteSpace(classworkType))
+                {
+                    TempData["ErrorMessage"] = "Classwork type is required.";
+                    return RedirectToAction("CreateClasswork", "Teacher", new { id = TeacherCourseId });
+                }
+
+                // Handle deadline - if noDueDate is checked, set to null
+                DateTime? finalDeadline = null;
+                if (!noDueDate && deadline.HasValue)
+                {
+                    if (deadline.Value < DateTime.Now)
+                    {
+                        TempData["ErrorMessage"] = "Deadline must be in the future.";
+                        return RedirectToAction("CreateClasswork", "Teacher", new { id = TeacherCourseId });
+                    }
+                    finalDeadline = deadline.Value;
+                }
+
+                if (points <= 0)
+                {
+                    TempData["ErrorMessage"] = "Points must be greater than zero.";
+                    return RedirectToAction("CreateClasswork", "Teacher", new { id = TeacherCourseId });
+                }
+
+                // Create the classwork record
+                var classwork = new Classwork
+                {
+                    TeacherCourseSectionId = teacherCourseSection.Id,
+                    Title = title,
+                    ClassworkType = classworkType,
+                    Description = description ?? string.Empty,
+                    Deadline = finalDeadline,
+                    Points = points,
+                    DateCreated = DateTime.Now,
+                    IsActive = true
+                };
+
+                db.Classworks.Add(classwork);
+                db.SaveChanges();
+
+                // Handle file uploads if any
+                if (files != null && files.Length > 0 && files[0] != null)
+                {
+                    var uploadFolder = Server.MapPath("~/Uploads/Classwork/");
+                    if (!Directory.Exists(uploadFolder))
+                        Directory.CreateDirectory(uploadFolder);
+
+                    foreach (var file in files)
+                    {
+                        if (file != null && file.ContentLength > 0)
+                        {
+                            var fileName = Path.GetFileName(file.FileName);
+                            var uniqueFileName = $"{DateTime.Now.Ticks}_{fileName}";
+                            var filePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                            // Save the physical file
+                            file.SaveAs(filePath);
+
+                            // Create database record for the file
+                            var fileRecord = new ClassworkFile
+                            {
+                                ClassworkId = classwork.Id,
+                                FileName = fileName,
+                                FilePath = "/Uploads/Classwork/" + uniqueFileName,
+                                SizeInMB = Math.Round((decimal)file.ContentLength / 1024 / 1024, 2),
+                                UploadedAt = DateTime.Now
+                            };
+
+                            db.ClassworkFiles.Add(fileRecord);
+                        }
+                    }
+
+                    db.SaveChanges();
+                }
+
+                // Create submission records for all enrolled students
+                var enrolledStudents = db.StudentCourses
+                    .Where(sc => sc.CourseId == teacherCourseSection.CourseId && 
+                                 sc.SectionId == teacherCourseSection.SectionId)
+                    .Select(sc => sc.StudentId)
+                    .ToList();
+
+                foreach (var studentId in enrolledStudents)
+                {
+                    var submission = new ClassworkSubmission
+                    {
+                        ClassworkId = classwork.Id,
+                        StudentId = studentId,
+                        Status = "Not Submitted"
+                    };
+                    db.ClassworkSubmissions.Add(submission);
+                }
+
+                db.SaveChanges();
+
+                TempData["SuccessMessage"] = $"Classwork '{title}' created successfully for {enrolledStudents.Count} students!";
+                return RedirectToAction("Classwork", "Teacher", new { id = TeacherCourseId });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"CreateClasswork Error: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred while creating the classwork: " + ex.Message;
+                return RedirectToAction("CreateClasswork", "Teacher", new { id = TeacherCourseId });
+            }
+        }
+
+        // GET: Edit Classwork
+        public ActionResult EditClasswork(int? id, int? classworkId)
+        {
+            try
+            {
+                // Validate session
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    TempData["ErrorMessage"] = "Session expired. Please log in again.";
+                    return RedirectToAction("Login", "Home");
+                }
+
+                if (!id.HasValue || !classworkId.HasValue)
+                {
+                    TempData["ErrorMessage"] = "Invalid course or classwork ID.";
+                    return RedirectToAction("Classwork", "Teacher", new { id = id });
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                // Verify the teacher owns this course section
+                var teacherCourseSection = db.TeacherCourseSections
+                    .FirstOrDefault(tcs => tcs.CourseId == id.Value && tcs.TeacherId == teacherId);
+
+                if (teacherCourseSection == null)
+                {
+                    TempData["ErrorMessage"] = "Course section not found or you don't have access.";
+                    return RedirectToAction("Classwork", "Teacher", new { id = id });
+                }
+
+                // Get the classwork
+                var classwork = db.Classworks
+                    .Include(c => c.ClassworkFiles)
+                    .FirstOrDefault(c => c.Id == classworkId.Value && c.TeacherCourseSectionId == teacherCourseSection.Id);
+
+                if (classwork == null)
+                {
+                    TempData["ErrorMessage"] = "Classwork not found or you don't have access.";
+                    return RedirectToAction("Classwork", "Teacher", new { id = id });
+                }
+
+                // Load course tab
+                var result = LoadCourseTab(id, "EditClasswork");
+
+                // Set ViewBag properties for the form
+                ViewBag.ClassworkId = classwork.Id;
+                ViewBag.ClassworkTitle = classwork.Title;
+                ViewBag.ClassworkType = classwork.ClassworkType;
+                ViewBag.ClassworkDescription = classwork.Description;
+                ViewBag.ClassworkPoints = classwork.Points;
+                
+                // Check if deadline is null (no due date)
+                bool hasNoDueDate = !classwork.Deadline.HasValue;
+                ViewBag.HasNoDueDate = hasNoDueDate;
+                
+                // Format deadline for HTML5 datetime-local input (yyyy-MM-ddTHH:mm)
+                // If no due date, set to empty or current date
+                if (hasNoDueDate)
+                {
+                    ViewBag.ClassworkDeadline = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+                }
+                else
+                {
+                    ViewBag.ClassworkDeadline = classwork.Deadline.Value.ToString("yyyy-MM-ddTHH:mm");
+                }
+
+                // Get existing files
+                var existingFiles = classwork.ClassworkFiles
+                    .Select(f => new
+                    {
+                        f.Id,
+                        f.FileName,
+                        f.FilePath,
+                        f.SizeInMB
+                    })
+                    .ToList()
+                    .Select(f =>
+                    {
+                        dynamic item = new ExpandoObject();
+                        item.Id = f.Id;
+                        item.FileName = f.FileName;
+                        item.FilePath = f.FilePath;
+                        item.SizeInMB = f.SizeInMB;
+                        return item;
+                    })
+                    .ToList();
+
+                ViewBag.ExistingFiles = existingFiles;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"EditClasswork GET Error: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred while loading the classwork: " + ex.Message;
+                return RedirectToAction("Classwork", "Teacher", new { id = id });
+            }
+        }
+
+        // POST: Delete Classwork
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteClasswork(int id)
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    return Json(new { success = false, message = "Session expired. Please log in again." });
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                var classwork = db.Classworks
+                    .Include(c => c.ClassworkFiles)
+                    .Include(c => c.ClassworkSubmissions.Select(s => s.SubmissionFiles))
+                    .Include(c => c.TeacherCourseSection)
+                    .FirstOrDefault(c => c.Id == id);
+
+                if (classwork == null)
+                {
+                    return Json(new { success = false, message = "Classwork not found." });
+                }
+
+                // Verify the teacher owns this classwork's section
+                if (classwork.TeacherCourseSection.TeacherId != teacherId)
+                {
+                    return Json(new { success = false, message = "You don't have access to delete this classwork." });
+                }
+
+                // Delete physical classwork files
+                foreach (var file in classwork.ClassworkFiles.ToList())
+                {
+                    var path = Server.MapPath(file.FilePath);
+                    if (System.IO.File.Exists(path))
+                    {
+                        System.IO.File.Delete(path);
+                    }
+                }
+
+                // Delete physical submission files
+                foreach (var submission in classwork.ClassworkSubmissions.ToList())
+                {
+                    foreach (var submissionFile in submission.SubmissionFiles.ToList())
+                    {
+                        var path = Server.MapPath(submissionFile.FilePath);
+                        if (System.IO.File.Exists(path))
+                        {
+                            System.IO.File.Delete(path);
+                        }
+                    }
+                }
+
+                // Remove classwork (cascade delete will handle related records)
+                db.Classworks.Remove(classwork);
+                db.SaveChanges();
+
+                return Json(new { success = true, message = "Classwork deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"DeleteClasswork Error: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred while deleting the classwork: " + ex.Message });
+            }
+        }
+
+        // POST: Delete Activity (alias for DeleteClasswork)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteActivity(int id)
+        {
+            return DeleteClasswork(id);
+        }
+
+        // POST: Edit Classwork
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditClasswork(int ClassworkId, int TeacherCourseId, string title, string classworkType,
+            DateTime? deadline, int points, string description, HttpPostedFileBase[] files, int[] filesToDelete, bool noDueDate = false)
+        {
+            try
+            {
+                // Validate session
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    TempData["ErrorMessage"] = "Session expired. Please log in again.";
+                    return RedirectToAction("Login", "Home");
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                // Find the TeacherCourseSection record
+                var teacherCourseSection = db.TeacherCourseSections
+                    .FirstOrDefault(tcs => tcs.CourseId == TeacherCourseId && tcs.TeacherId == teacherId);
+
+                if (teacherCourseSection == null)
+                {
+                    TempData["ErrorMessage"] = "Course section not found or you don't have access.";
+                    return RedirectToAction("Classwork", "Teacher", new { id = TeacherCourseId });
+                }
+
+                // Get the existing classwork
+                var classwork = db.Classworks
+                    .Include(c => c.ClassworkFiles)
+                    .FirstOrDefault(c => c.Id == ClassworkId && c.TeacherCourseSectionId == teacherCourseSection.Id);
+
+                if (classwork == null)
+                {
+                    TempData["ErrorMessage"] = "Classwork not found or you don't have access.";
+                    return RedirectToAction("Classwork", "Teacher", new { id = TeacherCourseId });
+                }
+
+                // Validate required fields
+                if (string.IsNullOrWhiteSpace(title))
+                {
+                    TempData["ErrorMessage"] = "Title is required.";
+                    return RedirectToAction("EditClasswork", "Teacher", new { id = TeacherCourseId, classworkId = ClassworkId });
+                }
+
+                if (string.IsNullOrWhiteSpace(classworkType))
+                {
+                    TempData["ErrorMessage"] = "Classwork type is required.";
+                    return RedirectToAction("EditClasswork", "Teacher", new { id = TeacherCourseId, classworkId = ClassworkId });
+                }
+
+                if (points <= 0)
+                {
+                    TempData["ErrorMessage"] = "Points must be greater than zero.";
+                    return RedirectToAction("EditClasswork", "Teacher", new { id = TeacherCourseId, classworkId = ClassworkId });
+                }
+
+                // Handle deadline - if noDueDate is checked, set to null
+                DateTime? finalDeadline = null;
+                if (!noDueDate && deadline.HasValue)
+                {
+                    finalDeadline = deadline.Value;
+                }
+
+                // Update the classwork record
+                classwork.Title = title;
+                classwork.ClassworkType = classworkType;
+                classwork.Description = description ?? string.Empty;
+                classwork.Deadline = finalDeadline;
+                classwork.Points = points;
+
+                // Delete files if requested
+                if (filesToDelete != null && filesToDelete.Length > 0)
+                {
+                    foreach (var fileId in filesToDelete)
+                    {
+                        var fileToDelete = db.ClassworkFiles.FirstOrDefault(f => f.Id == fileId && f.ClassworkId == ClassworkId);
+                        if (fileToDelete != null)
+                        {
+                            // Delete physical file
+                            var filePath = Server.MapPath(fileToDelete.FilePath);
+                            if (System.IO.File.Exists(filePath))
+                            {
+                                System.IO.File.Delete(filePath);
+                            }
+                            // Delete database record
+                            db.ClassworkFiles.Remove(fileToDelete);
+                        }
+                    }
+                }
+
+                // Handle new file uploads if any
+                if (files != null && files.Length > 0 && files[0] != null)
+                {
+                    var uploadFolder = Server.MapPath("~/Uploads/Classwork/");
+                    if (!Directory.Exists(uploadFolder))
+                        Directory.CreateDirectory(uploadFolder);
+
+                    foreach (var file in files)
+                    {
+                        if (file != null && file.ContentLength > 0)
+                        {
+                            var fileName = Path.GetFileName(file.FileName);
+                            var uniqueFileName = $"{DateTime.Now.Ticks}_{fileName}";
+                            var filePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                            // Save the physical file
+                            file.SaveAs(filePath);
+
+                            // Create database record for the file
+                            var fileRecord = new ClassworkFile
+                            {
+                                ClassworkId = classwork.Id,
+                                FileName = fileName,
+                                FilePath = "/Uploads/Classwork/" + uniqueFileName,
+                                SizeInMB = Math.Round((decimal)file.ContentLength / 1024 / 1024, 2),
+                                UploadedAt = DateTime.Now
+                            };
+
+                            db.ClassworkFiles.Add(fileRecord);
+                        }
+                    }
+                }
+
+                db.SaveChanges();
+
+                TempData["SuccessMessage"] = $"Classwork '{title}' updated successfully!";
+                return RedirectToAction("Classwork", "Teacher", new { id = TeacherCourseId });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"EditClasswork POST Error: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred while updating the classwork: " + ex.Message;
+                return RedirectToAction("EditClasswork", "Teacher", new { id = TeacherCourseId, classworkId = ClassworkId });
+            }
+        }
+
+        // GET: Get Classwork List for a Course
+        [HttpGet]
+        public JsonResult GetClassworkList(int teacherCourseSectionId)
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    return Json(new { success = false, message = "Unauthorized access" }, JsonRequestBehavior.AllowGet);
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                // Verify the teacher owns this course section
+                var teacherCourseSection = db.TeacherCourseSections
+                    .FirstOrDefault(tcs => tcs.Id == teacherCourseSectionId && tcs.TeacherId == teacherId);
+
+                if (teacherCourseSection == null)
+                {
+                    return Json(new { success = false, message = "You don't have access to this course section" }, JsonRequestBehavior.AllowGet);
+                }
+
+                // Get all classwork for this section
+                var classworks = db.Classworks
+                    .Where(c => c.TeacherCourseSectionId == teacherCourseSectionId)
+                    .OrderByDescending(c => c.DateCreated)
+                    .Select(c => new
+                    {
+                        id = c.Id,
+                        title = c.Title,
+                        type = c.ClassworkType,
+                        deadline = c.Deadline,
+                        points = c.Points,
+                        isActive = c.IsActive,
+                        submittedCount = c.ClassworkSubmissions.Count(s => s.Status == "Submitted" || s.Status == "Graded"),
+                        totalStudents = c.ClassworkSubmissions.Count()
+                    })
+                    .ToList();
+
+                return Json(new { success = true, classworks }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetClassworkList Error: {ex.Message}");
+                return Json(new { success = false, message = "Error loading classwork: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
         }
 
         // Private helper method to load course tabs

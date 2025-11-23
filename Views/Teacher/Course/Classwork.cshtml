@@ -1,0 +1,137 @@
+﻿@model LMS.Models.Course
+
+@{
+    ViewBag.Title = "Classwork";
+    int courseId = ViewBag.CourseId ?? Model.Id;
+    ViewBag.ActiveTab = "Classwork";
+}
+
+
+<link rel="stylesheet" href="~/Content/teacherCourse.css" />
+<link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
+
+<div class="admin-container">
+    @Html.Partial("_CourseHeader", Model)
+
+    @Html.Partial("_CourseNavigation", Model)
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Learning Materials Tab -->
+        <div class="tab-pane active">
+            <div class="header-actions">
+                <h2><i class="fa-solid fa-book"></i>Classwork and Activities</h2>
+                <button class="material-upload-btn"
+                        onclick="window.location.href='@Url.Action("CreateClasswork", "Teacher", new { id = courseId })'">
+                    <i class="fas fa-upload"></i> Create Classwork
+                </button>
+            </div>
+
+            <div class="materials-grid">
+                @if (ViewBag.Classworks != null)
+                {
+                    foreach (dynamic activity in ViewBag.Classworks)
+                    {
+                        <div class="material-card">
+                            <div class="material-header">
+                                <div class="material-type">@activity.ClassworkType</div>
+
+                                <div class="activity-status">
+                                    <span class="active">Active</span>
+                                </div>
+                            </div>
+
+                            <div class="material-info">
+                                <h4>@activity.Title</h4>
+                                <small class="upload-info">
+                                    <i class="fa-regular fa-calendar me-1"></i> 
+                                    @if (activity.Deadline != null)
+                                    {
+                                        <text>Due: @activity.Deadline.ToString("MMM dd, hh:mm tt")</text>
+                                    }
+                                    else
+                                    {
+                                        <text>No due date</text>
+                                    }
+                                </small><br />
+                                <small class="upload-info">
+                                    <i class="fa-regular fa-star me-1"></i> @activity.Points Points
+                                </small><br />
+                                <small class="upload-info">
+                                    <i class="fa-solid fa-users me-1"></i> @activity.SubmittedCount/@activity.TotalStudents Students Submitted
+                                </small>
+                            </div>
+
+                            <div class="material-actions">
+                                <button type="button" class="action-btn view-btn">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                <button class="action-btn edit-btn" title="Edit" onclick="window.location.href='@Url.Action("EditClasswork", "Teacher", new { id = courseId, classworkId = activity.Id })'">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn" type="button"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-item-id="@activity.Id"
+                                        data-item-name="@activity.Title"
+                                        data-url="@Url.Action("DeleteActivity", "Teacher")"
+                                        data-target-remove=".material-card">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="no-materials text-center p-6 border-dashed border-2 border-gray-300 rounded-lg bg-gray-50">
+                        <i class="fas fa-tasks fa-3x text-gray-400 mb-3"></i>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-2">No Activities Yet</h3>
+                        <p class="text-gray-500 mb-4">It looks like there aren't any activities created for this course yet.</p>
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/Scripts/Custom/deleteHandler.js"></script>
+}
+
+<style>
+    .activity-status {
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+        .activity-status span {
+            margin: 0;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        /* Active: green */
+        .activity-status .active {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        /* Upcoming: blue */
+        .activity-status .upcoming {
+            color: #004085;
+            background-color: #cce5ff;
+            border: 1px solid #b8daff;
+        }
+
+        /* Ended: gray */
+        .activity-status .ended {
+            color: #6c757d;
+            background-color: #e2e3e5;
+            border: 1px solid #d6d8db;
+        }
+</style>

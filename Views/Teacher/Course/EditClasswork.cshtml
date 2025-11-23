@@ -1,0 +1,137 @@
+@model LMS.Models.Course
+
+@{
+    ViewBag.Title = "Edit Classwork";
+    int courseId = ViewBag.CourseId ?? Model.Id;
+    ViewBag.ActiveTab = "Classwork";
+}
+
+<link rel="stylesheet" href="~/Content/teacherCourse.css" />
+<link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
+<link rel="stylesheet" href="~/Content/classworkForm.css" />
+
+<div class="admin-container">
+    @Html.Partial("_CourseHeader", Model)
+
+    @Html.Partial("_CourseNavigation", Model)
+
+    <div class="tab-pane active">
+        <div class="header-actions">
+            <h2><i class="fa-solid fa-book"></i>Classwork and Activities</h2>
+        </div>
+        <div class="create-classwork-container">
+
+            <form action="@Url.Action("EditClasswork", "Teacher")" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" name="ClassworkId" value="@ViewBag.ClassworkId" />
+                <input type="hidden" name="TeacherCourseId" value="@courseId" />
+
+                <!-- Title, Classwork Type, Answer Type Row -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Title<span class="required">*</span></label>
+                        <input type="text" name="title" required placeholder="Enter classwork title" value="@ViewBag.ClassworkTitle" />
+                    </div>
+                    <div class="form-group">
+                        <label>Classwork Type<span class="required">*</span></label>
+                        <select name="classworkType" required>
+                            <option value="">Select type</option>
+                            <option value="Assignment" @(ViewBag.ClassworkType == "Assignment" ? "selected" : "")>Assignment</option>
+                            <option value="Quiz" @(ViewBag.ClassworkType == "Quiz" ? "selected" : "")>Quiz</option>
+                            <option value="Activity" @(ViewBag.ClassworkType == "Activity" ? "selected" : "")>Activity</option>
+                            <option value="Project" @(ViewBag.ClassworkType == "Project" ? "selected" : "")>Project</option>
+                            <option value="Exam" @(ViewBag.ClassworkType == "Exam" ? "selected" : "")>Exam</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Deadline, Points, Attempts Row -->
+                <div class="deadline-points-row">
+                    <div class="form-group">
+                        <label>Deadline<span class="required">*</span></label>
+                        <input type="datetime-local" id="deadlineInput" name="deadline" required value="@ViewBag.ClassworkDeadline" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                        <label style="margin-top: 8px; font-weight: normal; cursor: pointer;">
+                            <input type="checkbox" id="noDueDateCheckbox" name="noDueDate" value="true" @(ViewBag.HasNoDueDate == true ? "checked" : "") />
+                            No due date
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>Points<span class="required">*</span></label>
+                        <input type="number" name="points" required placeholder="0" min="0" value="@ViewBag.ClassworkPoints" />
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label>Description<span class="required">*</span></label>
+                        <textarea name="description" required placeholder="Enter classwork description...">@ViewBag.ClassworkDescription</textarea>
+                    </div>
+                </div>
+
+                <!-- Existing Files -->
+                @if (ViewBag.ExistingFiles != null && ((List<dynamic>)ViewBag.ExistingFiles).Count > 0)
+                {
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label>Existing Attachments</label>
+                            <div class="existing-files-list">
+                                @foreach (dynamic file in ViewBag.ExistingFiles)
+                                {
+                                    <div class="existing-file-item" data-file-id="@file.Id">
+                                        <div class="file-info">
+                                            <i class="fa-solid fa-file"></i>
+                                            <span>@file.FileName</span>
+                                            <span style="color: #999; font-size: 12px;">(@file.SizeInMB MB)</span>
+                                        </div>
+                                        <a href="@file.FilePath" target="_blank" style="margin-right: 10px; color: #4CAF50;">
+                                            <i class="fa-solid fa-download"></i> Download
+                                        </a>
+                                        <button type="button" class="remove-file-btn" onclick="removeExistingFile(@file.Id, this)">
+                                            <i class="fa-solid fa-times"></i>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- File Upload Area -->
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label>Add New Attachments</label>
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-icon">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                            </div>
+                            <div class="upload-text">Click to upload or drag and drop</div>
+                            <div class="upload-subtext">PDF, DOC, PPT, XLS files supported</div>
+                            <button type="button" class="choose-file-btn" onclick="document.getElementById('fileInput').click()">
+                                Choose file
+                            </button>
+                            <input type="file" id="fileInput" name="files" multiple class="file-input-hidden" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx" />
+                        </div>
+                        <div class="uploaded-files-list" id="uploadedFilesList"></div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="window.location.href='@Url.Action("Classwork", "Teacher", new { id = courseId })'">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn-submit">
+                        <i class="fa-solid fa-check"></i> Update Classwork
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/Scripts/Custom/classworkForm.js"></script>
+}
+

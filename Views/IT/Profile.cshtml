@@ -1,7 +1,471 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Profile";
 }
 
-<h2>Profile</h2>
+<link rel="stylesheet" href="~/Content/adminDashboard.css" />
+
+<div class="admin-container">
+    <div class="page-header mb-4">
+        <h1>My Profile</h1>
+        <p class="subtitle">View and manage your account information</p>
+    </div>
+
+    <!-- Profile Content -->
+    <div class="profile-content">
+        <!-- Profile Header -->
+        <div class="profile-header-simple">
+            <div class="profile-avatar-simple">
+                @if (Session["FirstName"] != null && Session["LastName"] != null)
+                {
+                    var initials = Session["FirstName"].ToString().Substring(0, 1) + Session["LastName"].ToString().Substring(0, 1);
+                    <span class="avatar-text">@initials</span>
+                }
+                else
+                {
+                    <i class="fas fa-user"></i>
+                }
+            </div>
+            <div class="profile-info-simple">
+                <h2 class="profile-name-simple">
+                    @if (Session["FirstName"] != null && Session["LastName"] != null)
+                    {
+                        @Session["FirstName"] @Session["LastName"]
+                    }
+                    else
+                    {
+                        <text>IT Administrator</text>
+                    }
+                </h2>
+                <p class="profile-role-simple">
+                    <i class="fas fa-shield-alt"></i> IT Administrator
+                </p>
+            </div>
+        </div>
+
+        <!-- Profile Form -->
+        <div class="profile-form-container">
+            <div class="form-header-simple">
+                <h3>Personal Information</h3>
+                <button class="btn-edit-simple" id="editBtn" onclick="enableEdit()">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+
+            <form id="profileForm">
+                @Html.AntiForgeryToken()
+                
+                <div class="form-grid-simple">
+                    <div class="form-group-simple">
+                        <label class="form-label-simple">First Name</label>
+                        <input type="text" 
+                               class="form-input-simple" 
+                               id="firstName" 
+                               name="firstName"
+                               value="@(Session["FirstName"] ?? "")" 
+                               disabled>
+                    </div>
+                    
+                    <div class="form-group-simple">
+                        <label class="form-label-simple">Last Name</label>
+                        <input type="text" 
+                               class="form-input-simple" 
+                               id="lastName"
+                               name="lastName" 
+                               value="@(Session["LastName"] ?? "")" 
+                               disabled>
+                    </div>
+                    
+                    <div class="form-group-simple">
+                        <label class="form-label-simple">Email Address</label>
+                        <input type="email" 
+                               class="form-input-simple" 
+                               id="email"
+                               name="email" 
+                               value="@(Session["Email"] ?? "admin@g2academy.edu")" 
+                               disabled>
+                    </div>
+                    
+                    <div class="form-group-simple">
+                        <label class="form-label-simple">Phone Number</label>
+                        <input type="tel" 
+                               class="form-input-simple" 
+                               id="phone"
+                               name="phone" 
+                               value="@(Session["PhoneNumber"] ?? "")" 
+                               placeholder="Not set"
+                               disabled>
+                    </div>
+                    
+                    <div class="form-group-simple">
+                        <label class="form-label-simple">User ID</label>
+                        <input type="text" 
+                               class="form-input-simple" 
+                               id="userId" 
+                               value="@(Session["UserId"] ?? "")" 
+                               disabled>
+                    </div>
+
+                    <div class="form-group-simple">
+                        <label class="form-label-simple">Password</label>
+                        <button type="button" 
+                                class="btn-change-password" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#changePasswordModal">
+                            <i class="fas fa-key"></i> Change Password
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-actions-simple" id="formActions" style="display: none;">
+                    <button type="button" class="btn-cancel-simple" onclick="cancelEdit()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn-save-simple">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changePasswordModalLabel">
+                    <i class="fas fa-key"></i> Change Password
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="currentPassword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="newPassword" required>
+                        <div class="form-text">Password must be at least 8 characters long</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn cancel-btn" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn" form="changePasswordForm">
+                    <i class="fas fa-save"></i> Update Password
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        function enableEdit() {
+            // Enable form inputs (except userId which should remain disabled)
+            $('#firstName, #lastName, #email, #phone').prop('disabled', false);
+            
+            // Show action buttons
+            $('#formActions').show();
+            
+            // Hide edit button
+            $('#editBtn').hide();
+        }
+
+        function cancelEdit() {
+            // Reset form to original values
+            $('#profileForm')[0].reset();
+            
+            // Disable form inputs
+            $('#firstName, #lastName, #email, #phone').prop('disabled', true);
+            
+            // Hide action buttons
+            $('#formActions').hide();
+            
+            // Show edit button
+            $('#editBtn').show();
+        }
+
+        // Handle profile form submission
+        $('#profileForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            // TODO: Add AJAX call to update profile
+            alert('Profile update functionality will be implemented in the backend');
+            
+            cancelEdit();
+        });
+
+        // Handle password change
+        $('#changePasswordForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            const newPass = $('#newPassword').val();
+            const confirmPass = $('#confirmPassword').val();
+            
+            if (newPass !== confirmPass) {
+                alert('Passwords do not match!');
+                return;
+            }
+            
+            if (newPass.length < 8) {
+                alert('Password must be at least 8 characters long!');
+                return;
+            }
+            
+            // TODO: Add AJAX call to change password
+            alert('Password change functionality will be implemented in the backend');
+            
+            $('#changePasswordModal').modal('hide');
+            this.reset();
+        });
+    </script>
+
+    <style>
+        .profile-content {
+            margin: 0 auto;
+        }
+
+        .profile-header-simple {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1557a1 100%);
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            color: white;
+            box-shadow: 0 4px 20px rgba(24, 82, 172, 0.2);
+        }
+
+        .profile-avatar-simple {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: white;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            font-family: var(--archivo-black-font);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+        }
+
+        .profile-info-simple {
+            flex: 1;
+        }
+
+        .profile-name-simple {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: var(--archivo-black-font);
+        }
+
+        .profile-role-simple {
+            margin: 0;
+            font-size: 1rem;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .profile-form-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .form-header-simple {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-header-simple h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark-primary-color);
+            font-family: var(--archivo-black-font);
+        }
+
+        .btn-edit-simple {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--archivo-plain-font);
+        }
+
+        .btn-edit-simple:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .form-grid-simple {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            padding: 2rem;
+        }
+
+        .form-group-simple {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label-simple {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--dark-primary-color);
+            margin-bottom: 0.5rem;
+            font-family: var(--archivo-plain-font);
+        }
+
+        .form-input-simple {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-family: var(--archivo-plain-font);
+            transition: all 0.2s ease;
+        }
+
+        .form-input-simple:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(24, 82, 172, 0.1);
+        }
+
+        .form-input-simple:disabled {
+            background-color: #f8f9fa;
+            color: var(--gray-text);
+        }
+
+        .btn-change-password {
+            background: var(--light-blue);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: var(--archivo-plain-font);
+            font-weight: 500;
+        }
+
+        .btn-change-password:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .form-actions-simple {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            padding: 1.5rem 2rem;
+            border-top: 1px solid var(--border-color);
+            background: #f8f9fa;
+        }
+
+        .btn-cancel-simple,
+        .btn-save-simple {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--archivo-plain-font);
+        }
+
+        .btn-cancel-simple {
+            background: var(--gray-text);
+            color: white;
+        }
+
+        .btn-cancel-simple:hover {
+            background: #495057;
+        }
+
+        .btn-save-simple {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-save-simple:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .profile-header-simple {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .form-grid-simple {
+                grid-template-columns: 1fr;
+                padding: 1.5rem;
+            }
+
+            .form-header-simple {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .btn-edit-simple {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .form-actions-simple {
+                flex-direction: column;
+            }
+
+            .btn-cancel-simple,
+            .btn-save-simple {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+}
 
