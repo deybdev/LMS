@@ -1,4 +1,4 @@
-@model LMS.Models.Course
+﻿@model LMS.Models.Course
 
 @{
     ViewBag.Title = "View Material";
@@ -16,7 +16,6 @@
         grid-template-columns: 2fr 1fr;
         gap: 30px;
         max-width: 1400px;
-        margin: 0 auto;
         align-items: start;
     }
 
@@ -30,7 +29,7 @@
     .material-title {
         font-size: 28px;
         font-weight: 700;
-        margin-bottom: 1.2rem;
+        margin: 2rem 0 ;
         color: var(--dark-primary-color);
         font-family: var(--archivo-black-font);
     }
@@ -121,7 +120,6 @@
         gap: 10px;
         margin-bottom: 20px;
         padding-bottom: 15px;
-        border-bottom: 2px solid #f0f0f0;
     }
 
         .comments-header h3 {
@@ -168,19 +166,15 @@
 
     .comment-bubble {
         padding: 12px 15px;
+        background: #f0f0f0;
+        color: #333;
         border-radius: 12px;
         margin-bottom: 8px;
         position: relative;
     }
 
     .my-comment-bubble {
-        background: var(--dark-primary-color);
-        color: white;
-    }
-
-    .other-comment-bubble {
-        background: #f0f0f0;
-        color: #333;
+        margin-left: 10px;
     }
 
     .comment-header {
@@ -193,13 +187,6 @@
     .comment-author {
         font-weight: 600;
         font-size: 13px;
-    }
-
-    .my-comment-bubble .comment-author {
-        color: rgba(255, 255, 255, 0.95);
-    }
-
-    .other-comment-bubble .comment-author {
         color: #333;
     }
 
@@ -225,20 +212,14 @@
         justify-content: center;
         font-weight: 600;
         font-size: 14px;
-        margin-right: 10px;
         flex-shrink: 0;
     }
-
-
 </style>
 
 <div class="admin-container">
-    <div style="margin-bottom: 20px;">
-        <button type="button" onclick="history.back()"
-                style="display: inline-flex; align-items: center; gap: 15px; padding: 8px 14px; background: var(--dark-primary-color); color: white; border-radius: 8px; font-weight: 600; font-size: 14px; border: none; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.15); transition: all 0.2s;">
-            <i class="fas fa-arrow-left"></i> Back
-        </button>
-    </div>
+    @Html.Partial("_BackButton")
+
+
     @if (material != null)
     {
         <h1 class="material-title">@material.Title</h1>
@@ -296,7 +277,7 @@
                         int currentUserId = 1;
 
                         var sampleComments = new List<dynamic>
-                                                                        {
+                                                                                        {
                             new {
                                 UserId = 1,
                                 Author = "Me",
@@ -338,7 +319,7 @@
                             <div class="comment-bubble @(isMine ? "my-comment-bubble" : "other-comment-bubble")">
                                 <div class="comment-header" style="display: flex; justify-content: space-between; align-items: center;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        <div class="comment-avatar" style="width:30px;height:30px;border-radius:50%;background:#ccc;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;">
+                                        <div class="comment-avatar">
                                             @initials
                                         </div>
                                         <div class="comment-author">@c.Author</div>

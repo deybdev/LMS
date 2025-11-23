@@ -11,8 +11,8 @@
 <link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
 
 <div class="admin-container">
+    @Html.Partial("_BackButton")
     @Html.Partial("_CourseHeader", Model)
-
     @Html.Partial("_CourseNavigation", Model)
 
     <!-- Tab Content -->
@@ -28,7 +28,7 @@
             </div>
 
             <div class="materials-grid">
-                @if (ViewBag.Classworks != null)
+                @if (ViewBag.Classworks != null && ((IEnumerable<dynamic>)ViewBag.Classworks).Any())
                 {
                     foreach (dynamic activity in ViewBag.Classworks)
                     {
@@ -44,7 +44,7 @@
                             <div class="material-info">
                                 <h4>@activity.Title</h4>
                                 <small class="upload-info">
-                                    <i class="fa-regular fa-calendar me-1"></i> 
+                                    <i class="fa-regular fa-calendar me-1"></i>
                                     @if (activity.Deadline != null)
                                     {
                                         <text>Due: @activity.Deadline.ToString("MMM dd, hh:mm tt")</text>

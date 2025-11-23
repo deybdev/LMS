@@ -11,15 +11,15 @@
 <link rel="stylesheet" href="~/Content/teacherClasslist.css" />
 
 <div class="admin-container">
+    @Html.Partial("_BackButton")
     @Html.Partial("_CourseHeader", Model)
-    
     @Html.Partial("_CourseNavigation", Model)
 
     <div class="tab-content">
         <div class="tab-pane active">
             <!-- Class List Header -->
             <div class="classlist-header">
-                <div class="header-info">
+                <div class="header-actions">
                     <h2><i class="fas fa-users"></i> Class List</h2>
                 </div>
                 <div class="view-selector">
@@ -46,7 +46,6 @@
                                 </tr>
                             </thead>
                             <tbody id="studentTableBody">
-                                
                             </tbody>
                         </table>
                     </div>
@@ -59,7 +58,7 @@
                     <div class="date-selector">
                         <label for="attendanceDate">Date:</label>
                         <input type="date" id="attendanceDate" class="form-control" value="2025-10-07">
-                    </div>  
+                    </div>
                     <div class="attendance-info">
                         <div class="attendance-summary">
                             <span class="summary-item"><strong>Total Students:</strong> <span id="totalStudents">0</span></span>

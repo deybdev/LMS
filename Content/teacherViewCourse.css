@@ -69,22 +69,21 @@
 
     .header-actions{
         display: flex;
-        justify-content: space-between;
         align-items: start;
+        gap: 10px;
+        font-size: 13px;
+        color: #333;
     }
 
     .header-actions h2{
-        margin: 0;
-        font-size: 1.3rem;
-        color: var(--dark-primary-color);
-        font-family: var(--archivo-plain-font);
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
+        font-size:17px;
+        font-weight: 600;
     }
 
     .header-actions h2 i{
-        color: var(--primary-color);
+        color: #666;
+        margin-right: 7px;
+        font-size: 16px;
     }
 
     /* Materials Grid */

@@ -1,0 +1,296 @@
+@model LMS.Models.Course
+
+@{
+    ViewBag.Title = "Edit Announcement";
+    int courseId = ViewBag.CourseId ?? Model.Id;
+    ViewBag.ActiveTab = "Announcement";
+    int announcementId = ViewBag.AnnouncementId;
+    string announcementContent = ViewBag.AnnouncementContent ?? "";
+}
+
+<link rel="stylesheet" href="~/Content/teacherCourse.css" />
+<link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
+
+<style>
+    .announcement-form-container {
+        margin-block: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+        }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+        .form-control:focus {
+            border-color: var(--dark-primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+
+    .editor-toolbar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 10;
+        display: flex;
+        gap: 8px;
+        padding: 10px;
+        background: #fff;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        border-top: none;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
+
+    .editor-btn {
+        background: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 14px;
+    }
+
+        .editor-btn.active {
+            background: #e3f2fd;
+            border-color: #90caf9;
+            color: #0d47a1;
+        }
+
+
+        .editor-btn:hover {
+            background: #e8e8e8;
+        }
+
+        .editor-btn.active {
+            background: var(--dark-primary-color);
+            color: white;
+            border-color: var(--dark-primary-color);
+        }
+
+    #announcementContent {
+        min-height: 200px;
+        max-height: 400px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px 15px 50px 15px;
+        font-size: 14px;
+        line-height: 1.6;
+        overflow-y: auto;
+    }
+
+        #announcementContent:focus {
+            outline: none;
+            border-color: #e0e0e0;
+        }
+
+    .form-actions {
+        display: flex;
+        gap: 20px;
+        justify-content: flex-end;
+    }
+
+    .btn-cancel {
+        padding: 10px 24px;
+        background: #f5f5f5;
+        color: #666;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .btn-cancel:hover {
+            background: #e8e8e8;
+        }
+
+    .btn-post {
+        padding: 10px 24px;
+        background: var(--dark-primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .btn-post:hover {
+            background: var(--primary-color);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+    .char-count {
+        text-align: right;
+        font-size: 12px;
+        color: #999;
+        margin-top: 5px;
+    }
+
+    .editor-wrapper {
+        position: relative;
+    }
+</style>
+
+<div class="admin-container">
+    @Html.Partial("_BackButton")
+    @Html.Partial("_CourseHeader", Model)
+    @Html.Partial("_CourseNavigation", Model)
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <div class="tab-pane active">
+            <div class="header-actions">
+                <h2><i class="fa-solid fa-bullhorn"></i> Edit Announcement</h2>
+            </div>
+
+            <div class="announcement-form-container">
+                <form id="announcementForm" method="POST" action="@Url.Action("UpdateAnnouncement", "Teacher")">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="AnnouncementId" value="@announcementId" />
+                    <input type="hidden" name="TeacherCourseId" value="@courseId" />
+                    <input type="hidden" name="TeacherCourseSectionId" value="@ViewBag.TeacherCourseSectionId" />
+
+                    <div class="form-group">
+                        <div class="editor-wrapper">
+                            <div class="editor-toolbar">
+                                <button type="button" class="editor-btn" data-command="bold">
+                                    <i class="fas fa-bold"></i>
+                                </button>
+                                <button type="button" class="editor-btn" data-command="italic">
+                                    <i class="fas fa-italic"></i>
+                                </button>
+                                <button type="button" class="editor-btn" data-command="underline">
+                                    <i class="fas fa-underline"></i>
+                                </button>
+                                <button type="button" class="editor-btn" data-command="insertUnorderedList">
+                                    <i class="fas fa-list-ul"></i>
+                                </button>
+                                <button type="button" class="editor-btn" data-command="insertOrderedList">
+                                    <i class="fas fa-list-ol"></i>
+                                </button>
+                                <button type="button" class="editor-btn" data-command="createLink">
+                                    <i class="fas fa-link"></i>
+                                </button>
+                            </div>
+
+                            <div id="announcementContent" contenteditable="true"
+                                 placeholder="Write your announcement here...">@Html.Raw(announcementContent)</div>
+                        </div>
+
+                        <input type="hidden" name="content" id="contentHidden" required />
+                    </div>
+
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" onclick="window.location.href='@Url.Action("Announcement", "Teacher", new { id = courseId })'">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn-post">
+                            <i class="fas fa-save"></i> Update Announcement
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            const editor = document.getElementById('announcementContent');
+            const form = document.getElementById('announcementForm');
+
+            // Placeholder behavior
+            editor.addEventListener('focus', () => {
+                if (editor.textContent.trim() === '') editor.innerHTML = '';
+            });
+
+            editor.addEventListener('blur', () => {
+                if (editor.textContent.trim() === '') editor.setAttribute('placeholder', 'Write your announcement here...');
+            });
+
+            // Editor buttons
+            document.querySelectorAll('.editor-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const cmd = btn.dataset.command;
+                    if (cmd === 'createLink') {
+                        const sel = window.getSelection();
+                        if (!sel || sel.isCollapsed) {
+                            alert('Please select text to create a link');
+                            return;
+                        }
+                        let url = prompt('Enter URL:', 'https://');
+                        if (!url) return;
+                        if (!/^https?:\/\//i.test(url)) url = 'http://' + url;
+                        document.execCommand('createLink', false, url);
+                    } else {
+                        document.execCommand(cmd, false, null);
+                    }
+                    editor.focus();
+                    updateButtons();
+                });
+            });
+
+            function updateButtons() {
+                ["bold", "italic", "underline", "insertUnorderedList", "insertOrderedList"].forEach(cmd => {
+                    const btn = document.querySelector(`.editor-btn[data-command="${cmd}"]`);
+                    if (btn) btn.classList.toggle('active', document.queryCommandState(cmd));
+                });
+            }
+
+            // Submit form
+            form.addEventListener('submit', e => {
+                e.preventDefault();
+                const content = editor.innerHTML.trim();
+                if (!content || content === '<br>') {
+                    alert('Please enter content for your announcement.');
+                    editor.focus();
+                    return;
+                }
+                document.getElementById('contentHidden').value = content;
+
+                const submitBtn = form.querySelector('.btn-post');
+                const original = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                submitBtn.disabled = true;
+
+                $.post(form.action, $(form).serialize(), response => {
+                    if (response.success) window.location.href = '@Url.Action("Announcement", "Teacher", new { id = courseId })';
+                    else {
+                        alert(response.message || 'Failed to update announcement.');
+                        submitBtn.innerHTML = original;
+                        submitBtn.disabled = false;
+                    }
+                }).fail(() => {
+                    alert('An error occurred while updating the announcement.');
+                    submitBtn.innerHTML = original;
+                    submitBtn.disabled = false;
+                });
+            });
+        });
+    </script>
+}

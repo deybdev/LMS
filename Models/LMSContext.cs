@@ -23,4 +23,8 @@ public class LMSContext : DbContext
     public DbSet<ClassworkFile> ClassworkFiles { get; set; }
     public DbSet<ClassworkSubmission> ClassworkSubmissions { get; set; }
     public DbSet<SubmissionFile> SubmissionFiles { get; set; }
+
+    // Announcement entities
+    public DbSet<Announcement> Announcements { get; set; }
+    public DbSet<AnnouncementComment> AnnouncementComments { get; set; }
 }

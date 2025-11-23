@@ -10,8 +10,10 @@
 <link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
 
 <div class="admin-container">
+    @Html.Partial("_BackButton")
+
     @Html.Partial("_CourseHeader", Model)
-    
+
     @Html.Partial("_CourseNavigation", Model)
 
     <!-- Tab Content -->

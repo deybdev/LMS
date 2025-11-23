@@ -1,92 +1,198 @@
 ﻿@model LMS.Models.Course
 
 @{
-    ViewBag.Title = "Classwork";
+    ViewBag.Title = "Announcements";
     int courseId = ViewBag.CourseId ?? Model.Id;
     ViewBag.ActiveTab = "Announcement";
+    var announcements = ViewBag.Announcements as List<dynamic> ?? new List<dynamic>();
+    var teacherName = Session["FirstName"] + " " + Session["LastName"];
+    var teacherInitials = (Session["FirstName"]?.ToString().Substring(0, 1) ?? "T") +
+                         (Session["LastName"]?.ToString().Substring(0, 1) ?? "E");
 }
-
 
 <link rel="stylesheet" href="~/Content/teacherCourse.css" />
 <link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
+<link rel="stylesheet" href="~/Content/announcementForm.css" />
+
 
 <div class="admin-container">
+    @Html.Partial("_BackButton")
     @Html.Partial("_CourseHeader", Model)
-    
     @Html.Partial("_CourseNavigation", Model)
 
     <!-- Tab Content -->
     <div class="tab-content">
-        <!-- Learning Materials Tab -->
         <div class="tab-pane active">
             <div class="header-actions">
-                <h2><i class="fa-solid fa-book"></i>Announcements and Discussions</h2>
+                <div class="announcements-title">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Announcements and Discussions</span>
+                </div>
                 <button class="material-upload-btn"
-                        data-bs-toggle="modal"
-                        data-bs-target="#materialModal">
-                    <i class="fa-solid fa-pen"></i> Post Something
+                        onclick="window.location.href='@Url.Action("CreateAnnouncement", "Teacher", new { id = courseId })'">
+                    <i class="fas fa-pen"></i>
+                    Post Something
                 </button>
             </div>
 
-            <div class="materials-grid">
-                @{
-                    // Sample data for demonstration
-                    var activities = new[]
-                    {
-            new { Id = 1, Title = "Group Discussion: Climate Change", Type = "Discussion", FilesCount = 2, TotalSizeMB = 5.5, PostedAt = DateTime.Now.AddDays(-2), Points = 10 },
-            new { Id = 2, Title = "Math Quiz 1", Type = "Quiz", FilesCount = 1, TotalSizeMB = 1.2, PostedAt = DateTime.Now.AddDays(-1), Points = 100 }
-        };
-                }
-
-                @if (activities.Any())
+            <div class="announcements-list">
+                @if (announcements.Any())
                 {
-                    foreach (var activity in activities)
+                    foreach (var announcement in announcements)
                     {
-                        <div class="material-card">
-                            <div class="material-header">
-                                <div class="material-type">@activity.Type</div>
+                        <div class="announcement-item" data-announcement-id="@announcement.Id">
+                            <div class="announcement-avatar">@teacherInitials</div>
 
-                                <div class="activity-status">
-                                    <span class="active">Active</span>
+                            <div class="announcement-body">
+                                <div class="announcement-author-line">
+                                    <span class="announcement-author">@teacherName</span>
+                                    <span class="announcement-date">
+                                        @{
+                                            var postedAt = (DateTime)announcement.PostedAt;
+                                            var timeAgo = DateTime.Now - postedAt;
+                                            string timeDisplay;
+
+                                            if (timeAgo.TotalMinutes < 1)
+                                            {
+                                                timeDisplay = "Just Now";
+                                            }
+                                            else if (timeAgo.TotalMinutes < 60)
+                                            {
+                                                timeDisplay = $"{(int)timeAgo.TotalMinutes}m ago";
+                                            }
+                                            else if (timeAgo.TotalHours < 24)
+                                            {
+                                                timeDisplay = $"{(int)timeAgo.TotalHours}h ago";
+                                            }
+                                            else if (timeAgo.TotalDays < 7)
+                                            {
+                                                timeDisplay = $"{(int)timeAgo.TotalDays}d ago";
+                                            }
+                                            else
+                                            {
+                                                timeDisplay = postedAt.ToString("MM/dd/yyyy");
+                                            }
+                                        }
+                                        @timeDisplay
+                                    </span>
+                                </div>
+
+                                <div class="announcement-preview">
+                                    @{
+                                        string plainText = System.Text.RegularExpressions.Regex
+                                                        .Replace(announcement.Content, "<.*?>", string.Empty)
+                                                        .Trim();
+
+                                        // Remove extra whitespace and newlines
+                                        plainText = System.Text.RegularExpressions.Regex.Replace(plainText, @"\s+", " ");
+
+                                        if (plainText.Length > 120)
+                                        {
+                                            plainText = plainText.Substring(0, 120) + "...";
+                                        }
+                                    }
+                                    @plainText
                                 </div>
                             </div>
 
-                            <div class="material-info">
-                                <h4>@activity.Title</h4>
-                                <small class="upload-info">
-                                    <i class="fa-regular fa-calendar me-1"></i> Due: @activity.PostedAt.ToString("MMM dd, hh:mm tt")
-                                </small><br />
-                                <small class="upload-info">
-                                    <i class="fa-regular fa-star me-1"></i> @activity.Points.ToString() Points
-                                </small><br />
-                                <small class="upload-info">
-                                    <i class="fa-solid fa-users me-1"></i> 0/40 Students Submitted
-                                </small>
-                            </div>
+                            <div class="announcement-actions">
 
-                            <div class="material-actions">
-                                <button type="button" class="action-btn view-btn">
-                                    <i class="fas fa-eye"></i> View
-                                </button>
-                                <button class="action-btn edit-btn" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="action-btn delete-btn" type="button">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
+
+                                <div class="action-dropdown">
+                                    <button class="action-menu-btn" onclick="toggleDropdown(this); event.stopPropagation();">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+
+                                    <div class="dropdown-menu">
+                                        <button class="dropdown-item" onclick="editAnnouncement(@announcement.Id, @courseId); event.stopPropagation();">
+                                            <i class="fas fa-edit"></i>
+                                            Edit
+                                        </button>
+
+                                        <button class="dropdown-item"
+                                                onclick="event.stopPropagation();"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteModal"
+                                                data-item-id="@announcement.Id"
+                                                data-item-name="This announcement"
+                                                data-url="@Url.Action("DeleteAnnouncement", "Teacher")"
+                                                data-target-remove=".material-card">
+                                            <i class="fas fa-trash"></i>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     }
                 }
                 else
                 {
-                    <div class="no-materials text-center p-6 border-dashed border-2 border-gray-300 rounded-lg bg-gray-50">
-                        <i class="fas fa-tasks fa-3x text-gray-400 mb-3"></i>
-                        <h3 class="text-xl font-semibold text-gray-700 mb-2">No Announcements Yet</h3>
-                        <p class="text-gray-500 mb-4">It looks like there are no announcement posted for this course yet.</p>
+                    <div class="no-announcements">
+                        <i class="fas fa-bullhorn"></i>
+                        <h3>No Announcements Yet</h3>
+                        <p>It looks like there aren't any announcements created for this course yet.</p>
+                        <p>Click "Post Something" to create your first announcement!</p>
                     </div>
                 }
             </div>
         </div>
     </div>
 </div>
+
+@section scripts {
+    <script src="~/Scripts/Custom/deleteHandler.js"></script>
+    <script src="~/Scripts/Custom/announcementForm.js"></script>
+    @Html.AntiForgeryToken()
+    
+    <script>
+        function viewAnnouncement(announcementId) {
+            const url = '@Url.Action("ViewAnnouncement", "Teacher")';
+            const courseId = '@courseId';
+            window.location.href = `${url}?id=${courseId}&announcementId=${announcementId}`;
+        }
+
+        function editAnnouncement(announcementId, courseId) {
+            window.location.href = '@Url.Action("EditAnnouncement", "Teacher")' + '?id=' + courseId + '&announcementId=' + announcementId;
+        }
+
+        function toggleDropdown(button) {
+            const dropdown = button.nextElementSibling;
+            const allDropdowns = document.querySelectorAll('.dropdown-menu');
+            
+            // Close all other dropdowns
+            allDropdowns.forEach(d => {
+                if (d !== dropdown) {
+                    d.classList.remove('show');
+                }
+            });
+            
+            // Toggle current dropdown
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.action-dropdown')) {
+                document.querySelectorAll('.dropdown-menu').forEach(d => {
+                    d.classList.remove('show');
+                });
+            }
+        });
+
+        // Make announcement items clickable (except when clicking on actions)
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.announcement-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    // Don't navigate if clicking on dropdown or its children
+                    if (!e.target.closest('.action-dropdown')) {
+                        const announcementId = this.getAttribute('data-announcement-id');
+                        if (announcementId) {
+                            viewAnnouncement(announcementId);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+}

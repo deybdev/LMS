@@ -201,7 +201,362 @@ namespace LMS.Controllers
 
         public ActionResult Announcement (int? id)
         {
-            return LoadCourseTab(id, "Announcement");
+            var result = LoadCourseTab(id, "Announcement");
+
+            if (id.HasValue)
+            {
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                int teacherCourseSectionId = db.TeacherCourseSections
+                    .Where(tcs => tcs.CourseId == id.Value && tcs.TeacherId == teacherId)
+                    .Select(tcs => tcs.Id)
+                    .FirstOrDefault();
+
+                // Get announcements for this section
+                var announcements = db.Announcements
+                    .Where(a => a.TeacherCourseSectionId == teacherCourseSectionId && a.IsActive)
+                    .Include(a => a.Comments.Select(c => c.User))
+                    .OrderByDescending(a => a.PostedAt)
+                    .ToList()
+                    .Select(a =>
+                    {
+                        dynamic item = new ExpandoObject();
+                        item.Id = a.Id;
+                        item.Content = a.Content;
+                        item.PostedAt = a.PostedAt;
+                        item.CommentsCount = a.Comments.Count(c => c.ParentCommentId == null); // Only root comments
+                        return item;
+                    })
+                    .ToList();
+
+                ViewBag.Announcements = announcements;
+            }
+
+            return result;
+        }
+        public ActionResult CreateAnnouncement (int? id)
+        {
+            return LoadCourseTab(id, "CreateAnnouncement");
+        }
+
+        // GET: View Announcement Detail
+        public ActionResult ViewAnnouncement(int? id, int? announcementId)
+        {
+            try
+            {
+                // Validate session
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    TempData["ErrorMessage"] = "Session expired. Please log in again.";
+                    return RedirectToAction("Login", "Home");
+                }
+
+                if (!id.HasValue || !announcementId.HasValue)
+                {
+                    TempData["ErrorMessage"] = "Invalid parameters.";
+                    return RedirectToAction("Announcement", "Teacher", new { id = id });
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                // Get the teacher course section
+                var teacherCourseSection = db.TeacherCourseSections
+                    .Include(tcs => tcs.Course)
+                    .Include(tcs => tcs.Section)
+                    .Include(tcs => tcs.Section.Program)
+                    .FirstOrDefault(tcs => tcs.CourseId == id.Value && tcs.TeacherId == teacherId);
+
+                if (teacherCourseSection == null)
+                {
+                    TempData["ErrorMessage"] = "Course section not found or you don't have access.";
+                    return RedirectToAction("Announcement", "Teacher", new { id = id });
+                }
+
+                // Get the announcement with comments
+                var announcement = db.Announcements
+                    .Include(a => a.Comments.Select(c => c.User))
+                    .Include(a => a.TeacherCourseSection.Teacher)
+                    .FirstOrDefault(a => a.Id == announcementId.Value && 
+                                       a.TeacherCourseSectionId == teacherCourseSection.Id && 
+                                       a.IsActive);
+
+                if (announcement == null)
+                {
+                    TempData["ErrorMessage"] = "Announcement not found.";
+                    return RedirectToAction("Announcement", "Teacher", new { id = id });
+                }
+
+                // Prepare announcement data
+                dynamic announcementData = new ExpandoObject();
+                announcementData.Id = announcement.Id;
+                announcementData.Content = announcement.Content;
+                announcementData.PostedAt = announcement.PostedAt;
+                announcementData.AuthorName = announcement.TeacherCourseSection.Teacher.FirstName + " " + 
+                                              announcement.TeacherCourseSection.Teacher.LastName;
+
+                // Get root comments (comments without parent)
+                var rootComments = announcement.Comments
+                    .Where(c => c.ParentCommentId == null)
+                    .OrderBy(c => c.CreatedAt)
+                    .ToList();
+
+                // Prepare comments with replies
+                var commentsData = rootComments.Select(c =>
+                {
+                    dynamic comment = new ExpandoObject();
+                    comment.Id = c.Id;
+                    comment.Comment = c.Comment;
+                    comment.CreatedAt = c.CreatedAt;
+                    comment.UserId = c.UserId;
+                    comment.UserName = c.User.FirstName + " " + c.User.LastName;
+
+                    // Get replies for this comment
+                    var replies = announcement.Comments
+                        .Where(r => r.ParentCommentId == c.Id)
+                        .OrderBy(r => r.CreatedAt)
+                        .Select(r =>
+                        {
+                            dynamic reply = new ExpandoObject();
+                            reply.Id = r.Id;
+                            reply.Comment = r.Comment;
+                            reply.CreatedAt = r.CreatedAt;
+                            reply.UserId = r.UserId;
+                            reply.UserName = r.User.FirstName + " " + r.User.LastName;
+                            return reply;
+                        })
+                        .ToList();
+
+                    comment.Replies = replies;
+                    return comment;
+                }).ToList();
+
+                ViewBag.Announcement = announcementData;
+                ViewBag.Comments = commentsData;
+                ViewBag.CourseId = id.Value;
+                ViewBag.SectionName = teacherCourseSection.Section.Program.ProgramCode + "-" +
+                                     teacherCourseSection.Section.YearLevel +
+                                     teacherCourseSection.Section.SectionName;
+                ViewBag.TeacherCourseSectionId = teacherCourseSection.Id;
+
+                return View("~/Views/Teacher/Course/ViewAnnouncement.cshtml", teacherCourseSection.Course);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ViewAnnouncement Error: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred while loading the announcement.";
+                return RedirectToAction("Announcement", "Teacher", new { id = id });
+            }
+        }
+
+        // GET: Edit Announcement
+        public ActionResult EditAnnouncement(int? id, int? announcementId)
+        {
+            try
+            {
+                // Validate session
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    TempData["ErrorMessage"] = "Session expired. Please log in again.";
+                    return RedirectToAction("Login", "Home");
+                }
+
+                if (!id.HasValue || !announcementId.HasValue)
+                {
+                    TempData["ErrorMessage"] = "Invalid course or announcement ID.";
+                    return RedirectToAction("Announcement", "Teacher", new { id = id });
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                // Verify the teacher owns this course section
+                var teacherCourseSection = db.TeacherCourseSections
+                    .FirstOrDefault(tcs => tcs.CourseId == id.Value && tcs.TeacherId == teacherId);
+
+                if (teacherCourseSection == null)
+                {
+                    TempData["ErrorMessage"] = "Course section not found or you don't have access.";
+                    return RedirectToAction("Announcement", "Teacher", new { id = id });
+                }
+
+                // Get the announcement
+                var announcement = db.Announcements
+                    .FirstOrDefault(a => a.Id == announcementId.Value && 
+                                       a.TeacherCourseSectionId == teacherCourseSection.Id &&
+                                       a.IsActive);
+
+                if (announcement == null)
+                {
+                    TempData["ErrorMessage"] = "Announcement not found or you don't have access.";
+                    return RedirectToAction("Announcement", "Teacher", new { id = id });
+                }
+
+                // Load course tab
+                var result = LoadCourseTab(id, "EditAnnouncement");
+
+                // Set ViewBag properties for the form
+                ViewBag.AnnouncementId = announcement.Id;
+                ViewBag.AnnouncementContent = announcement.Content;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"EditAnnouncement GET Error: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred while loading the announcement: " + ex.Message;
+                return RedirectToAction("Announcement", "Teacher", new { id = id });
+            }
+        }
+
+        // GET: Get Announcement (for AJAX)
+        [HttpGet]
+        public ActionResult GetAnnouncement(int id)
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    return Json(new { success = false, message = "Session expired." }, JsonRequestBehavior.AllowGet);
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                var announcement = db.Announcements
+                    .Include(a => a.TeacherCourseSection)
+                    .FirstOrDefault(a => a.Id == id && a.IsActive);
+
+                if (announcement == null)
+                {
+                    return Json(new { success = false, message = "Announcement not found." }, JsonRequestBehavior.AllowGet);
+                }
+
+                // Verify the teacher owns this announcement
+                if (announcement.TeacherCourseSection.TeacherId != teacherId)
+                {
+                    return Json(new { success = false, message = "You don't have access to this announcement." }, JsonRequestBehavior.AllowGet);
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    data = new
+                    {
+                        id = announcement.Id,
+                        content = announcement.Content
+                    }
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetAnnouncement Error: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred." }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // POST: Create Announcement
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ValidateInput(false)] // Allow HTML content
+        public ActionResult CreateAnnouncement(int TeacherCourseId, int TeacherCourseSectionId, string content)
+        {
+            try
+            {
+                // Validate session
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    return Json(new { success = false, message = "Session expired. Please log in again." });
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                // Verify the teacher owns this course section
+                var teacherCourseSection = db.TeacherCourseSections
+                    .FirstOrDefault(tcs => tcs.Id == TeacherCourseSectionId && tcs.TeacherId == teacherId);
+
+                if (teacherCourseSection == null)
+                {
+                    return Json(new { success = false, message = "Course section not found or you don't have access." });
+                }
+
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    return Json(new { success = false, message = "Content is required." });
+                }
+
+                // Create the announcement
+                var announcement = new Announcement
+                {
+                    TeacherCourseSectionId = TeacherCourseSectionId,
+                    Content = content, // HTML content from rich text editor
+                    PostedAt = DateTime.Now,
+                    IsActive = true
+                };
+
+                db.Announcements.Add(announcement);
+                db.SaveChanges();
+
+                return Json(new { success = true, message = "Announcement posted successfully!" });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"CreateAnnouncement Error: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred while posting the announcement: " + ex.Message });
+            }
+        }
+
+        // POST: Update Announcement
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ValidateInput(false)] // Allow HTML content
+        public ActionResult UpdateAnnouncement(int AnnouncementId, int TeacherCourseId, int TeacherCourseSectionId, string content)
+        {
+            try
+            {
+                // Validate session
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    return Json(new { success = false, message = "Session expired. Please log in again." });
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                // Verify the teacher owns this course section
+                var teacherCourseSection = db.TeacherCourseSections
+                    .FirstOrDefault(tcs => tcs.Id == TeacherCourseSectionId && tcs.TeacherId == teacherId);
+
+                if (teacherCourseSection == null)
+                {
+                    return Json(new { success = false, message = "Course section not found or you don't have access." });
+                }
+
+                // Get the existing announcement
+                var announcement = db.Announcements
+                    .FirstOrDefault(a => a.Id == AnnouncementId && 
+                                       a.TeacherCourseSectionId == TeacherCourseSectionId &&
+                                       a.IsActive);
+
+                if (announcement == null)
+                {
+                    return Json(new { success = false, message = "Announcement not found or you don't have access." });
+                }
+
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    return Json(new { success = false, message = "Content is required." });
+                }
+
+                // Update the announcement
+                announcement.Content = content;
+                announcement.PostedAt = DateTime.Now; // Update timestamp to reflect edit
+
+                db.SaveChanges();
+
+                return Json(new { success = true, message = "Announcement updated successfully!" });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdateAnnouncement Error: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred while updating the announcement: " + ex.Message });
+            }
         }
 
 
@@ -984,8 +1339,6 @@ namespace LMS.Controllers
                             var fileName = Path.GetFileName(file.FileName);
                             var uniqueFileName = $"{DateTime.Now.Ticks}_{fileName}";
                             var filePath = Path.Combine(uploadFolder, uniqueFileName);
-
-                            // Save the physical file
                             file.SaveAs(filePath);
 
                             // Create database record for the file
@@ -1061,6 +1414,156 @@ namespace LMS.Controllers
             {
                 System.Diagnostics.Debug.WriteLine($"GetClassworkList Error: {ex.Message}");
                 return Json(new { success = false, message = "Error loading classwork: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // POST: Delete Announcement
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteAnnouncement(int id)
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    return Json(new { success = false, message = "Session expired. Please log in again." });
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                var announcement = db.Announcements
+                    .Include(a => a.TeacherCourseSection)
+                    .Include(a => a.Comments)
+                    .FirstOrDefault(a => a.Id == id);
+
+                if (announcement == null)
+                {
+                    return Json(new { success = false, message = "Announcement not found." });
+                }
+
+                // Verify the teacher owns this announcement
+                if (announcement.TeacherCourseSection.TeacherId != teacherId)
+                {
+                    return Json(new { success = false, message = "You don't have access to delete this announcement." });
+                }
+
+                // Soft delete - just mark as inactive
+                announcement.IsActive = false;
+                db.SaveChanges();
+
+                return Json(new { success = true, message = "Announcement deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"DeleteAnnouncement Error: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred while deleting the announcement: " + ex.Message });
+            }
+        }
+
+        // POST: Add Comment to Announcement
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddComment(int announcementId, string comment)
+        {
+            try
+            {
+                if (Session["Id"] == null)
+                {
+                    return Json(new { success = false, message = "Session expired. Please log in again." });
+                }
+
+                int userId = Convert.ToInt32(Session["Id"]);
+
+                // Verify announcement exists
+                var announcement = db.Announcements.Find(announcementId);
+                if (announcement == null || !announcement.IsActive)
+                {
+                    return Json(new { success = false, message = "Announcement not found." });
+                }
+
+                // Validate comment
+                if (string.IsNullOrWhiteSpace(comment))
+                {
+                    return Json(new { success = false, message = "Comment cannot be empty." });
+                }
+
+                // Add comment
+                var newComment = new AnnouncementComment
+                {
+                    AnnouncementId = announcementId,
+                    UserId = userId,
+                    Comment = comment.Trim(),
+                    ParentCommentId = null,
+                    CreatedAt = DateTime.Now
+                };
+
+                db.AnnouncementComments.Add(newComment);
+                db.SaveChanges();
+
+                return Json(new { success = true, message = "Comment added successfully." });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"AddComment Error: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred while adding the comment." });
+            }
+        }
+
+        // POST: Add Reply to Comment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddReply(int announcementId, int parentCommentId, string comment)
+        {
+            try
+            {
+                if (Session["Id"] == null)
+                {
+                    return Json(new { success = false, message = "Session expired. Please log in again." });
+                }
+
+                int userId = Convert.ToInt32(Session["Id"]);
+
+                // Verify parent comment exists
+                var parentComment = db.AnnouncementComments
+                    .Include(c => c.Announcement)
+                    .FirstOrDefault(c => c.Id == parentCommentId);
+
+                if (parentComment == null)
+                {
+                    return Json(new { success = false, message = "Parent comment not found." });
+                }
+
+                // Verify announcement
+                if (parentComment.AnnouncementId != announcementId || !parentComment.Announcement.IsActive)
+                {
+                    return Json(new { success = false, message = "Invalid announcement." });
+                }
+
+                // Validate comment
+                if (string.IsNullOrWhiteSpace(comment))
+                {
+                    return Json(new { success = false, message = "Reply cannot be empty." });
+                }
+
+                // Add reply
+                var newReply = new AnnouncementComment
+                {
+                    AnnouncementId = announcementId,
+                    UserId = userId,
+                    Comment = comment.Trim(),
+                    ParentCommentId = parentCommentId,
+                    CreatedAt = DateTime.Now
+                };
+
+                db.AnnouncementComments.Add(newReply);
+                db.SaveChanges();
+
+                return Json(new { success = true, message = "Reply added successfully." });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"AddReply Error: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred while adding the reply." });
             }
         }
 

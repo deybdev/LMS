@@ -1,0 +1,32 @@
+﻿@* Views/Shared/_BackButton.cshtml *@
+@{
+    var buttonText = ViewBag.BackButtonText ?? "Back";
+    var buttonClass = ViewBag.BackButtonClass ?? "";
+}
+
+<button type="button" onclick="history.back()" 
+        class="back-button @buttonClass">
+    <i class="fas fa-arrow-left me-2"></i> @buttonText
+</button>
+
+<style>
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: var(--dark-primary-color);
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    transition: all 0.2s;
+}
+.back-button:hover {
+    opacity: 0.9;
+}
+</style>
+
