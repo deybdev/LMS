@@ -287,8 +287,19 @@
     <Compile Include="Migrations\202511231428562_UpdateAnnouncementModel.Designer.cs">
       <DependentUpon>202511231428562_UpdateAnnouncementModel.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202511241253500_AddAttendance.cs" />
+    <Compile Include="Migrations\202511241253500_AddAttendance.Designer.cs">
+      <DependentUpon>202511241253500_AddAttendance.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511241300000_AddLateMinutesToAttendance.cs" />
+    <Compile Include="Migrations\202511241318319_AddLateMinutesToAttendance.cs" />
+    <Compile Include="Migrations\202511241318319_AddLateMinutesToAttendance.Designer.cs">
+      <DependentUpon>202511241318319_AddLateMinutesToAttendance.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Announcement.cs" />
+    <Compile Include="Models\AttendanceRecord.cs" />
+    <Compile Include="Models\AttendanceViewModel.cs" />
     <Compile Include="Models\AuditLog.cs" />
     <Compile Include="Models\Classwork.cs" />
     <Compile Include="Models\Course.cs" />
@@ -417,7 +428,6 @@
     <Content Include="Views\IT\CreateCourse.cshtml" />
     <Content Include="Views\IT\EditCourse.cshtml" />
     <Content Include="Views\IT\AssignedCourses.cshtml" />
-    <Content Include="Views\IT\Schedule.cshtml" />
     <Content Include="Views\IT\Profile.cshtml" />
     <Content Include="Views\IT\AssignCourse.cshtml" />
     <Content Include="Views\Admin\Departments.cshtml" />
@@ -466,8 +476,6 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Database\Migrations\" />
-    <Folder Include="Documentation\" />
     <Folder Include="Uploads\Materials\" />
   </ItemGroup>
   <ItemGroup>
@@ -521,6 +529,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202511231428562_UpdateAnnouncementModel.resx">
       <DependentUpon>202511231428562_UpdateAnnouncementModel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511241253500_AddAttendance.resx">
+      <DependentUpon>202511241253500_AddAttendance.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511241318319_AddLateMinutesToAttendance.resx">
+      <DependentUpon>202511241318319_AddLateMinutesToAttendance.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

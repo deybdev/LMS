@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="~/Content/Site.css" />
 
 <div class="admin-container">
+    @Html.Partial("_BackButton")
     <div class="create-course-container">
         <div class="course-form-wrapper">
 
@@ -123,7 +124,7 @@
                     </div>
 
                     <!-- Hidden inputs for selected course IDs -->
-                    <input type="hidden" name="CourseIds" id="courseIdsInput" 
+                    <input type="hidden" name="CourseIds" id="courseIdsInput"
                            value="@string.Join(",", assignedCourses?.Select(c => c.Id) ?? Enumerable.Empty<int>())" />
                 </div>
 

@@ -7,6 +7,8 @@
 <link rel="stylesheet" href="~/Content/itCourse.css" />
 
 <div class="admin-container">
+    @Html.Partial("_BackButton")
+
     @Html.AntiForgeryToken()
 
     <div class="page-header mb-4">
@@ -20,10 +22,10 @@
         <!-- Student Search Section -->
         <div class="search-filter-section" style="margin-bottom: 2rem; position: relative;">
             <div class="filter-controls">
-                <input type="text" 
-                       id="studentSearchInput" 
-                       class="search-input" 
-                       placeholder="Search by Student ID, First Name, or Last Name..." 
+                <input type="text"
+                       id="studentSearchInput"
+                       class="search-input"
+                       placeholder="Search by Student ID, First Name, or Last Name..."
                        autocomplete="off" />
 
                 <div class="filter-dropdowns">
@@ -104,9 +106,9 @@
                 <!-- Filter for enrolled courses -->
                 <div class="search-filter-section" style="margin-bottom: 1rem;">
                     <div class="filter-controls">
-                        <input type="text" 
-                               id="courseFilterInput" 
-                               class="search-input" 
+                        <input type="text"
+                               id="courseFilterInput"
+                               class="search-input"
                                placeholder="Filter courses by code or title..." />
 
                     </div>
@@ -182,12 +184,14 @@
                                    class="form-control search-input"
                                    placeholder="Type course code or title to search..."
                                    autocomplete="off" />
-                            <i class="fas fa-search search-icon"></i>
 
                             <!-- Course Search Dropdown -->
                             <div id="modalCourseSearchDropdown" class="search-results-dropdown" style="display: none;">
                                 <div class="dropdown-header">
                                     <span id="modalCourseCount" class="results-count">0 courses found</span>
+                                    <button type="button" class="btn-close-dropdown" onclick="$('#modalCourseSearchDropdown').hide(); $('#courseSearchBackdrop').remove();">
+                                        <i class="fas fa-times"></i>
+                                    </button>
                                 </div>
                                 <div id="modalCourseList" class="dropdown-results-list">
                                     <!-- Course results will be populated here -->
@@ -688,103 +692,63 @@
         font-weight: 400;
     }
 
-    /* Badge for not assigned */
-    .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 0.35rem 0.65rem;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        font-family: var(--archivo-plain-font);
-    }
-
-    .badge.bg-warning {
-        background-color: #fff3cd !important;
-        color: #856404 !important;
-        border: 1px solid #ffc107;
-    }
-
-    .badge i {
-        font-size: 0.7rem;
-    }
-
-    /* Search Dropdown Styles */
-    .search-dropdown-wrapper {
-        position: relative;
-    }
-
-    .search-icon {
-        position: absolute;
-        right: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--gray-text);
-        pointer-events: none;
-    }
-
-    .search-results-dropdown {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        margin-top: 0.5rem;
-        background: white;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        max-height: 300px;
-        overflow-y: auto;
-        z-index: 1000;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .dropdown-header {
-        padding: 0.75rem 1rem;
-        border-bottom: 1px solid var(--border-color);
-        background: #f8f9fa;
-    }
-
-    .results-count {
-        font-size: 0.85rem;
-        color: var(--gray-text);
-        font-weight: 500;
-        font-family: var(--archivo-plain-font);
-    }
-
-    .dropdown-results-list {
-        padding: 0.5rem;
-    }
-
+    /* Course Result Item Styles */
     .course-result-item {
         padding: 1rem;
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        margin-bottom: 0.5rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
         cursor: pointer;
         transition: all 0.2s ease;
         background: white;
     }
 
     .course-result-item:hover {
-        background: var(--light-blue);
+        background: #f0f7ff;
         border-color: var(--primary-color);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(24, 82, 172, 0.15);
     }
 
     .course-result-item.disabled {
         opacity: 0.5;
         cursor: not-allowed;
+        background: #f5f5f5;
     }
 
     .course-result-item.disabled:hover {
-        transform: none;
-        box-shadow: none;
+        background: #f5f5f5;
+        border-color: #e0e0e0;
+    }
+
+    .course-result-item.will-replace {
+        border-color: #ffc107;
+        background: #fffef5;
+    }
+
+    .course-result-item.will-replace:hover {
+        border-color: #ff9800;
+        background: #fff9e6;
+    }
+
+    .replacement-notice {
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        color: #856404;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .replacement-notice i {
+        color: #ff9800;
     }
 
     .course-item-header {
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.5rem;
     }
 
     .course-result-item .course-code {
@@ -800,54 +764,9 @@
     }
 
     .course-item-details {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
-    }
-
-    .detail-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 0.25rem 0.65rem;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 500;
+        font-size: 0.85rem;
+        color: var(--gray-text);
         font-family: var(--archivo-plain-font);
-    }
-
-    .year-badge {
-        background: #e3f2fd;
-        color: #1976d2;
-        border: 1px solid #bbdefb;
-    }
-
-    .section-badge {
-        background: #f3e5f5;
-        color: #7b1fa2;
-        border: 1px solid #e1bee7;
-    }
-
-    .semester-badge {
-        background: #fff3e0;
-        color: #f57c00;
-        border: 1px solid #ffe0b2;
-    }
-
-    .time-badge {
-        background: #e8f5e9;
-        color: #388e3c;
-        border: 1px solid #c8e6c9;
-    }
-
-    .detail-badge i {
-        font-size: 0.7rem;
-    }
-
-    .time-info {
-        font-weight: 500;
-        color: inherit;
     }
 
     /* Responsive Design */

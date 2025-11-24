@@ -4,6 +4,7 @@
     ViewBag.Title = "Classlist";
     int courseId = ViewBag.CourseId ?? Model.Id;
     ViewBag.ActiveTab = "ClassList";
+    string defaultAttendanceDate = DateTime.Today.ToString("yyyy-MM-dd");
 }
 
 <link rel="stylesheet" href="~/Content/Site.css" />
@@ -57,17 +58,18 @@
                 <div class="classlist-container">
                     <div class="date-selector">
                         <label for="attendanceDate">Date:</label>
-                        <input type="date" id="attendanceDate" class="form-control" value="2025-10-07">
+                        <input type="date" id="attendanceDate" class="form-control" value="@defaultAttendanceDate">
                     </div>
                     <div class="attendance-info">
                         <div class="attendance-summary">
                             <span class="summary-item"><strong>Total Students:</strong> <span id="totalStudents">0</span></span>
                             <span class="summary-item"><strong>Present:</strong> <span id="presentCount">0</span></span>
+                            <span class="summary-item"><strong>Late:</strong> <span id="lateCount">0</span></span>
                             <span class="summary-item"><strong>Absent:</strong> <span id="absentCount">0</span></span>
                             <span class="summary-item"><strong>Unmarked:</strong> <span id="unmarkedCount">0</span></span>
                         </div>
                         <div class="attendance-actions">
-                            <button class="btn-mark-all btn-success"><i class="fas fa-check"></i> Mark All Present</button>
+                            <button class="export-attendance"><i class="fas fa-save"></i>Export to CSV</button>
                         </div>
                     </div>
 
@@ -83,37 +85,14 @@
                                 </tr>
                             </thead>
                             <tbody id="attendanceTableBody">
-                                <!-- Sample data -->
                                 <tr>
-                                    <td>1</td>
-                                    <td><span class="student-id">STU-2024-001</span></td>
-                                    <td><span class="student-name">Alice Johnson</span></td>
-                                    <td><span class="student-email">alice.johnson@school.edu</span></td>
-                                    <td>
-                                        <div class="attendance-buttons">
-                                            <button class="btn-attendance btn-present">Present</button>
-                                            <button class="btn-attendance btn-absent">Absent</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td><span class="student-id">STU-2024-002</span></td>
-                                    <td><span class="student-name">Bob Smith</span></td>
-                                    <td><span class="student-email">bob.smith@school.edu</span></td>
-                                    <td>
-                                        <div class="attendance-buttons">
-                                            <button class="btn-attendance btn-present">Present</button>
-                                            <button class="btn-attendance btn-absent">Absent</button>
-                                        </div>
+                                    <td colspan="5" class="loading-state">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <p style="margin-top: 1rem;">Preparing attendance list...</p>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
-                    <div class="attendance-footer">
-                        <button class="btn-clear"><i class="fas fa-eraser"></i> Clear All</button>
-                        <button class="btn-save"><i class="fas fa-save"></i> Save Attendance</button>
                     </div>
                 </div>
             </div>
@@ -177,8 +156,50 @@
 
 @section scripts {
     <script>
-        var teacherCourseSectionId = @ViewBag.TeacherCourseSectionId;
+        var teacherCourseSectionId = @(ViewBag.TeacherCourseSectionId ?? 0);
         var courseId = @courseId;
     </script>
     <script src="~/Scripts/Custom/classlist.js"></script>
 }
+
+<!-- Late Minutes Modal -->
+<div id="lateModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Mark Student as Late</h3>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>How many minutes late is <strong id="lateStudentName"></strong>?</p>
+            <div class="input-group">
+                <input type="number" id="lateMinutesInput" class="form-control" min="0" placeholder="Enter minutes" />
+                <span class="input-suffix">minutes</span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel">Cancel</button>
+            <button class="btn-confirm">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Export Confirmation Modal -->
+<div id="exportModal" class="modal">
+    <div class="modal-content modal-export">
+        <div class="modal-header">
+            <h3><i class="fas fa-file-download"></i> Export Attendance</h3>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p style="margin: 0; font-size: 1rem; color: var(--dark-primary-color);">
+                Are you sure you want to download attendance record on <strong id="exportDate" style="color: var(--primary-color);"></strong>?
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" id="exportCancel">Cancel</button>
+            <button class="btn-confirm" id="exportConfirm">
+                <i class="fas fa-download"></i> Download CSV
+            </button>
+        </div>
+    </div>
+</div>

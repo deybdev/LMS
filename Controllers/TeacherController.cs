@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Dynamic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -151,7 +152,7 @@ namespace LMS.Controllers
         }
 
         // GET: Teacher/Classlist
-        public ActionResult Classlist(int? id)
+        public ActionResult ClassList(int? id)
         {
             return LoadCourseTab(id, "Classlist");
         }
@@ -606,6 +607,182 @@ namespace LMS.Controllers
             {
                 System.Diagnostics.Debug.WriteLine($"GetEnrolledStudents Error: {ex.Message}");
                 return Json(new { success = false, message = "Error loading students: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpGet]
+        public JsonResult GetAttendance(int teacherCourseSectionId, string date)
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    return Json(new { success = false, message = "Unauthorized access" }, JsonRequestBehavior.AllowGet);
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                var teacherCourseSection = db.TeacherCourseSections
+                    .FirstOrDefault(tcs => tcs.Id == teacherCourseSectionId && tcs.TeacherId == teacherId);
+
+                if (teacherCourseSection == null)
+                {
+                    return Json(new { success = false, message = "You don't have access to this course section" }, JsonRequestBehavior.AllowGet);
+                }
+
+                var attendanceDate = ParseAttendanceDate(date);
+
+                var students = db.StudentCourses
+                    .Where(sc => sc.CourseId == teacherCourseSection.CourseId &&
+                                 sc.SectionId == teacherCourseSection.SectionId)
+                    .Include(sc => sc.Student)
+                    .OrderBy(sc => sc.Student.LastName)
+                    .ThenBy(sc => sc.Student.FirstName)
+                    .Select(sc => new
+                    {
+                        id = sc.Student.Id,
+                        studentId = sc.Student.UserID,
+                        name = sc.Student.FirstName + " " + sc.Student.LastName,
+                        email = sc.Student.Email
+                    })
+                    .ToList();
+
+                var attendanceRecords = db.AttendanceRecords
+                    .Where(ar => ar.TeacherCourseSectionId == teacherCourseSection.Id &&
+                                 DbFunctions.TruncateTime(ar.AttendanceDate) == attendanceDate)
+                    .ToList();
+
+                var responseStudents = students.Select(s =>
+                {
+                    var record = attendanceRecords.FirstOrDefault(ar => ar.StudentId == s.id);
+                    return new
+                    {
+                        s.id,
+                        s.studentId,
+                        s.name,
+                        s.email,
+                        status = record?.Status ?? "Unmarked",
+                        lateMinutes = record?.LateMinutes,
+                        markedAt = record?.MarkedAt
+                    };
+                }).ToList();
+
+                return Json(new { success = true, students = responseStudents }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetAttendance Error: {ex.Message}");
+                return Json(new { success = false, message = "Error loading attendance: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpPost]
+        public JsonResult SaveAttendance(SaveAttendanceRequest request)
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    return Json(new { success = false, message = "Unauthorized access" });
+                }
+
+                if (request == null || request.TeacherCourseSectionId <= 0)
+                {
+                    return Json(new { success = false, message = "Invalid attendance payload." });
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                var teacherCourseSection = db.TeacherCourseSections
+                    .FirstOrDefault(tcs => tcs.Id == request.TeacherCourseSectionId && tcs.TeacherId == teacherId);
+
+                if (teacherCourseSection == null)
+                {
+                    return Json(new { success = false, message = "You don't have access to this course section" });
+                }
+
+                var attendanceDate = ParseAttendanceDate(request.AttendanceDate);
+
+                var enrolledStudentIds = db.StudentCourses
+                    .Where(sc => sc.CourseId == teacherCourseSection.CourseId &&
+                                 sc.SectionId == teacherCourseSection.SectionId)
+                    .Select(sc => sc.StudentId)
+                    .ToList();
+
+                if (!enrolledStudentIds.Any())
+                {
+                    return Json(new { success = false, message = "There are no students enrolled in this section." });
+                }
+
+                var incomingRecords = (request.Records ?? new List<AttendanceStudentRecord>())
+                    .Where(r => enrolledStudentIds.Contains(r.StudentId))
+                    .GroupBy(r => r.StudentId)
+                    .Select(g => g.Last())
+                    .ToList();
+
+                if (!incomingRecords.Any())
+                {
+                    return Json(new { success = false, message = "No valid attendance records were provided." });
+                }
+
+                var existingRecords = db.AttendanceRecords
+                    .Where(ar => ar.TeacherCourseSectionId == teacherCourseSection.Id &&
+                                 DbFunctions.TruncateTime(ar.AttendanceDate) == attendanceDate)
+                    .ToList();
+
+                foreach (var record in incomingRecords)
+                {
+                    var normalizedStatus = NormalizeAttendanceStatus(record.Status);
+                    var existing = existingRecords.FirstOrDefault(ar => ar.StudentId == record.StudentId);
+
+                    if (string.IsNullOrEmpty(normalizedStatus))
+                    {
+                        if (existing != null)
+                        {
+                            db.AttendanceRecords.Remove(existing);
+                        }
+                        continue;
+                    }
+
+                    if (existing == null)
+                    {
+                        db.AttendanceRecords.Add(new AttendanceRecord
+                        {
+                            TeacherCourseSectionId = teacherCourseSection.Id,
+                            StudentId = record.StudentId,
+                            AttendanceDate = attendanceDate,
+                            Status = normalizedStatus,
+                            LateMinutes = normalizedStatus == "Late" ? record.LateMinutes : null,
+                            MarkedAt = DateTime.Now
+                        });
+                    }
+                    else
+                    {
+                        existing.Status = normalizedStatus;
+                        existing.LateMinutes = normalizedStatus == "Late" ? record.LateMinutes : null;
+                        existing.MarkedAt = DateTime.Now;
+                    }
+                }
+
+                db.SaveChanges();
+
+                var presentCount = incomingRecords.Count(r => NormalizeAttendanceStatus(r.Status) == "Present");
+                var absentCount = incomingRecords.Count(r => NormalizeAttendanceStatus(r.Status) == "Absent");
+                var lateCount = incomingRecords.Count(r => NormalizeAttendanceStatus(r.Status) == "Late");
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Attendance saved successfully.",
+                    presentCount,
+                    absentCount,
+                    lateCount
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SaveAttendance Error: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred while saving attendance: " + ex.Message });
             }
         }
 
@@ -1565,6 +1742,42 @@ namespace LMS.Controllers
                 System.Diagnostics.Debug.WriteLine($"AddReply Error: {ex.Message}");
                 return Json(new { success = false, message = "An error occurred while adding the reply." });
             }
+        }
+
+        private string NormalizeAttendanceStatus(string status)
+        {
+            if (string.IsNullOrWhiteSpace(status))
+            {
+                return null;
+            }
+
+            var normalized = status.Trim().ToLowerInvariant();
+
+            if (normalized == "present") return "Present";
+            if (normalized == "absent") return "Absent";
+            if (normalized == "late") return "Late";
+
+            return null;
+        }
+
+        private DateTime ParseAttendanceDate(string dateValue)
+        {
+            if (string.IsNullOrWhiteSpace(dateValue))
+            {
+                return DateTime.Today;
+            }
+
+            if (DateTime.TryParseExact(dateValue, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime exactDate))
+            {
+                return exactDate.Date;
+            }
+
+            if (DateTime.TryParse(dateValue, out DateTime parsedDate))
+            {
+                return parsedDate.Date;
+            }
+
+            return DateTime.Today;
         }
 
         // Private helper method to load course tabs

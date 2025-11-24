@@ -125,15 +125,32 @@ namespace LMS.Controllers
                 }
 
                 int addedCount = 0;
+                int updatedCount = 0;
                 foreach (var item in jsonArray)
                 {
                     int courseId = Convert.ToInt32(item["courseId"]);
                     int sectionId = Convert.ToInt32(item["sectionId"]);
 
-                    var exists = db.StudentCourses
-                        .Any(sc => sc.StudentId == studentId && sc.CourseId == courseId && sc.SectionId == sectionId);
+                    var existingEnrollment = db.StudentCourses
+                        .FirstOrDefault(sc => sc.StudentId == studentId && sc.CourseId == courseId);
 
-                    if (!exists)
+                    if (existingEnrollment != null)
+                    {
+                        // Already enrolled to this course; update section/details if needed
+                        if (existingEnrollment.SectionId != sectionId)
+                        {
+                            var targetSectionSchedule = db.StudentCourses
+                                .FirstOrDefault(sc => sc.CourseId == courseId && sc.SectionId == sectionId);
+
+                            existingEnrollment.SectionId = sectionId;
+                            existingEnrollment.Day = targetSectionSchedule?.Day;
+                            existingEnrollment.TimeFrom = targetSectionSchedule?.TimeFrom;
+                            existingEnrollment.TimeTo = targetSectionSchedule?.TimeTo;
+                            existingEnrollment.DateEnrolled = DateTime.Now;
+                            updatedCount++;
+                        }
+                    }
+                    else
                     {
                         var existingCourseTime = db.StudentCourses
                             .FirstOrDefault(sc => sc.CourseId == courseId && sc.SectionId == sectionId);
@@ -160,8 +177,9 @@ namespace LMS.Controllers
                 return Json(new
                 {
                     success = true,
-                    message = $"Successfully added {addedCount} course(s) to student",
-                    addedCount = addedCount
+                    message = $"Successfully added {addedCount} course(s) and updated {updatedCount} existing enrollment(s).",
+                    addedCount,
+                    updatedCount
                 });
             }
             catch (Exception ex)

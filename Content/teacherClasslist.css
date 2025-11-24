@@ -120,26 +120,38 @@
     gap: 1rem;
 }
 
-.btn-mark-all {
-    padding: 0.5rem 1rem;
+.export-attendance {
+    padding: 0.5rem 1.3rem;
     border: none;
-    border-radius: 6px;
+    font-size: .9rem;
+    border-radius: 3px;
     cursor: pointer;
-    font-family: var(--archivo-plain-font);
-    font-weight: 500;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     transition: all 0.2s ease;
 }
 
-.btn-mark-all.btn-success {
+.btn-mark-all.btn-success
+{
     background: var(--success-color);
+    color: white;
+}
+
+.export-attendance{
+    background: var(--primary-color);
+    color: white;
+}
+
+.export-attendance:hover{
+    background: var(--primary-hover);
     color: white;
 }
 
 .btn-mark-all.btn-success:hover {
     background: #27ae60;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
 }
 
 .attendance-buttons {
@@ -158,6 +170,12 @@
     transition: all 0.2s ease;
 }
 
+.btn-attendance small {
+    font-size: 0.7rem;
+    display: block;
+    margin-top: 2px;
+}
+
 .btn-attendance.btn-present:hover {
     border-color: var(--success-color);
     color: var(--success-color);
@@ -167,6 +185,17 @@
     background: var(--success-color);
     color: white;
     border-color: var(--success-color);
+}
+
+.btn-attendance.btn-late:hover {
+    border-color: #f39c12;
+    color: #f39c12;
+}
+
+.btn-attendance.btn-late.active {
+    background: #f39c12;
+    color: white;
+    border-color: #f39c12;
 }
 
 .btn-attendance.btn-absent:hover {
@@ -180,17 +209,169 @@
     border-color: var(--danger-color);
 }
 
-.attendance-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border-color);
+
+/* Auto-save states */
+#attendanceTableBody tr.saving {
+    background: #e3f2fd;
+    position: relative;
 }
 
-.btn-clear {
-    padding: 0.5rem 1.5rem;
+#attendanceTableBody tr.saving::after {
+    content: '💾 Saving...';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    animation: pulse 1s infinite;
+}
+
+#attendanceTableBody tr.saved {
+    background: #e8f5e8;
+    transition: background 0.3s ease;
+}
+
+#attendanceTableBody tr.saved::after {
+    content: '✓ Saved';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Late Minutes Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.2s ease;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    margin: 0;
+    padding: 0;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--dark-primary-color);
+    font-family: var(--archivo-plain-font);
+}
+
+.close-modal {
+    font-size: 1.75rem;
+    font-weight: 300;
+    color: var(--gray-text);
+    cursor: pointer;
+    transition: color 0.2s ease;
+    line-height: 1;
+}
+
+.close-modal:hover {
+    color: var(--dark-primary-color);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-body p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--dark-primary-color);
+    font-family: var(--archivo-plain-font);
+}
+
+.modal-body strong {
+    color: var(--primary-color);
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.input-group .form-control {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1rem;
+    font-family: var(--archivo-plain-font);
+    transition: border-color 0.2s ease;
+}
+
+.input-group .form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(24, 82, 172, 0.1);
+}
+
+.input-suffix {
+    color: var(--gray-text);
+    font-size: 0.9rem;
+    font-family: var(--archivo-plain-font);
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.btn-cancel {
+    padding: 0.6rem 1.25rem;
     border: 1px solid var(--border-color);
     border-radius: 6px;
     background: white;
@@ -198,19 +379,16 @@
     cursor: pointer;
     font-family: var(--archivo-plain-font);
     font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
     transition: all 0.2s ease;
 }
 
-.btn-clear:hover {
+.btn-cancel:hover {
     background: #f8f9fa;
     border-color: var(--gray-text);
 }
 
-.btn-save {
-    padding: 0.5rem 1.5rem;
+.btn-confirm {
+    padding: 0.6rem 1.25rem;
     border: none;
     border-radius: 6px;
     background: var(--primary-color);
@@ -218,14 +396,21 @@
     cursor: pointer;
     font-family: var(--archivo-plain-font);
     font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
     transition: all 0.2s ease;
 }
 
-.btn-save:hover {
+.btn-confirm:hover {
     background: var(--primary-hover);
+}
+
+/* Export Modal Styles */
+.modal-header i {
+    margin-right: 0.5rem;
+    color: var(--primary-color);
+}
+
+.btn-confirm i {
+    margin-right: 0.35rem;
 }
 
 /* Performance View Styles */

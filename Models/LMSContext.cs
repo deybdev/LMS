@@ -17,6 +17,7 @@ public class LMSContext : DbContext
     public DbSet<Section> Sections { get; set; }
     public DbSet<StudentCourse> StudentCourses { get; set; }
     public DbSet<TeacherCourseSection> TeacherCourseSections { get; set; }
+    public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
     
     // Classwork entities
     public DbSet<Classwork> Classworks { get; set; }

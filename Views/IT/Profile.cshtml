@@ -5,6 +5,8 @@
 <link rel="stylesheet" href="~/Content/adminDashboard.css" />
 
 <div class="admin-container">
+    @Html.Partial("_BackButton")
+
     <div class="page-header mb-4">
         <h1>My Profile</h1>
         <p class="subtitle">View and manage your account information</p>
@@ -53,63 +55,63 @@
 
             <form id="profileForm">
                 @Html.AntiForgeryToken()
-                
+
                 <div class="form-grid-simple">
                     <div class="form-group-simple">
                         <label class="form-label-simple">First Name</label>
-                        <input type="text" 
-                               class="form-input-simple" 
-                               id="firstName" 
+                        <input type="text"
+                               class="form-input-simple"
+                               id="firstName"
                                name="firstName"
-                               value="@(Session["FirstName"] ?? "")" 
+                               value="@(Session["FirstName"] ?? "")"
                                disabled>
                     </div>
-                    
+
                     <div class="form-group-simple">
                         <label class="form-label-simple">Last Name</label>
-                        <input type="text" 
-                               class="form-input-simple" 
+                        <input type="text"
+                               class="form-input-simple"
                                id="lastName"
-                               name="lastName" 
-                               value="@(Session["LastName"] ?? "")" 
+                               name="lastName"
+                               value="@(Session["LastName"] ?? "")"
                                disabled>
                     </div>
-                    
+
                     <div class="form-group-simple">
                         <label class="form-label-simple">Email Address</label>
-                        <input type="email" 
-                               class="form-input-simple" 
+                        <input type="email"
+                               class="form-input-simple"
                                id="email"
-                               name="email" 
-                               value="@(Session["Email"] ?? "admin@g2academy.edu")" 
+                               name="email"
+                               value="@(Session["Email"] ?? "admin@g2academy.edu")"
                                disabled>
                     </div>
-                    
+
                     <div class="form-group-simple">
                         <label class="form-label-simple">Phone Number</label>
-                        <input type="tel" 
-                               class="form-input-simple" 
+                        <input type="tel"
+                               class="form-input-simple"
                                id="phone"
-                               name="phone" 
-                               value="@(Session["PhoneNumber"] ?? "")" 
+                               name="phone"
+                               value="@(Session["PhoneNumber"] ?? "")"
                                placeholder="Not set"
                                disabled>
                     </div>
-                    
+
                     <div class="form-group-simple">
                         <label class="form-label-simple">User ID</label>
-                        <input type="text" 
-                               class="form-input-simple" 
-                               id="userId" 
-                               value="@(Session["UserId"] ?? "")" 
+                        <input type="text"
+                               class="form-input-simple"
+                               id="userId"
+                               value="@(Session["UserId"] ?? "")"
                                disabled>
                     </div>
 
                     <div class="form-group-simple">
                         <label class="form-label-simple">Password</label>
-                        <button type="button" 
-                                class="btn-change-password" 
-                                data-bs-toggle="modal" 
+                        <button type="button"
+                                class="btn-change-password"
+                                data-bs-toggle="modal"
                                 data-bs-target="#changePasswordModal">
                             <i class="fas fa-key"></i> Change Password
                         </button>

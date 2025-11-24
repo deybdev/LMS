@@ -36,14 +36,36 @@ function initializeEventHandlers() {
 
     $('#confirmRemoveCourseBtn').on('click', confirmRemoveCourse);
 
+    // Reset modal selection when opening
+    $('#addCourseModal').on('show.bs.modal', function (event) {
+        if (!selectedStudent) {
+            showAlert('warning', 'Please select a student first.');
+            event.preventDefault();
+            return;
+        }
+
+        resetModalCourseSelection();
+        $('#modalCourseSearchDropdown').hide();
+        $('#courseSearchBackdrop').remove();
+    });
+
+    // Clean up backdrop when modal is hidden
+    $('#addCourseModal').on('hidden.bs.modal', function() {
+        $('#modalCourseSearchDropdown').hide();
+        $('#courseSearchBackdrop').remove();
+        resetModalCourseSelection();
+    });
+
     $(document).on('click', function (e) {
         if (!$(e.target).closest('.search-filter-section').length && 
             !$(e.target).closest('.student-search-dropdown').length) {
             $('#studentSearchResults').hide();
         }
         if (!$(e.target).closest('.search-dropdown-wrapper').length &&
-            !$(e.target).closest('#modalCourseSearchDropdown').length) {
+            !$(e.target).closest('#modalCourseSearchDropdown').length &&
+            !$(e.target).closest('#courseSearchBackdrop').length) {
             $('#modalCourseSearchDropdown').hide();
+            $('#courseSearchBackdrop').remove();
         }
     });
     
@@ -333,6 +355,7 @@ function searchCoursesForModal() {
 
     if (searchTerm.length < 2) {
         $('#modalCourseSearchDropdown').hide();
+        $('#courseSearchBackdrop').remove();
         return;
     }
 
@@ -342,6 +365,15 @@ function searchCoursesForModal() {
     }
 
     console.log('Searching courses for student:', selectedStudent.id); // Debug
+
+    // Show backdrop
+    if (!$('#courseSearchBackdrop').length) {
+        $('body').append('<div id="courseSearchBackdrop" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9;"></div>');
+        $('#courseSearchBackdrop').on('click', function() {
+            $('#modalCourseSearchDropdown').hide();
+            $(this).remove();
+        });
+    }
 
     // Show loading state
     $('#modalCourseSearchDropdown').show();
@@ -390,6 +422,7 @@ function displayModalCourseResults(courses) {
 
     console.log('Enrolled courses:', enrolledCourses); // Debug
     console.log('Available courses:', courses); // Debug
+    console.log('Currently selected courses to add:', selectedCoursesToAdd); // Debug
 
     courses.forEach(course => {
         // Check if already enrolled - compare both courseId and sectionId
@@ -399,9 +432,13 @@ function displayModalCourseResults(courses) {
             return enrolled;
         });
         
-        const isSelected = selectedCoursesToAdd.some(sc => sc.id === course.id && sc.sectionId === course.sectionId);
+        // Check if this EXACT course+section is already selected
+        const isExactMatch = selectedCoursesToAdd.some(sc => sc.id === course.id && sc.sectionId === course.sectionId);
+        
+        // Check if a DIFFERENT section of the same course is selected
+        const isDifferentSectionSelected = selectedCoursesToAdd.some(sc => sc.id === course.id && sc.sectionId !== course.sectionId);
 
-        console.log(`Course ${course.code} (Section ${course.sectionName}) - Enrolled: ${isEnrolled}, Selected: ${isSelected}`);
+        console.log(`Course ${course.code} (Section ${course.sectionName}) - Enrolled: ${isEnrolled}, Exact Match: ${isExactMatch}, Different Section: ${isDifferentSectionSelected}`);
 
         if (isEnrolled) {
             console.log(`Skipping ${course.code} - ${course.sectionName} (already enrolled)`);
@@ -409,15 +446,26 @@ function displayModalCourseResults(courses) {
         }
 
         // Format time display
-        let timeDisplay = '<span class="text-muted fst-italic">Not set</span>';
+        let timeDisplay = 'No Time Set';
         if (course.timeFrom && course.timeTo) {
             const timeFrom = formatTime(new Date(course.timeFrom));
             const timeTo = formatTime(new Date(course.timeTo));
-            timeDisplay = `<span class="time-info">${timeFrom} - ${timeTo}</span>`;
+            timeDisplay = `${timeFrom} - ${timeTo}`;
+        }
+
+        // Determine CSS class and add replacement indicator
+        let itemClass = 'course-result-item';
+        let replacementIndicator = '';
+        
+        if (isExactMatch) {
+            itemClass += ' disabled';
+        } else if (isDifferentSectionSelected) {
+            itemClass += ' will-replace';
+            replacementIndicator = '<div class="replacement-notice"><i class="fas fa-exchange-alt"></i> Will replace current section</div>';
         }
 
         const $item = $(`
-            <div class="course-result-item ${isSelected ? 'disabled' : ''}" 
+            <div class="${itemClass}" 
                  data-course-id="${course.id}"
                  data-section-id="${course.sectionId}">
                 <div class="course-item-header">
@@ -425,23 +473,14 @@ function displayModalCourseResults(courses) {
                     <span class="course-title">${course.title}</span>
                 </div>
                 <div class="course-item-details">
-                    <span class="detail-badge year-badge">
-                        <i class="fas fa-layer-group"></i> ${course.yearLevel}${getYearSuffix(course.yearLevel)} Year
-                    </span>
-                    <span class="detail-badge section-badge">
-                        <i class="fas fa-users"></i> Section ${course.sectionName}
-                    </span>
-                    <span class="detail-badge semester-badge">
-                        <i class="fas fa-calendar-alt"></i> ${getSemesterName(course.semester)}
-                    </span>
-                    <span class="detail-badge time-badge">
-                        <i class="fas fa-clock"></i> ${timeDisplay}
-                    </span>
-                </div>
+                ${course.programCode || 'N/A'}-${course.yearLevel}${course.sectionName} ${getSemesterName(course.semester)} ${timeDisplay} |
+                    </div>
+                ${replacementIndicator}
             </div>
         `);
 
-        if (!isSelected) {
+        // Only allow click if not exact match
+        if (!isExactMatch) {
             $item.on('click', () => addCourseToSelection(course));
         }
 
@@ -516,12 +555,24 @@ function updateModalSelectedCourses() {
 
 // Confirm add courses
 function confirmAddCourses() {
-    if (selectedCoursesToAdd.length === 0) return;
+    if (selectedCoursesToAdd.length === 0) {
+        showAlert('warning', 'Select at least one course to add.');
+        return;
+    }
 
     const studentId = $('#modalStudentId').val();
 
+    // Deduplicate by course key (courseId) to avoid duplicates in final payload
+    const uniqueCoursesMap = {};
+    selectedCoursesToAdd.forEach(course => {
+        uniqueCoursesMap[getCourseKey(course)] = course;
+    });
+    const uniqueCourses = Object.values(uniqueCoursesMap);
+    selectedCoursesToAdd = uniqueCourses;
+    updateModalSelectedCourses();
+
     // Prepare course data with section IDs
-    const courseData = selectedCoursesToAdd.map(c => ({
+    const courseData = uniqueCourses.map(c => ({
         courseId: c.id,
         sectionId: c.sectionId
     }));
@@ -566,9 +617,26 @@ function confirmAddCourses() {
 
 // Add course to selection
 function addCourseToSelection(course) {
-    if (selectedCoursesToAdd.some(c => c.id === course.id && c.sectionId === course.sectionId)) return;
+    // Check if the same course (by courseId) is already selected, regardless of section
+    const existingIndex = selectedCoursesToAdd.findIndex(c => getCourseKey(c) === getCourseKey(course));
+    
+    if (existingIndex !== -1) {
+        const existingCourse = selectedCoursesToAdd[existingIndex];
+        const isSameSection = existingCourse.sectionId === course.sectionId;
 
-    selectedCoursesToAdd.push(course);
+        selectedCoursesToAdd[existingIndex] = course;
+
+        if (isSameSection) {
+            showAlert('info', `${course.code} Section ${course.sectionName} is already selected.`);
+        } else {
+            showAlert('info', `Replaced ${course.code} with Section ${course.sectionName}`);
+        }
+    } else {
+        // Add new course
+        selectedCoursesToAdd.push(course);
+        showAlert('success', `Added ${course.code} - Section ${course.sectionName}`);
+    }
+
     updateModalSelectedCourses();
     searchCoursesForModal(); // Refresh to show updated state
 }
@@ -582,8 +650,7 @@ function removeCourseFromSelection(index) {
 
 // Clear modal selection
 function clearModalSelection() {
-    selectedCoursesToAdd = [];
-    updateModalSelectedCourses();
+    resetModalCourseSelection();
     searchCoursesForModal();
 }
 
@@ -648,6 +715,21 @@ function getYearSuffix(year) {
 
 function getSemesterName(semester) {
     return semester === 1 ? '1st Semester' : semester === 2 ? '2nd Semester' : semester === 3 ? 'Summer' : `Semester ${semester}`;
+}
+
+function getCourseKey(course) {
+    return course ? String(course.id) : '';
+}
+
+function resetModalCourseSelection() {
+    selectedCoursesToAdd = [];
+    $('#modalSelectedCourses').hide();
+    $('#confirmAddCoursesBtn').prop('disabled', true);
+    $('#modalSelectedCoursesList').empty();
+    $('#modalSelectedCount').text('0');
+    $('#modalCourseSearch').val('');
+    $('#modalCourseSearchDropdown').hide();
+    $('#courseSearchBackdrop').remove();
 }
 
 function formatDate(date) {
