@@ -453,16 +453,11 @@ function displayModalCourseResults(courses) {
             timeDisplay = `${timeFrom} - ${timeTo}`;
         }
 
+        let dayDisplay = course.day ?? 'No Day Set';
+
         // Determine CSS class and add replacement indicator
         let itemClass = 'course-result-item';
         let replacementIndicator = '';
-        
-        if (isExactMatch) {
-            itemClass += ' disabled';
-        } else if (isDifferentSectionSelected) {
-            itemClass += ' will-replace';
-            replacementIndicator = '<div class="replacement-notice"><i class="fas fa-exchange-alt"></i> Will replace current section</div>';
-        }
 
         const $item = $(`
             <div class="${itemClass}" 
@@ -473,11 +468,13 @@ function displayModalCourseResults(courses) {
                     <span class="course-title">${course.title}</span>
                 </div>
                 <div class="course-item-details">
-                ${course.programCode || 'N/A'}-${course.yearLevel}${course.sectionName} ${getSemesterName(course.semester)} ${timeDisplay} |
-                    </div>
+                    ${course.programCode || 'N/A'}-${course.yearLevel}${course.sectionName}
+                    ${getSemesterName(course.semester)} | ${timeDisplay} | ${dayDisplay} |
+                </div>
                 ${replacementIndicator}
             </div>
         `);
+
 
         // Only allow click if not exact match
         if (!isExactMatch) {

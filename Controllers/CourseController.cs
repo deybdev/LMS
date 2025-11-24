@@ -25,6 +25,25 @@ namespace LMS.Controllers
             return View();
         }
 
+        // GET: Course/Edit/{id}
+        public ActionResult EditCourse(int? id)
+        {
+            if (!id.HasValue)
+            {
+                TempData["ErrorMessage"] = "Invalid course id.";
+                return RedirectToAction("Course", "IT");
+            }
+
+            var course = db.Courses.Find(id.Value);
+            if (course == null)
+            {
+                TempData["ErrorMessage"] = "Course not found.";
+                return RedirectToAction("Course", "IT");
+            }
+
+            return View("~/Views/IT/EditCourse.cshtml", course);
+        }
+
         // POST: Create Course
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -54,6 +73,55 @@ namespace LMS.Controllers
             db.SaveChanges();
 
             TempData["SuccessMessage"] = "Course created successfully!";
+            return RedirectToAction("Course", "IT");
+        }
+
+        // POST: Course/EditCourse
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditCourse(Course model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("~/Views/IT/EditCourse.cshtml", model);
+            }
+
+            var course = db.Courses.Find(model.Id);
+            if (course == null)
+            {
+                TempData["ErrorMessage"] = "Course not found.";
+                return RedirectToAction("Course", "IT");
+            }
+
+            bool titleExists = db.Courses.Any(c => c.Id != model.Id &&
+                                                   c.CourseTitle.Trim().ToLower() == model.CourseTitle.Trim().ToLower());
+
+            bool codeExists = db.Courses.Any(c => c.Id != model.Id &&
+                                                  c.CourseCode.Trim().ToLower() == model.CourseCode.Trim().ToLower());
+
+            if (titleExists)
+            {
+                ModelState.AddModelError("CourseTitle", "A course with this title already exists.");
+            }
+
+            if (codeExists)
+            {
+                ModelState.AddModelError("CourseCode", "A course with this code already exists.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View("~/Views/IT/EditCourse.cshtml", model);
+            }
+
+            course.CourseTitle = model.CourseTitle?.Trim();
+            course.CourseCode = model.CourseCode?.Trim();
+            course.CourseUnit = model.CourseUnit;
+            course.Description = model.Description ?? string.Empty;
+
+            db.SaveChanges();
+
+            TempData["SuccessMessage"] = "Course updated successfully!";
             return RedirectToAction("Course", "IT");
         }
 

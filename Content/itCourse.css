@@ -90,17 +90,16 @@
 }
 
 .course-title {
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--dark-primary-color);
     margin: 0 0 0.75rem 0;
-    font-family: var(--archivo-black-font);
-    line-height: 1.3;
 }
 
-.course-title-result {
-    font-size: 1rem;
-    color: var(--dark-primary-color);
+.btn-remove-selected{
+    border: none;
+    background:none  ;
+    color: red;
 }
 
 .course-meta-row {
@@ -119,6 +118,13 @@
     font-size: 0.75rem;
     font-weight: 600;
     font-family: var(--archivo-plain-font);
+}
+
+.no-result-message{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ddd;
 }
 
 .department-tag {

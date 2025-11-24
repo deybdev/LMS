@@ -1,7 +1,129 @@
-﻿
+﻿@model LMS.Models.Course
+
 @{
-    ViewBag.Title = "EditCourse";
+    ViewBag.Title = "Edit Course";
 }
 
-<h2>EditCourse</h2>
+<link rel="stylesheet" href="~/Content/teacherCreateCourse.css" />
 
+<div class="admin-container">
+    @Html.Partial("_BackButton")
+
+    <div class="create-course-container">
+        <div class="course-form-wrapper">
+            <!-- Form Header -->
+            <div class="form-header">
+                <div class="header-icon">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </div>
+                <p>Edit Course</p>
+            </div>
+
+            <!-- Course Edit Form -->
+            <form id="editCourseForm" class="course-form" method="post" action="@Url.Action("EditCourse", "Course")">
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.Id)
+
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Course Information
+                    </h3>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="CourseTitle" class="form-label">Course Title *</label>
+                            <input type="text"
+                                   id="CourseTitle"
+                                   name="CourseTitle"
+                                   class="form-control @(ViewData.ModelState.ContainsKey("CourseTitle") && ViewData.ModelState["CourseTitle"].Errors.Count > 0 ? "is-invalid" : "")"
+                                   required
+                                   placeholder="Enter course title"
+                                   value="@Model.CourseTitle" />
+                            @if (ViewData.ModelState.ContainsKey("CourseTitle") && ViewData.ModelState["CourseTitle"].Errors.Count > 0)
+                            {
+                                <div class="error-message">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    @ViewData.ModelState["CourseTitle"].Errors[0].ErrorMessage
+                                </div>
+                            }
+                        </div>
+
+                        <div class="form-group">
+                            <label for="CourseCode" class="form-label">Course Code *</label>
+                            <input type="text"
+                                   id="CourseCode"
+                                   name="CourseCode"
+                                   class="form-control @(ViewData.ModelState.ContainsKey("CourseCode") && ViewData.ModelState["CourseCode"].Errors.Count > 0 ? "is-invalid" : "")"
+                                   required
+                                   placeholder="e.g., CS101"
+                                   value="@Model.CourseCode" />
+                            @if (ViewData.ModelState.ContainsKey("CourseCode") && ViewData.ModelState["CourseCode"].Errors.Count > 0)
+                            {
+                                <div class="error-message">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    @ViewData.ModelState["CourseCode"].Errors[0].ErrorMessage
+                                </div>
+                            }
+                        </div>
+
+                        <div class="form-group">
+                            <label for="CourseUnit" class="form-label">Course Units *</label>
+                            <input type="number"
+                                   id="CourseUnit"
+                                   name="CourseUnit"
+                                   class="form-control"
+                                   min="0"
+                                   step="1"
+                                   required
+                                   placeholder="e.g., 3"
+                                   value="@Model.CourseUnit" />
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="Description" class="form-label">Course Description (Optional)</label>
+                        <textarea id="Description"
+                                  name="Description"
+                                  class="form-control textarea-large"
+                                  rows="4"
+                                  placeholder="Enter course description...">@Model.Description</textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-cancel" onclick="window.history.back()">Cancel</button>
+                    <button type="submit" class="btn btn-create">
+                        <i class="fas fa-save"></i>
+                        Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/Scripts/Custom/dropdown.js"></script>
+}
+
+<style>
+    .error-message {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .form-control.is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+
+    .form-control.is-invalid:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+</style>

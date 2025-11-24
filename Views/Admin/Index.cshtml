@@ -14,6 +14,23 @@
         <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Logout
     </button>
 
+    <div class="dashboard-header d-flex justify-content-between align-items-center">
+        <div>
+            @if (Session["FirstName"] != null)
+            {
+                <h1>
+                    Welcome back, @Session["LastName"]
+                </h1>
+            }
+
+
+            <p>Here what's happening with your classes today</p>
+        </div>
+        <div class="date-time">
+            <div id="currentTime" class="current-time"></div>
+            <div id="currentDate" class="current-date"></div>
+        </div>
+    </div>
 
     <!-- Stats -->
     <div class="stats-grid">

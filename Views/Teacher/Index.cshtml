@@ -120,12 +120,43 @@
     </div>
 </div>
 
+<style>
+    .date-time {
+    text-align: right;
+    font-family: var(--archivo-plain-font);
+}
 
+.current-date {
+    font-size: .9rem;
+    color: var(--gray-text);
+    margin-bottom: 0.25rem;
+}
+
+.current-time {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--dark-primary-color);
+}
+</style>
 
 @section scripts {
     <script src="~/Scripts/Custom/schoolCalendar.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => new SchoolCalendar('teacher'));
+        document.addEventListener('DOMContentLoaded', () => {
+            new SchoolCalendar('teacher');
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+        });
+
+        function updateDateTime() {
+            const now = new Date();
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+
+            $('#currentDate').text(now.toLocaleDateString('en-US', dateOptions));
+            $('#currentTime').text(now.toLocaleTimeString('en-US', timeOptions));
+        }
     </script>
 }
+
 
