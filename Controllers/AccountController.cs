@@ -467,30 +467,206 @@ namespace LMS.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteUser(int id)
         {
-            var user = db.Users.Find(id);
-            if (user == null)
+            try
             {
-                return Json(new { success = false, message = "User not found!" });
+                var user = db.Users.Find(id);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "User not found!" });
+                }
+
+                string userFullName = $"{user.FirstName} {user.LastName}";
+                string userRole = user.Role;
+
+                // Delete related records based on user role
+                if (userRole == "Student")
+                {
+                    // Delete student-specific records
+                    
+                    // 1. Delete attendance records
+                    var attendanceRecords = db.AttendanceRecords.Where(ar => ar.StudentId == id).ToList();
+                    if (attendanceRecords.Any())
+                    {
+                        db.AttendanceRecords.RemoveRange(attendanceRecords);
+                    }
+
+                    // 2. Delete classwork submissions and their files
+                    var submissions = db.ClassworkSubmissions
+                        .Where(cs => cs.StudentId == id)
+                        .ToList();
+
+                    foreach (var submission in submissions)
+                    {
+                        // Get and delete physical submission files
+                        var submissionFiles = db.SubmissionFiles.Where(sf => sf.SubmissionId == submission.Id).ToList();
+                        foreach (var file in submissionFiles)
+                        {
+                            var filePath = Server.MapPath(file.FilePath);
+                            if (System.IO.File.Exists(filePath))
+                            {
+                                try
+                                {
+                                    System.IO.File.Delete(filePath);
+                                }
+                                catch (Exception ex)
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"Error deleting file {filePath}: {ex.Message}");
+                                }
+                            }
+                        }
+                        db.SubmissionFiles.RemoveRange(submissionFiles);
+                    }
+                    db.ClassworkSubmissions.RemoveRange(submissions);
+
+                    // 3. Delete announcement comments
+                    var comments = db.AnnouncementComments.Where(ac => ac.UserId == id).ToList();
+                    if (comments.Any())
+                    {
+                        db.AnnouncementComments.RemoveRange(comments);
+                    }
+
+                    // 4. Delete student course enrollments
+                    var studentCourses = db.StudentCourses.Where(sc => sc.StudentId == id).ToList();
+                    if (studentCourses.Any())
+                    {
+                        db.StudentCourses.RemoveRange(studentCourses);
+                    }
+                }
+                else if (userRole == "Teacher")
+                {
+                    // Delete teacher-specific records
+                    
+                    // 1. Delete announcement comments made by teacher
+                    var comments = db.AnnouncementComments.Where(ac => ac.UserId == id).ToList();
+                    if (comments.Any())
+                    {
+                        db.AnnouncementComments.RemoveRange(comments);
+                    }
+
+                    // 2. Get teacher course sections
+                    var teacherCourseSectionIds = db.TeacherCourseSections
+                        .Where(tcs => tcs.TeacherId == id)
+                        .Select(tcs => tcs.Id)
+                        .ToList();
+
+                    foreach (var tcsId in teacherCourseSectionIds)
+                    {
+                        // Delete materials and their files
+                        var materials = db.Materials.Where(m => m.TeacherCourseSectionId == tcsId).ToList();
+                        foreach (var material in materials)
+                        {
+                            var materialFiles = db.MaterialFiles.Where(mf => mf.MaterialId == material.Id).ToList();
+                            foreach (var file in materialFiles)
+                            {
+                                var filePath = Server.MapPath(file.FilePath);
+                                if (System.IO.File.Exists(filePath))
+                                {
+                                    try
+                                    {
+                                        System.IO.File.Delete(filePath);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        System.Diagnostics.Debug.WriteLine($"Error deleting file {filePath}: {ex.Message}");
+                                    }
+                                }
+                            }
+                            db.MaterialFiles.RemoveRange(materialFiles);
+                        }
+                        db.Materials.RemoveRange(materials);
+
+                        // Delete classworks and related data
+                        var classworks = db.Classworks.Where(c => c.TeacherCourseSectionId == tcsId).ToList();
+                        foreach (var classwork in classworks)
+                        {
+                            // Delete classwork files
+                            var classworkFiles = db.ClassworkFiles.Where(cf => cf.ClassworkId == classwork.Id).ToList();
+                            foreach (var file in classworkFiles)
+                            {
+                                var filePath = Server.MapPath(file.FilePath);
+                                if (System.IO.File.Exists(filePath))
+                                {
+                                    try
+                                    {
+                                        System.IO.File.Delete(filePath);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        System.Diagnostics.Debug.WriteLine($"Error deleting file {filePath}: {ex.Message}");
+                                    }
+                                }
+                            }
+                            db.ClassworkFiles.RemoveRange(classworkFiles);
+
+                            // Delete submission files for this classwork
+                            var cwSubmissions = db.ClassworkSubmissions.Where(cs => cs.ClassworkId == classwork.Id).ToList();
+                            foreach (var submission in cwSubmissions)
+                            {
+                                var submissionFiles = db.SubmissionFiles.Where(sf => sf.SubmissionId == submission.Id).ToList();
+                                foreach (var file in submissionFiles)
+                                {
+                                    var filePath = Server.MapPath(file.FilePath);
+                                    if (System.IO.File.Exists(filePath))
+                                    {
+                                        try
+                                        {
+                                            System.IO.File.Delete(filePath);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            System.Diagnostics.Debug.WriteLine($"Error deleting file {filePath}: {ex.Message}");
+                                        }
+                                    }
+                                }
+                                db.SubmissionFiles.RemoveRange(submissionFiles);
+                            }
+                            db.ClassworkSubmissions.RemoveRange(cwSubmissions);
+                        }
+                        db.Classworks.RemoveRange(classworks);
+
+                        // Delete announcements and their comments
+                        var announcements = db.Announcements.Where(a => a.TeacherCourseSectionId == tcsId).ToList();
+                        foreach (var announcement in announcements)
+                        {
+                            var announcementComments = db.AnnouncementComments.Where(ac => ac.AnnouncementId == announcement.Id).ToList();
+                            db.AnnouncementComments.RemoveRange(announcementComments);
+                        }
+                        db.Announcements.RemoveRange(announcements);
+
+                        // Delete attendance records
+                        var attendanceRecords = db.AttendanceRecords.Where(ar => ar.TeacherCourseSectionId == tcsId).ToList();
+                        db.AttendanceRecords.RemoveRange(attendanceRecords);
+                    }
+
+                    // Remove teacher course sections
+                    var teacherCourseSections = db.TeacherCourseSections.Where(tcs => tcs.TeacherId == id).ToList();
+                    db.TeacherCourseSections.RemoveRange(teacherCourseSections);
+                }
+
+                // Save changes for related records deletion
+                db.SaveChanges();
+
+                // Now delete the user
+                db.Users.Remove(user);
+                db.SaveChanges();
+
+                // Log the deletion
+                LogAction(
+                    category: "User Actions",
+                    message: $"Deleted {userRole} account: {userFullName}",
+                    userName: Session["FullName"]?.ToString(),
+                    role: Session["Role"]?.ToString()
+                );
+
+                return Json(new { success = true, message = $"{userRole} deleted successfully!" });
             }
-
-            string userFullName = $"{user.FirstName} {user.LastName}";
-            string userRole = user.Role;
-
-            db.Users.Remove(user);
-            db.SaveChanges();
-
-            // Log the deletion
-            LogAction(
-                category: "User Actions",
-                message: $"Deleted {userRole} account: {userFullName}",
-                userName: Session["FullName"]?.ToString(),
-                role: "Admin"
-            );
-
-            return Json(new { success = true, message = $"{userRole} deleted successfully!" });
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"DeleteUser Error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
+                return Json(new { success = false, message = "Error deleting user: " + ex.Message });
+            }
         }
-
-        
 
         private bool IsValidEmail(string email)
         {

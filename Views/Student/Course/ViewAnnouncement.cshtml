@@ -1,0 +1,650 @@
+@model LMS.Models.Course
+
+@{
+    ViewBag.Title = "View Announcement";
+    int courseId = ViewBag.CourseId ?? Model.Id;
+    ViewBag.ActiveTab = "Announcement";
+    var announcement = ViewBag.Announcement as dynamic;
+    var comments = ViewBag.Comments as List<dynamic> ?? new List<dynamic>();
+    var currentUserId = (int)Session["Id"];
+    var currentUserName = Session["FirstName"] + " " + Session["LastName"];
+    var currentUserInitials = (Session["FirstName"]?.ToString().Substring(0, 1) ?? "U") + 
+                             (Session["LastName"]?.ToString().Substring(0, 1) ?? "S");
+}
+
+<link rel="stylesheet" href="~/Content/teacherCourse.css" />
+<link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
+
+<style>
+    .announcement-detail-container {
+        margin: 0 auto;
+    }
+
+    .announcement-card-detail {
+        background: white;
+        margin-bottom: 20px;
+    }
+
+    .announcement-header-detail {
+        padding: 10px 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .announcement-avatar-large {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--dark-primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .announcement-header-info {
+        flex: 1;
+    }
+
+    .announcement-title-large {
+        font-size: 22px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .announcement-meta-detail {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 13px;
+        color: #666;
+    }
+
+    .announcement-author-name {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .announcement-date-detail {
+        color: #999;
+    }
+
+    .announcement-content-detail {
+        padding: 25px;
+        font-size: 15px;
+        line-height: 1.8;
+        color: #333;
+    }
+
+        .announcement-content-detail ul,
+        .announcement-content-detail ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .announcement-content-detail p {
+            margin-bottom: 15px;
+        }
+
+        .announcement-content-detail strong {
+            font-weight: 700;
+        }
+
+        .announcement-content-detail a {
+            color: var(--dark-primary-color);
+            text-decoration: underline;
+        }
+
+    /* Comments Section */
+    .comments-section {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+    }
+
+    .comments-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .comments-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .comments-header i {
+            color: var(--dark-primary-color);
+            font-size: 18px;
+        }
+
+    .comment-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--dark-primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .comment-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #fff;
+        padding: 12px;
+        border-radius: 10px;
+    }
+
+    .comment-avatar {
+        width: 36px;
+        height: 36px;
+        background: var(--dark-primary-color);
+        color: #fff;
+        font-weight: bold;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 15px;
+    }
+
+    .comment-input-field {
+        flex: 1;
+        padding: 10px 12px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        border-radius: 50px;
+        outline: none;
+    }
+
+        .comment-input-field:focus {
+            border-color: var(--dark-primary-color);
+        }
+
+    .comment-submit-btn {
+        color: var(--dark-primary-color);
+        font-size: 20px;
+        border: none;
+        background: none;
+        cursor: pointer;
+    }
+
+        .comment-submit-btn:hover {
+            color: var(--primary-color);
+        }
+
+    /* Comments List */
+    .comments-list {
+        margin-top: 20px;
+    }
+
+    .comment-item {
+        display: flex;
+        gap: 12px;
+        max-height: 400px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+    }
+
+    .comment-body {
+        flex: 1;
+        background: #f8f8f8;
+        padding: 12px 15px;
+        border-radius: 8px;
+    }
+
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .comment-author {
+        font-weight: 600;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .comment-date {
+        font-size: 12px;
+        color: #999;
+    }
+
+    .comment-text {
+        font-size: 14px;
+        color: #555;
+        line-height: 1.6;
+    }
+
+    .comment-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 8px;
+    }
+
+    .comment-action-btn {
+        background: none;
+        border: none;
+        color: #666;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: color 0.2s;
+    }
+
+        .comment-action-btn:hover {
+            color: var(--dark-primary-color);
+        }
+
+        .comment-action-btn i {
+            font-size: 11px;
+        }
+
+    /* Replies */
+    .replies {
+        margin-top: 15px;
+        margin-left: 52px;
+    }
+
+    .reply-item {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 15px;
+    }
+
+    .reply-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--dark-primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+
+    .reply-body {
+        flex: 1;
+        background: white;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #e8e8e8;
+    }
+
+    .reply-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+
+    .reply-author {
+        font-weight: 600;
+        font-size: 13px;
+        color: #333;
+    }
+
+    .reply-date {
+        font-size: 11px;
+        color: #999;
+    }
+
+    .reply-text {
+        font-size: 13px;
+        color: #555;
+        line-height: 1.5;
+    }
+
+    /* Reply Form */
+    .reply-form {
+        margin-top: 10px;
+        margin-left: 52px;
+        display: none;
+    }
+
+        .reply-form.active {
+            display: block;
+        }
+
+    .reply-input-wrapper {
+        display: flex;
+        gap: 10px;
+    }
+
+    .reply-input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 13px;
+        font-family: inherit;
+    }
+
+        .reply-input:focus {
+            outline: none;
+            border-color: var(--dark-primary-color);
+        }
+
+    .btn-reply-submit {
+        padding: 8px 16px;
+        background: var(--dark-primary-color);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .btn-reply-submit:hover {
+            background: var(--primary-color);
+        }
+
+    .btn-reply-cancel {
+        padding: 8px 16px;
+        background: #f5f5f5;
+        color: #666;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .no-comments {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+        font-size: 14px;
+    }
+
+        .no-comments i {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #ddd;
+        }
+</style>
+
+<div class="admin-container">
+    @Html.Partial("_BackButton")
+    @Html.Partial("_CourseHeader", Model)
+    @Html.Partial("_CourseNavigation", Model)
+    
+    <div class="tab-content mt-3">
+        <div class="tab-pane active">
+            <div class="announcement-detail-container"> 
+                @if (announcement != null)
+                {
+                    <div class="announcement-card-detail">
+                        <div class="announcement-header-detail">
+                            <div class="announcement-avatar-large">
+                                @{
+                                    var authorInitials = (announcement.AuthorName.ToString().Split(' ').Length > 1) 
+                                        ? announcement.AuthorName.ToString().Split(' ')[0].Substring(0, 1) + announcement.AuthorName.ToString().Split(' ')[1].Substring(0, 1)
+                                        : announcement.AuthorName.ToString().Substring(0, 1);
+                                }
+                                @authorInitials
+                            </div>
+                            <div class="announcement-header-info">
+                                <div class="announcement-meta-detail">
+                                    <span class="announcement-author-name">@announcement.AuthorName</span>
+                                    <span class="announcement-date-detail">@announcement.PostedAt.ToString("MMMM dd, yyyy 'at' h:mm tt")</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="announcement-content-detail">
+                            @Html.Raw(announcement.Content)
+                        </div>
+                    </div>
+
+                    <!-- Comments Section -->
+                    <div class="comments-section">
+                        <div class="comments-header">
+                            <i class="far fa-comments"></i>
+                            <h3>Comments</h3>
+                        </div>
+
+                        <!-- Comments List -->
+                        <div class="comments-list">
+                            @if (comments.Any())
+                            {
+                                foreach (var comment in comments)
+                                {
+                                    var commentUserInitials = comment.UserName.ToString().Split(' ').Length > 1
+                                        ? comment.UserName.ToString().Split(' ')[0].Substring(0, 1) + comment.UserName.ToString().Split(' ')[1].Substring(0, 1)
+                                        : comment.UserName.ToString().Substring(0, 1);
+
+                                    <div class="comment-item">
+                                        <div class="comment-avatar">@commentUserInitials</div>
+                                        <div style="flex: 1;">
+                                            <div class="comment-body">
+                                                <div class="comment-header">
+                                                    <span class="comment-author">@comment.UserName</span>
+                                                    <span class="comment-date">
+                                                        @{
+                                                            var commentTime = (DateTime)comment.CreatedAt;
+                                                            var timeAgo = DateTime.Now - commentTime;
+                                                            string timeDisplay;
+
+                                                            if (timeAgo.TotalMinutes < 1)
+                                                            {
+                                                                timeDisplay = "Just now";
+                                                            }
+                                                            else if (timeAgo.TotalMinutes < 60)
+                                                            {
+                                                                timeDisplay = $"{(int)timeAgo.TotalMinutes}m ago";
+                                                            }
+                                                            else if (timeAgo.TotalHours < 24)
+                                                            {
+                                                                timeDisplay = $"{(int)timeAgo.TotalHours}h ago";
+                                                            }
+                                                            else if (timeAgo.TotalDays < 7)
+                                                            {
+                                                                timeDisplay = $"{(int)timeAgo.TotalDays}d ago";
+                                                            }
+                                                            else
+                                                            {
+                                                                timeDisplay = commentTime.ToString("MMM dd, yyyy");
+                                                            }
+                                                        }
+                                                        @timeDisplay
+                                                    </span>
+                                                </div>
+                                                <div class="comment-text">@comment.Comment</div>
+                                                <div class="comment-actions">
+                                                    <button class="comment-action-btn" onclick="toggleReplyForm(@comment.Id)">
+                                                        <i class="fas fa-reply"></i>
+                                                        Reply
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Reply Form -->
+                                            <div class="reply-form" id="replyForm_@comment.Id">
+                                                <div class="reply-input-wrapper">
+                                                    <input type="text" class="reply-input" id="replyInput_@comment.Id" placeholder="Write a reply..." />
+                                                    <button class="btn-reply-cancel" onclick="cancelReply(@comment.Id)">Cancel</button>
+                                                    <button class="btn-reply-submit" onclick="submitReply(@comment.Id)">Reply</button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Replies -->
+                                            @if (comment.Replies != null && comment.Replies.Count > 0)
+                                            {
+                                                <div class="replies">
+                                                    @foreach (var reply in comment.Replies)
+                                                    {
+                                                        var replyUserInitials = reply.UserName.ToString().Split(' ').Length > 1
+                                                            ? reply.UserName.ToString().Split(' ')[0].Substring(0, 1) + reply.UserName.ToString().Split(' ')[1].Substring(0, 1)
+                                                            : reply.UserName.ToString().Substring(0, 1);
+
+                                                        <div class="reply-item">
+                                                            <div class="reply-avatar">@replyUserInitials</div>
+                                                            <div class="reply-body">
+                                                                <div class="reply-header">
+                                                                    <span class="reply-author">@reply.UserName</span>
+                                                                    <span class="reply-date">
+                                                                        @{
+                                                                            var replyTime = (DateTime)reply.CreatedAt;
+                                                                            var replyTimeAgo = DateTime.Now - replyTime;
+                                                                            string replyTimeDisplay;
+
+                                                                            if (replyTimeAgo.TotalMinutes < 1)
+                                                                            {
+                                                                                replyTimeDisplay = "Just now";
+                                                                            }
+                                                                            else if (replyTimeAgo.TotalMinutes < 60)
+                                                                            {
+                                                                                replyTimeDisplay = $"{(int)replyTimeAgo.TotalMinutes}m ago";
+                                                                            }
+                                                                            else if (replyTimeAgo.TotalHours < 24)
+                                                                            {
+                                                                                replyTimeDisplay = $"{(int)replyTimeAgo.TotalHours}h ago";
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                replyTimeDisplay = replyTime.ToString("MMM dd, yyyy");
+                                                                            }
+                                                                        }
+                                                                        @replyTimeDisplay
+                                                                    </span>
+                                                                </div>
+                                                                <div class="reply-text">@reply.Comment</div>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="no-comments">
+                                    <i class="far fa-comments"></i>
+                                    <p>No comments yet. Be the first to comment!</p>
+                                </div>
+                            }
+                        </div>
+                        
+                        <!-- Add Comment -->
+                        <div class="comment-row">
+                            <div class="comment-avatar">@currentUserInitials</div>
+                            <input id="commentInput"
+                                   type="text"
+                                   class="comment-input-field"
+                                   placeholder="Write a comment..." />
+                            <button type="button" class="comment-submit-btn" onclick="submitComment()">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        var announcementId = @(announcement?.Id ?? 0);
+
+        function submitComment() {
+            var commentText = document.getElementById('commentInput').value.trim();
+            
+            if (!commentText) {
+                alert('Please enter a comment.');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("AddComment", "Student")',
+                type: 'POST',
+                data: {
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                    announcementId: announcementId,
+                    comment: commentText
+                },
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert(response.message || 'Failed to add comment.');
+                    }
+                },
+                error: function() {
+                    alert('An error occurred while adding the comment.');
+                }
+            });
+        }
+
+        function toggleReplyForm(commentId) {
+            var form = document.getElementById('replyForm_' + commentId);
+            form.classList.toggle('active');
+            
+            if (form.classList.contains('active')) {
+                document.getElementById('replyInput_' + commentId).focus();
+            }
+        }
+
+        function cancelReply(commentId) {
+            var form = document.getElementById('replyForm_' + commentId);
+            form.classList.remove('active');
+            document.getElementById('replyInput_' + commentId).value = '';
+        }
+
+        function submitReply(commentId) {
+            var replyText = document.getElementById('replyInput_' + commentId).value.trim();
+            
+            if (!replyText) {
+                alert('Please enter a reply.');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("AddReply", "Student")',
+                type: 'POST',
+                data: {
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                    announcementId: announcementId,
+                    parentCommentId: commentId,
+                    comment: replyText
+                },
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert(response.message || 'Failed to add reply.');
+                    }
+                },
+                error: function() {
+                    alert('An error occurred while adding the reply.');
+                }
+            });
+        }
+    </script>
+    @Html.AntiForgeryToken()
+}

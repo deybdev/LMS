@@ -296,6 +296,26 @@
     <Compile Include="Migrations\202511241318319_AddLateMinutesToAttendance.Designer.cs">
       <DependentUpon>202511241318319_AddLateMinutesToAttendance.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202511271558219_addansd.cs" />
+    <Compile Include="Migrations\202511271558219_addansd.Designer.cs">
+      <DependentUpon>202511271558219_addansd.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511271705123_amsnd.cs" />
+    <Compile Include="Migrations\202511271705123_amsnd.Designer.cs">
+      <DependentUpon>202511271705123_amsnd.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511271758292_AddTeacherLibrary.cs" />
+    <Compile Include="Migrations\202511271758292_AddTeacherLibrary.Designer.cs">
+      <DependentUpon>202511271758292_AddTeacherLibrary.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511271819272_ajskdnaksd.cs" />
+    <Compile Include="Migrations\202511271819272_ajskdnaksd.Designer.cs">
+      <DependentUpon>202511271819272_ajskdnaksd.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511271841075_asnasa.cs" />
+    <Compile Include="Migrations\202511271841075_asnasa.Designer.cs">
+      <DependentUpon>202511271841075_asnasa.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Announcement.cs" />
     <Compile Include="Models\AttendanceRecord.cs" />
@@ -447,6 +467,14 @@
     <Content Include="Views\Teacher\Course\CreateAnnouncement.cshtml" />
     <Content Include="Views\Teacher\Course\ViewAnnouncement.cshtml" />
     <Content Include="Views\Teacher\Course\EditAnnouncement.cshtml" />
+    <Content Include="Views\Student\Course\Material.cshtml" />
+    <Content Include="Views\Student\Course\Announcement.cshtml" />
+    <Content Include="Views\Student\Course\Classwork.cshtml" />
+    <Content Include="Views\Student\Course\ViewMaterial.cshtml" />
+    <Content Include="Views\Student\Course\ViewAnnouncement.cshtml" />
+    <Content Include="Views\Student\Course\CreateAnnouncement.cshtml" />
+    <Content Include="Views\Student\Course\EditAnnouncement.cshtml" />
+    <Content Include="Views\Teacher\Course\EditClasswork.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -535,6 +563,21 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202511241318319_AddLateMinutesToAttendance.resx">
       <DependentUpon>202511241318319_AddLateMinutesToAttendance.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511271558219_addansd.resx">
+      <DependentUpon>202511271558219_addansd.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511271705123_amsnd.resx">
+      <DependentUpon>202511271705123_amsnd.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511271758292_AddTeacherLibrary.resx">
+      <DependentUpon>202511271758292_AddTeacherLibrary.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511271819272_ajskdnaksd.resx">
+      <DependentUpon>202511271819272_ajskdnaksd.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511271841075_asnasa.resx">
+      <DependentUpon>202511271841075_asnasa.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

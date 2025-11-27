@@ -12,9 +12,7 @@
 
 <div class="admin-container">
     @Html.Partial("_BackButton")
-
     @Html.Partial("_CourseHeader", Model)
-
     @Html.Partial("_CourseNavigation", Model)
 
     <div class="tab-pane active">
@@ -23,12 +21,12 @@
         </div>
         <div class="create-classwork-container">
 
-            <form action="@Url.Action("CreateClasswork", "Teacher")" method="post" enctype="multipart/form-data">
+            <form action="@Url.Action("CreateClasswork", "Teacher")" method="post" enctype="multipart/form-data" id="classworkForm">
                 @Html.AntiForgeryToken()
 
                 <input type="hidden" name="TeacherCourseId" value="@courseId" />
 
-                <!-- Title, Classwork Type, Answer Type Row -->
+                <!-- Title, Classwork Type Row -->
                 <div class="form-row">
                     <div class="form-group">
                         <label>Title<span class="required">*</span></label>
@@ -36,7 +34,7 @@
                     </div>
                     <div class="form-group">
                         <label>Classwork Type<span class="required">*</span></label>
-                        <select name="classworkType" required>
+                        <select name="classworkType" id="classworkType" required>
                             <option value="">Select type</option>
                             <option value="Assignment">Assignment</option>
                             <option value="Quiz">Quiz</option>
@@ -47,7 +45,68 @@
                     </div>
                 </div>
 
-                <!-- Deadline, Points, Attempts Row -->
+                <!-- Publish Mode Selection -->
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label>Publish Mode<span class="required">*</span></label>
+                        <div class="submission-mode-options">
+                            <label class="mode-option">
+                                <input type="radio" name="publishMode" id="publishNow" value="now" checked />
+                                <div class="mode-card">
+                                    <i class="fas fa-upload"></i>
+                                    <h4>Upload Now</h4>
+                                    <p>Make classwork available immediately</p>
+                                </div>
+                            </label>
+                            <label class="mode-option">
+                                <input type="radio" name="publishMode" id="publishScheduled" value="scheduled" />
+                                <div class="mode-card">
+                                    <i class="fas fa-clock"></i>
+                                    <h4>Schedule</h4>
+                                    <p>Set a future date to publish classwork</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scheduled Publish Date (Hidden by default) -->
+                <div class="form-row" id="scheduledDateRow" style="display: none;">
+                    <div class="form-group full-width">
+                        <label>Scheduled Publish Date<span class="required">*</span></label>
+                        <input type="datetime-local" id="scheduledPublishDate" name="scheduledPublishDate" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            <i class="fas fa-info-circle"></i> Students will be able to see this classwork on the scheduled date.
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Submission Mode Selection -->
+                <div class="form-row" id="submissionModeRow" style="display: none;">
+                    <div class="form-group full-width">
+                        <label>Submission Mode<span class="required">*</span></label>
+                        <div class="submission-mode-options">
+                            <label class="mode-option">
+                                <input type="radio" name="submissionMode" id="modeManual" value="manual" checked />
+                                <div class="mode-card">
+                                    <i class="fas fa-clipboard-question"></i>
+                                    <h4>Manual Questions</h4>
+                                    <p>Create questions for students to answer</p>
+                                </div>
+                            </label>
+                            <label class="mode-option">
+                                <input type="radio" name="submissionMode" id="modeFile" value="file" />
+                                <div class="mode-card">
+                                    <i class="fas fa-file-upload"></i>
+                                    <h4>File Submission</h4>
+                                    <p>Students upload files as their work</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deadline Row -->
                 <div class="deadline-points-row">
                     <div class="form-group">
                         <label>Deadline<span class="required">*</span></label>
@@ -57,9 +116,9 @@
                             No due date
                         </label>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="pointsGroup">
                         <label>Points<span class="required">*</span></label>
-                        <input type="number" name="points" required placeholder="0" min="0" />
+                        <input type="number" name="points" id="totalPoints" required placeholder="0" min="0" />
                     </div>
                 </div>
 
@@ -71,10 +130,10 @@
                     </div>
                 </div>
 
-                <!-- File Upload Area -->
-                <div class="form-row">
+                <!-- File Upload Area (for instructional materials) - Only in File Mode -->
+                <div class="form-row" id="fileAttachmentSection" style="display: none;">
                     <div class="form-group full-width">
-                        <label>Attachments</label>
+                        <label>Instructional Materials / Attachments</label>
                         <div class="upload-area" id="uploadArea">
                             <div class="upload-icon">
                                 <i class="fa-solid fa-cloud-arrow-up"></i>
@@ -88,6 +147,39 @@
                         </div>
                         <div class="uploaded-files-list" id="uploadedFilesList"></div>
                     </div>
+                </div>
+
+                <!-- Questions Section (Manual Mode Only) -->
+                <div id="questionsSection" style="display: none;">
+                    <div class="section-header">
+                        <div>
+                            <h3><i class="fa-solid fa-clipboard-question"></i> Questions</h3>
+                            <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">
+                                Create questions for students to answer. Points will be calculated from questions.
+                            </p>
+                        </div>
+                        <div class="question-type-selector">
+                            <label>Add Question Type:</label>
+                            <select id="questionTypeSelect">
+                                <option value="">Choose type</option>
+                                <option value="multipleChoice">Multiple Choice</option>
+                                <option value="multipleAnswer">Multiple Answer</option>
+                                <option value="trueFalse">True/False</option>
+                                <option value="identification">Identification</option>
+                                <option value="essay">Essay/Text</option>
+                                <option value="fileUpload">File Upload</option>
+                            </select>
+                            <button type="button" class="btn-add-question" onclick="addQuestion()">
+                                <i class="fa-solid fa-plus"></i> Add Question
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="questionsList" class="questions-list">
+                        <!-- Questions will be added here dynamically -->
+                    </div>
+
+                    <input type="hidden" id="questionsData" name="questionsJson" />
                 </div>
 
                 <!-- Form Actions -->
@@ -106,4 +198,35 @@
 
 @section scripts {
     <script src="~/Scripts/Custom/classworkForm.js"></script>
+    <script src="~/Scripts/Custom/questionBuilder.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Handle publish mode change
+            $('input[name="publishMode"]').on('change', function() {
+                var mode = $(this).val();
+                if (mode === 'scheduled') {
+                    $('#scheduledDateRow').slideDown();
+                    $('#scheduledPublishDate').prop('required', true);
+                } else {
+                    $('#scheduledDateRow').slideUp();
+                    $('#scheduledPublishDate').prop('required', false);
+                }
+            });
+
+            // Validate scheduled date is after current time
+            $('#classworkForm').on('submit', function(e) {
+                var publishMode = $('input[name="publishMode"]:checked').val();
+                if (publishMode === 'scheduled') {
+                    var scheduledDate = new Date($('#scheduledPublishDate').val());
+                    var now = new Date();
+                    
+                    if (scheduledDate <= now) {
+                        e.preventDefault();
+                        alert('Scheduled publish date must be in the future.');
+                        return false;
+                    }
+                }
+            });
+        });
+    </script>
 }

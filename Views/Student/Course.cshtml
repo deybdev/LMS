@@ -1,7 +1,108 @@
-﻿
+﻿@model IEnumerable<dynamic>
+
 @{
-    ViewBag.Title = "Course";
+    ViewBag.Title = "My Courses";
 }
 
-<h2>Course</h2>
+<link rel="stylesheet" href="~/Content/teacherCourse.css" />
 
+<div class="admin-container">
+    @Html.Partial("_BackButton")
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1>My Courses</h1>
+                <p class="subtitle">View and manage your assigned courses.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="courses-container">
+        <div class="courses-grid" id="coursesGrid">
+
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <div class="course-card ongoing">
+                        <div class="course-header">
+                            <div class="course-details">
+                                <h5>@item.CourseName</h5>
+                                <span class="course-code">@item.CourseCode</span>
+                            </div>
+                        </div>
+
+                        <div class="teacher-section">
+                            <div class="teacher-avatar">
+                                <span>
+                                    @{
+                                        string prof = item.CourseProf.ToString();
+                                        string initials = "";
+                                        var parts = prof.Split(' ');
+
+                                        foreach (var p in parts)
+                                        {
+                                            if (!string.IsNullOrWhiteSpace(p))
+                                            {
+                                                initials += p.Substring(0, 1).ToUpper();
+                                            }
+                                        }
+                                    }
+                                    @initials
+                                </span>
+                            </div>
+                            <div class="course-info">
+                                <h4>@item.CourseProf</h4>
+                                <p>
+                                    <i class="fa-regular fa-calendar"></i>
+                                    @item.Day - @item.Time
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="course-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-clock"></i>
+                                <span>@item.SchoolYear</span>
+                            </div>
+                        </div>
+
+                        <div class="course-footer">
+                            <a href="@Url.Action("Material", "Student", new { id = item.CourseId })" class="btn-view-course">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="no-courses-message" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                    <i class="fas fa-book-open" style="font-size: 4rem; color: #ccc; margin-bottom: 1rem;"></i>
+                    <h3 style="color: #666; margin-bottom: 0.5rem;">No Courses Assigned Yet</h3>
+                    <p style="color: #999;">You don't have any courses assigned to you at the moment. Please contact the administrator if you believe this is an error.</p>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .course-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 12px;
+    }
+
+    .course-details h5 {
+        color: var(--dark-primary-color);
+        margin: 0 0 0.5rem 0;
+        font-size: 1.1rem;
+    }
+</style>
+
+@section scripts {
+}

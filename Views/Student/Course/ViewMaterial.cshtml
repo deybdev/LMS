@@ -1,0 +1,385 @@
+@model LMS.Models.Course
+
+@{
+    ViewBag.Title = "View Material";
+    int courseId = ViewBag.CourseId ?? Model.Id;
+    ViewBag.ActiveTab = "Material";
+    var material = ViewBag.Material as LMS.Models.Material;
+}
+
+<link rel="stylesheet" href="~/Content/teacherCourse.css" />
+<link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
+
+<style>
+    .material-view-container {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+        max-width: 1400px;
+        align-items: start;
+    }
+
+    .material-content {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .material-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 2rem 0;
+        color: var(--dark-primary-color);
+        font-family: var(--archivo-black-font);
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .section-content {
+        color: #666;
+        line-height: 1.8;
+        margin-bottom: 20px;
+    }
+
+    .materials-grid-view {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .material-file-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        background: rgba(123, 123, 123, 0.07);
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        transition: all 0.3s;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        cursor: pointer;
+        height: 80px;
+    }
+
+    .material-file-card:hover {
+        background: rgba(24, 82, 172, 0.05);
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(24, 82, 172, 0.1);
+    }
+
+    .file-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex: 1;
+    }
+
+    .file-icon {
+        width: 33px;
+        height: 33px;
+        background: var(--dark-primary-color);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 15px;
+        flex-shrink: 0;
+    }
+
+    .file-details {
+        flex: 1;
+    }
+
+    .file-name {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 4px;
+        font-size: 13px;
+    }
+
+    .file-size {
+        color: #999;
+        font-size: 12px;
+    }
+
+    /* Comments Section */
+    .comments-section {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        height: 500px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .comments-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+    }
+
+    .comments-header h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+
+    .comments-header i {
+        color: var(--dark-primary-color);
+        font-size: 1.3rem;
+    }
+
+    .comments-list {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 15px;
+        padding-right: 10px;
+    }
+
+    /* Scrollbar styling */
+    .comments-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .comments-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .comments-list::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 10px;
+    }
+
+    .comments-list::-webkit-scrollbar-thumb:hover {
+        background: #999;
+    }
+
+    .comment-item-wrapper {
+        margin-bottom: 8px;
+    }
+
+    .comment-bubble {
+        padding: 12px 15px;
+        background: #f0f0f0;
+        color: #333;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        position: relative;
+    }
+
+    .my-comment-bubble {
+        margin-left: 10px;
+    }
+
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+
+    .comment-author {
+        font-weight: 600;
+        font-size: 13px;
+        color: #333;
+    }
+
+    .comment-date {
+        font-size: 10px;
+        opacity: 0.7;
+    }
+
+    .comment-text {
+        font-size: 13px;
+        line-height: 1.5;
+        word-wrap: break-word;
+    }
+
+    .comment-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--dark-primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .comment-input-container {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .comment-input-container input {
+        flex: 1;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 0.9rem;
+    }
+
+    .comment-input-container button {
+        background: var(--dark-primary-color);
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .comment-input-container button:hover {
+        background: var(--primary-color);
+    }
+
+    .no-comments-message {
+        text-align: center;
+        padding: 2rem;
+        color: #999;
+    }
+
+    .no-comments-message i {
+        font-size: 2.5rem;
+        color: #ddd;
+        margin-bottom: 1rem;
+    }
+
+    /* Responsive */
+    @@media (max-width: 968px) {
+        .material-view-container {
+            grid-template-columns: 1fr;
+        }
+
+        .materials-grid-view {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="admin-container">
+    @Html.Partial("_BackButton")
+
+    @if (material != null)
+    {
+        <h1 class="material-title">@material.Title</h1>
+
+        <div class="material-view-container">
+
+            <!-- Left Side: Material Content -->
+            <div class="material-content">
+
+                <!-- Overview -->
+                <div>
+                    <h3 class="section-title">Description</h3>
+                    <p class="section-content">
+                        @(string.IsNullOrEmpty(material.Description) ? "No description provided." : material.Description)
+                    </p>
+                </div>
+
+                <!-- Course Materials -->
+                <div>
+                    <h3 class="section-title">Course Materials</h3>
+                    @if (material.MaterialFiles != null && material.MaterialFiles.Any())
+                    {
+                        <div class="materials-grid-view">
+                            @foreach (var file in material.MaterialFiles)
+                            {
+                                <div class="material-file-card" onclick="window.open('@file.FilePath', '_blank')">
+                                    <div class="file-info">
+                                        <div class="file-icon">
+                                            <i class="fas fa-file-alt"></i>
+                                        </div>
+                                        <div class="file-details">
+                                            <div class="file-name">@file.FileName</div>
+                                            <div class="file-size">@file.SizeInMB.ToString("0.##") MB</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="section-content" style="color: #999;">No files available.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Right Side: Class Comments -->
+            <div class="comments-section">
+                <div class="comments-header">
+                    <i class="fas fa-comments"></i>
+                    <h3>Class Comments</h3>
+                </div>
+
+                <div class="comments-list" id="commentsList">
+                    <div class="no-comments-message">
+                        <i class="fas fa-comments"></i>
+                        <p>No comments yet. Be the first to comment!</p>
+                    </div>
+                </div>
+
+                <!-- Input for adding a new comment -->
+                <div class="comment-input-container">
+                    <input type="text" id="commentInput" placeholder="Write a comment..." />
+                    <button type="button" id="sendCommentBtn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center" style="padding: 60px;">
+            <i class="fas fa-exclamation-circle fa-3x" style="color: #ddd; margin-bottom: 1rem;"></i>
+            <h3 style="font-size: 1.5rem; font-weight: 600; color: #666; margin-bottom: 0.5rem;">Material Not Found</h3>
+            <p style="color: #999; margin-bottom: 1.5rem;">The material you're looking for doesn't exist or you don't have access to it.</p>
+            <a href="@Url.Action("Material", "Student", new { id = courseId })" class="btn-view-material" style="display: inline-flex;">
+                <i class="fas fa-arrow-left"></i> Back to Materials
+            </a>
+        </div>
+    }
+</div>
+
+@section scripts {
+    <script>
+        document.getElementById('sendCommentBtn')?.addEventListener('click', function() {
+            const input = document.getElementById('commentInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            // TODO: Implement actual comment posting functionality
+            console.log('New comment:', text);
+            alert(`Comment will be posted: ${text}\n\nThis feature will be implemented soon!`);
+            input.value = '';
+        });
+
+        // Enter key to submit
+        document.getElementById('commentInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('sendCommentBtn').click();
+            }
+        });
+    </script>
+}

@@ -1,9 +1,17 @@
-@model LMS.Models.Course
+﻿@model LMS.Models.Course
 
 @{
     ViewBag.Title = "Edit Classwork";
     int courseId = ViewBag.CourseId ?? Model.Id;
     ViewBag.ActiveTab = "Classwork";
+    
+    // Determine submission mode from existing data
+    bool hasQuestions = !string.IsNullOrEmpty(ViewBag.ClassworkQuestionsJson);
+    string currentMode = hasQuestions ? "manual" : "file";
+    
+    // Determine publish mode
+    bool isScheduled = ViewBag.IsScheduled ?? false;
+    string publishMode = isScheduled ? "scheduled" : "now";
 }
 
 <link rel="stylesheet" href="~/Content/teacherCourse.css" />
@@ -11,23 +19,23 @@
 <link rel="stylesheet" href="~/Content/classworkForm.css" />
 
 <div class="admin-container">
+    @Html.Partial("_BackButton")
     @Html.Partial("_CourseHeader", Model)
-
     @Html.Partial("_CourseNavigation", Model)
 
     <div class="tab-pane active">
         <div class="header-actions">
-            <h2><i class="fa-solid fa-book"></i>Classwork and Activities</h2>
+            <h2><i class="fa-solid fa-book"></i>Edit Classwork and Activities</h2>
         </div>
         <div class="create-classwork-container">
 
-            <form action="@Url.Action("EditClasswork", "Teacher")" method="post" enctype="multipart/form-data">
+            <form action="@Url.Action("EditClasswork", "Teacher")" method="post" enctype="multipart/form-data" id="classworkForm">
                 @Html.AntiForgeryToken()
 
                 <input type="hidden" name="ClassworkId" value="@ViewBag.ClassworkId" />
                 <input type="hidden" name="TeacherCourseId" value="@courseId" />
 
-                <!-- Title, Classwork Type, Answer Type Row -->
+                <!-- Title, Classwork Type Row -->
                 <div class="form-row">
                     <div class="form-group">
                         <label>Title<span class="required">*</span></label>
@@ -35,7 +43,7 @@
                     </div>
                     <div class="form-group">
                         <label>Classwork Type<span class="required">*</span></label>
-                        <select name="classworkType" required>
+                        <select name="classworkType" id="classworkType" required>
                             <option value="">Select type</option>
                             <option value="Assignment" @(ViewBag.ClassworkType == "Assignment" ? "selected" : "")>Assignment</option>
                             <option value="Quiz" @(ViewBag.ClassworkType == "Quiz" ? "selected" : "")>Quiz</option>
@@ -46,7 +54,71 @@
                     </div>
                 </div>
 
-                <!-- Deadline, Points, Attempts Row -->
+                <!-- Publish Mode Selection -->
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label>Publish Mode<span class="required">*</span></label>
+                        <div class="submission-mode-options">
+                            <label class="mode-option">
+                                <input type="radio" name="publishMode" id="publishNow" value="now" @(publishMode == "now" ? "checked" : "") />
+                                <div class="mode-card">
+                                    <i class="fas fa-upload"></i>
+                                    <h4>Upload Now</h4>
+                                    <p>Make classwork available immediately</p>
+                                </div>
+                            </label>
+                            <label class="mode-option">
+                                <input type="radio" name="publishMode" id="publishScheduled" value="scheduled" @(publishMode == "scheduled" ? "checked" : "") />
+                                <div class="mode-card">
+                                    <i class="fas fa-clock"></i>
+                                    <h4>Schedule</h4>
+                                    <p>Set a future date to publish classwork</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scheduled Publish Date -->
+                <div class="form-row" id="scheduledDateRow" style="@(publishMode == "scheduled" ? "" : "display: none;")">
+                    <div class="form-group full-width">
+                        <label>Scheduled Publish Date<span class="required">*</span></label>
+                        <input type="datetime-local" id="scheduledPublishDate" name="scheduledPublishDate" 
+                               value="@ViewBag.ScheduledPublishDate" 
+                               min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" 
+                               @(publishMode == "scheduled" ? "required" : "") />
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            <i class="fas fa-info-circle"></i> Students will be able to see this classwork on the scheduled date.
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Submission Mode Selection -->
+                <div class="form-row" id="submissionModeRow">
+                    <div class="form-group full-width">
+                        <label>Submission Mode<span class="required">*</span></label>
+                        <div class="submission-mode-options">
+                            <label class="mode-option">
+                                <input type="radio" name="submissionMode" id="modeManual" value="manual" @(currentMode == "manual" ? "checked" : "") />
+                                <div class="mode-card">
+                                    <i class="fas fa-clipboard-question"></i>
+                                    <h4>Manual Questions</h4>
+                                    <p>Create questions for students to answer</p>
+                                </div>
+                            </label>
+                            <label class="mode-option">
+                                <input type="radio" name="submissionMode" id="modeFile" value="file" @(currentMode == "file" ? "checked" : "") />
+                                <div class="mode-card">
+                                    <i class="fas fa-file-upload"></i>
+                                    <h4>File Submission</h4>
+                                    <p>Students upload files as their work</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deadline Row -->
                 <div class="deadline-points-row">
                     <div class="form-group">
                         <label>Deadline<span class="required">*</span></label>
@@ -56,9 +128,9 @@
                             No due date
                         </label>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="pointsGroup" style="@(currentMode == "manual" ? "display: none;" : "")">
                         <label>Points<span class="required">*</span></label>
-                        <input type="number" name="points" required placeholder="0" min="0" value="@ViewBag.ClassworkPoints" />
+                        <input type="number" name="points" id="totalPoints" placeholder="0" min="0" value="@ViewBag.ClassworkPoints" />
                     </div>
                 </div>
 
@@ -73,7 +145,7 @@
                 <!-- Existing Files -->
                 @if (ViewBag.ExistingFiles != null && ((List<dynamic>)ViewBag.ExistingFiles).Count > 0)
                 {
-                    <div class="form-row">
+                    <div class="form-row" id="existingFilesSection">
                         <div class="form-group full-width">
                             <label>Existing Attachments</label>
                             <div class="existing-files-list">
@@ -94,12 +166,13 @@
                                     </div>
                                 }
                             </div>
+                            <input type="hidden" name="filesToDelete" id="filesToDeleteInput" />
                         </div>
                     </div>
                 }
 
-                <!-- File Upload Area -->
-                <div class="form-row">
+                <!-- File Upload Area - Only in File Mode -->
+                <div class="form-row" id="fileAttachmentSection" style="@(currentMode == "manual" ? "display: none;" : "")">
                     <div class="form-group full-width">
                         <label>Add New Attachments</label>
                         <div class="upload-area" id="uploadArea">
@@ -115,6 +188,39 @@
                         </div>
                         <div class="uploaded-files-list" id="uploadedFilesList"></div>
                     </div>
+                </div>
+
+                <!-- Questions Section (Manual Mode Only) -->
+                <div id="questionsSection" style="@(currentMode == "file" ? "display: none;" : "")">
+                    <div class="section-header">
+                        <div>
+                            <h3><i class="fa-solid fa-clipboard-question"></i> Questions</h3>
+                            <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">
+                                Create questions for students to answer. Points will be calculated from questions.
+                            </p>
+                        </div>
+                        <div class="question-type-selector">
+                            <label>Add Question Type:</label>
+                            <select id="questionTypeSelect">
+                                <option value="">Choose type</option>
+                                <option value="multipleChoice">Multiple Choice</option>
+                                <option value="multipleAnswer">Multiple Answer</option>
+                                <option value="trueFalse">True/False</option>
+                                <option value="identification">Identification</option>
+                                <option value="essay">Essay/Text</option>
+                                <option value="fileUpload">File Upload</option>
+                            </select>
+                            <button type="button" class="btn-add-question" onclick="addQuestion()">
+                                <i class="fa-solid fa-plus"></i> Add Question
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="questionsList" class="questions-list">
+                        <!-- Questions will be loaded here dynamically -->
+                    </div>
+
+                    <input type="hidden" id="questionsData" name="questionsJson" value='@ViewBag.ClassworkQuestionsJson' />
                 </div>
 
                 <!-- Form Actions -->
@@ -133,5 +239,71 @@
 
 @section scripts {
     <script src="~/Scripts/Custom/classworkForm.js"></script>
+    <script src="~/Scripts/Custom/questionBuilder.js"></script>
+    <script>
+        // Track files to delete
+        let filesToDelete = [];
+
+        function removeExistingFile(fileId, button) {
+            if (confirm('Are you sure you want to remove this file?')) {
+                filesToDelete.push(fileId);
+                $('#filesToDeleteInput').val(filesToDelete.join(','));
+                $(button).closest('.existing-file-item').fadeOut(function() {
+                    $(this).remove();
+                });
+            }
+        }
+
+        // Load existing questions on page load
+        $(document).ready(function() {
+            const questionsJson = $('#questionsData').val();
+            if (questionsJson && questionsJson !== '') {
+                try {
+                    questions = JSON.parse(questionsJson);
+                    questionCounter = questions.length > 0 ? Math.max(...questions.map(q => q.id)) : 0;
+                    renderQuestions();
+                } catch (e) {
+                    console.error('Error parsing existing questions:', e);
+                }
+            }
+
+            // Trigger initial mode display
+            const mode = $('input[name="submissionMode"]:checked').val();
+            if (mode) {
+                $('input[name="submissionMode"]:checked').trigger('change');
+            }
+
+            // Show submission mode row initially since we're editing
+            $('#submissionModeRow').show();
+
+            // Handle publish mode change
+            $('input[name="publishMode"]').on('change', function() {
+                var publishMode = $(this).val();
+                if (publishMode === 'scheduled') {
+                    $('#scheduledDateRow').slideDown();
+                    $('#scheduledPublishDate').prop('required', true);
+                } else {
+                    $('#scheduledDateRow').slideUp();
+                    $('#scheduledPublishDate').prop('required', false);
+                }
+            });
+
+            // Validate scheduled date is after current time
+            $('#classworkForm').on('submit', function(e) {
+                var publishMode = $('input[name="publishMode"]:checked').val();
+                if (publishMode === 'scheduled') {
+                    var scheduledDate = new Date($('#scheduledPublishDate').val());
+                    var now = new Date();
+                    
+                    if (scheduledDate <= now) {
+                        e.preventDefault();
+                        alert('Scheduled publish date must be in the future.');
+                        return false;
+                    }
+                }
+            });
+        });
+    </script>
 }
+
 

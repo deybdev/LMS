@@ -14,6 +14,9 @@ namespace LMS.Models
         public int TeacherCourseSectionId { get; set; }
 
         [Required]
+        public int CreatedByUserId { get; set; } // User who created the announcement
+
+        [Required]
         public string Content { get; set; } // Rich text HTML content
 
         public DateTime PostedAt { get; set; } = DateTime.Now;
@@ -23,6 +26,9 @@ namespace LMS.Models
         // Navigation Properties
         [ForeignKey("TeacherCourseSectionId")]
         public virtual TeacherCourseSection TeacherCourseSection { get; set; }
+
+        [ForeignKey("CreatedByUserId")]
+        public virtual User CreatedBy { get; set; }
 
         public virtual ICollection<AnnouncementComment> Comments { get; set; } = new List<AnnouncementComment>();
     }

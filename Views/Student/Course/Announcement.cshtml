@@ -1,0 +1,217 @@
+﻿@model LMS.Models.Course
+
+@{
+    ViewBag.Title = "Announcements";
+    int courseId = ViewBag.CourseId ?? Model.Id;
+    ViewBag.ActiveTab = "Announcement";
+    var announcements = ViewBag.Announcements as List<dynamic> ?? new List<dynamic>();
+    var currentUserId = (int)Session["Id"];
+}
+
+<link rel="stylesheet" href="~/Content/teacherCourse.css" />
+<link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
+<link rel="stylesheet" href="~/Content/announcementForm.css" />
+
+<div class="admin-container">
+    @Html.Partial("_BackButton")
+    @Html.Partial("_CourseHeader", Model)
+    @Html.Partial("_CourseNavigation", Model)
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <div class="tab-pane active">
+            <div class="header-actions">
+                <div class="announcements-title">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Announcements and Discussions</span>
+                </div>
+                <button class="material-upload-btn"
+                        onclick="window.location.href='@Url.Action("CreateAnnouncement", "Student", new { id = courseId })'">
+                    <i class="fas fa-pen"></i>
+                    Post Something
+                </button>
+            </div>
+
+            <div class="announcements-list">
+                @if (announcements.Any())
+                {
+                    foreach (var announcement in announcements)
+                    {
+                        <div class="announcement-item" data-announcement-id="@announcement.Id">
+                            <div class="announcement-avatar">@announcement.CreatedByInitials</div>
+
+                            <div class="announcement-body">
+                                <div class="announcement-author-line">
+                                    <span class="announcement-author">@announcement.CreatedByName</span>
+                                    <span class="announcement-date">
+                                        @{
+                                            var postedAt = (DateTime)announcement.PostedAt;
+                                            var timeAgo = DateTime.Now - postedAt;
+                                            string timeDisplay;
+
+                                            if (timeAgo.TotalMinutes < 1)
+                                            {
+                                                timeDisplay = "Just Now";
+                                            }
+                                            else if (timeAgo.TotalMinutes < 60)
+                                            {
+                                                timeDisplay = $"{(int)timeAgo.TotalMinutes}m ago";
+                                            }
+                                            else if (timeAgo.TotalHours < 24)
+                                            {
+                                                timeDisplay = $"{(int)timeAgo.TotalHours}h ago";
+                                            }
+                                            else if (timeAgo.TotalDays < 7)
+                                            {
+                                                timeDisplay = $"{(int)timeAgo.TotalDays}d ago";
+                                            }
+                                            else
+                                            {
+                                                timeDisplay = postedAt.ToString("MM/dd/yyyy");
+                                            }
+                                        }
+                                        @timeDisplay
+                                    </span>
+                                </div>
+
+                                <div class="announcement-preview">
+                                    @{
+                                        string plainText = System.Text.RegularExpressions.Regex
+                                                        .Replace(announcement.Content, "<.*?>", string.Empty)
+                                                        .Trim();
+
+                                        // Remove extra whitespace and newlines
+                                        plainText = System.Text.RegularExpressions.Regex.Replace(plainText, @"\s+", " ");
+
+                                        if (plainText.Length > 120)
+                                        {
+                                            plainText = plainText.Substring(0, 120) + "...";
+                                        }
+                                    }
+                                    @plainText
+                                </div>
+                            </div>
+
+                            <div class="announcement-actions">
+                                @{
+                                    // Student can only delete/edit their own announcement
+                                    bool canModify = announcement.CreatedByUserId == currentUserId;
+                                }
+
+                                @if (canModify)
+                                {
+                                    <div class="action-dropdown">
+                                        <button class="action-menu-btn" onclick="toggleDropdown(this); event.stopPropagation();">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+
+                                        <div class="dropdown-menu">
+                                            <button class="dropdown-item" onclick="editAnnouncement(@announcement.Id, @courseId); event.stopPropagation();">
+                                                <i class="fas fa-edit"></i>
+                                                Edit
+                                            </button>
+                                            <button class="dropdown-item delete-announcement-btn"
+                                                    onclick="deleteAnnouncement(@announcement.Id); event.stopPropagation();">
+                                                <i class="fas fa-trash"></i>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="no-announcements">
+                        <i class="fas fa-bullhorn"></i>
+                        <h3>No Announcements Yet</h3>
+                        <p>It looks like there aren't any announcements for this course yet.</p>
+                        <p>Check back later or post something to start the discussion!</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Html.AntiForgeryToken()
+    
+    <script>
+        function viewAnnouncement(announcementId) {
+            const url = '@Url.Action("ViewAnnouncement", "Student")';
+            const courseId = '@courseId';
+            window.location.href = `${url}?id=${courseId}&announcementId=${announcementId}`;
+        }
+
+        function editAnnouncement(announcementId, courseId) {
+            window.location.href = '@Url.Action("EditAnnouncement", "Student")' + '?id=' + courseId + '&announcementId=' + announcementId;
+        }
+
+        function deleteAnnouncement(announcementId) {
+            if (!confirm('Are you sure you want to delete this announcement?')) {
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("DeleteAnnouncement", "Student")',
+                type: 'POST',
+                data: {
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                    id: announcementId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert(response.message || 'Failed to delete announcement.');
+                    }
+                },
+                error: function() {
+                    alert('An error occurred while deleting the announcement.');
+                }
+            });
+        }
+
+        function toggleDropdown(button) {
+            const dropdown = button.nextElementSibling;
+            const allDropdowns = document.querySelectorAll('.dropdown-menu');
+            
+            // Close all other dropdowns
+            allDropdowns.forEach(d => {
+                if (d !== dropdown) {
+                    d.classList.remove('show');
+                }
+            });
+            
+            // Toggle current dropdown
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.action-dropdown')) {
+                document.querySelectorAll('.dropdown-menu').forEach(d => {
+                    d.classList.remove('show');
+                });
+            }
+        });
+
+        // Make announcement items clickable (except when clicking on actions)
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.announcement-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    // Don't navigate if clicking on dropdown or its children
+                    if (!e.target.closest('.action-dropdown')) {
+                        const announcementId = this.getAttribute('data-announcement-id');
+                        if (announcementId) {
+                            viewAnnouncement(announcementId);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+}

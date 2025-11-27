@@ -1,0 +1,317 @@
+﻿@model LMS.Models.Course
+
+@{
+    ViewBag.Title = "Learning Materials";
+    int courseId = ViewBag.CourseId ?? Model.Id;
+    ViewBag.ActiveTab = "Material";
+}
+
+<link rel="stylesheet" href="~/Content/teacherCourse.css" />
+<link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
+
+<style>
+    /* Student Material Styles */
+    .materials-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .material-item {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .material-item:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(24, 82, 172, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .material-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        background: #f0f4ff;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .material-icon-wrapper i {
+        font-size: 24px;
+        color: var(--primary-color);
+    }
+
+    .material-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .material-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--dark-primary-color);
+        margin: 0 0 0.5rem 0;
+        font-family: var(--archivo-plain-font);
+    }
+
+    .material-description {
+        font-size: 0.9rem;
+        color: #666;
+        margin: 0 0 0.75rem 0;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .material-meta {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .material-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.25rem 0.75rem;
+        background: #eee;
+        border-radius: 5px;
+        font-size: 0.75rem;
+        color: #666;
+        font-weight: 500;
+    }
+
+    .material-badge i {
+        font-size: 0.7rem;
+    }
+
+    .material-badge.video-badge {
+        background: #fce4ec;
+        color: #c2185b;
+    }
+
+    .material-info {
+        font-size: 0.8rem;
+        color: #999;
+    }
+
+    .material-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-view-material {
+        background: rgba(119, 119, 119, 0.1);
+        color: #666;
+        border: 1px solid #e0e0e0;
+        padding: 0.6rem 1.5rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        font-family: var(--archivo-plain-font);
+    }
+
+    .btn-view-material:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(24, 82, 172, 0.2);
+    }
+
+    .btn-download-material {
+        background: #f5f5f5;
+        color: #666;
+        border: 2px solid #e0e0e0;
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-download-material:hover {
+        background: #28a745;
+        color: white;
+        border-color: #28a745;
+        transform: translateY(-1px);
+    }
+
+    .no-materials-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 12px;
+        border: 2px dashed #e0e0e0;
+    }
+
+    .no-materials-state i {
+        font-size: 4rem;
+        color: #ddd;
+        margin-bottom: 1rem;
+    }
+
+    .no-materials-state h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 0.5rem;
+    }
+
+    .no-materials-state p {
+        color: #999;
+        font-size: 0.95rem;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .material-item {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .material-actions {
+            width: 100%;
+            flex-direction: column;
+        }
+
+        .btn-view-material,
+        .btn-download-material {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .material-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+    }
+</style>
+
+<div class="admin-container">
+    @Html.Partial("_BackButton")
+
+    @Html.Partial("_CourseHeader", Model)
+
+    @Html.Partial("_CourseNavigation", Model)
+
+    <div class="tab-content">
+        <!-- Learning Materials Tab -->
+        <div class="tab-pane active">
+            <div class="header-actions">
+                <h2><i class="fa-solid fa-book"></i> Learning Materials</h2>
+            </div>
+
+            <div class="materials-list">
+                @{
+                    var materials = ViewBag.Materials as List<LMS.Models.Material>;
+                }
+
+                @if (materials != null && materials.Any())
+                {
+                    foreach (var material in materials)
+                    {
+                        var fileCount = material.MaterialFiles?.Count() ?? 0;
+                        var totalSizeMB = material.MaterialFiles?.Sum(f => f.SizeInMB) ?? 0;
+
+                        <div class="material-item">
+                            <div class="material-icon-wrapper">
+                                @if (material.Type == "Lecture Video")
+                                {
+                                    <i class="fas fa-video"></i>
+                                }
+                                else if (material.Type == "Lecture Notes")
+                                {
+                                    <i class="fas fa-file-alt"></i>
+                                }
+                                else if (material.Type == "Assignment")
+                                {
+                                    <i class="fas fa-tasks"></i>
+                                }
+                                else if (material.Type == "Reading Material")
+                                {
+                                    <i class="fas fa-book-open"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-folder"></i>
+                                }
+                            </div>
+
+                            <div class="material-content">
+                                <h3 class="material-title">@material.Title</h3>
+                                
+                                @if (!string.IsNullOrEmpty(material.Description))
+                                {
+                                    <p class="material-description">@material.Description</p>
+                                }
+
+                                <div class="material-meta">
+                                    <span class="material-badge type-badge">
+                                        <i class="fas fa-tag"></i>
+                                        @material.Type
+                                    </span>
+
+                                    @if (material.Type == "Lecture Video")
+                                    {
+                                        <span class="material-badge video-badge">
+                                            <i class="fas fa-play-circle"></i>
+                                            Video Lesson
+                                        </span>
+                                    }
+
+                                    <span class="material-info">
+                                        <i class="far fa-calendar"></i>
+                                        Uploaded @material.UploadedAt.ToString("MMM dd, yyyy")
+                                    </span>
+
+                                </div>
+                            </div>
+
+                            <div class="material-actions">
+                                <a href="@Url.Action("ViewMaterial", "Student", new { id = courseId, materialId = material.Id })" 
+                                   class="btn-view-material">
+                                    <i class="fas fa-eye"></i>
+                                    View
+                                </a>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="no-materials-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>No Learning Materials Yet</h3>
+                        <p>Your teacher hasn't uploaded any materials for this course yet. Check back later!</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

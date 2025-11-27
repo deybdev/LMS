@@ -31,6 +31,13 @@ namespace LMS.Models
 
         public bool IsActive { get; set; } = true;
 
+        // Scheduling properties
+        public bool IsScheduled { get; set; } = false;
+        public DateTime? ScheduledPublishDate { get; set; }
+
+        // JSON field to store questions (for Quiz, Exam, Activity)
+        public string QuestionsJson { get; set; }
+
         // Navigation properties
         [ForeignKey("TeacherCourseSectionId")]
         public virtual TeacherCourseSection TeacherCourseSection { get; set; }
@@ -74,6 +81,9 @@ namespace LMS.Models
         public int? StudentId { get; set; }
 
         public string SubmissionText { get; set; }
+
+        // JSON field to store answers (for Quiz, Exam, Activity)
+        public string AnswersJson { get; set; }
 
         public DateTime? SubmittedAt { get; set; }
 

@@ -170,7 +170,7 @@ namespace LMS.Controllers
                     .Select(tcs => tcs.Id)
                     .FirstOrDefault();
 
-                // Get classwork for this section
+                // Get classwork for this section (teachers see all classwork including scheduled)
                 var classworks = db.Classworks
                     .Where(c => c.TeacherCourseSectionId == teacherCourseSectionId)
                     .OrderByDescending(c => c.DateCreated)
@@ -185,6 +185,9 @@ namespace LMS.Controllers
                         item.Deadline = c.Deadline;
                         item.SubmittedCount = c.ClassworkSubmissions.Count(s => s.Status == "Submitted" || s.Status == "Graded");
                         item.TotalStudents = c.ClassworkSubmissions.Count();
+                        item.IsScheduled = c.IsScheduled;
+                        item.ScheduledPublishDate = c.ScheduledPublishDate;
+                        item.IsPublished = !c.IsScheduled || (c.ScheduledPublishDate.HasValue && c.ScheduledPublishDate.Value <= DateTime.Now);
                         return item;
                     })
                     .ToList();
@@ -213,10 +216,11 @@ namespace LMS.Controllers
                     .Select(tcs => tcs.Id)
                     .FirstOrDefault();
 
-                // Get announcements for this section
+                // Get announcements for this section with author information
                 var announcements = db.Announcements
                     .Where(a => a.TeacherCourseSectionId == teacherCourseSectionId && a.IsActive)
                     .Include(a => a.Comments.Select(c => c.User))
+                    .Include(a => a.CreatedBy)
                     .OrderByDescending(a => a.PostedAt)
                     .ToList()
                     .Select(a =>
@@ -225,7 +229,11 @@ namespace LMS.Controllers
                         item.Id = a.Id;
                         item.Content = a.Content;
                         item.PostedAt = a.PostedAt;
-                        item.CommentsCount = a.Comments.Count(c => c.ParentCommentId == null); // Only root comments
+                        item.CommentsCount = a.Comments.Count(c => c.ParentCommentId == null);
+                        item.CreatedByUserId = a.CreatedByUserId;
+                        item.CreatedByName = a.CreatedBy.FirstName + " " + a.CreatedBy.LastName;
+                        item.CreatedByInitials = a.CreatedBy.FirstName.Substring(0, 1) + a.CreatedBy.LastName.Substring(0, 1);
+                        item.CreatedByRole = a.CreatedBy.Role;
                         return item;
                     })
                     .ToList();
@@ -487,6 +495,7 @@ namespace LMS.Controllers
                 var announcement = new Announcement
                 {
                     TeacherCourseSectionId = TeacherCourseSectionId,
+                    CreatedByUserId = teacherId,
                     Content = content, // HTML content from rich text editor
                     PostedAt = DateTime.Now,
                     IsActive = true
@@ -1101,7 +1110,9 @@ namespace LMS.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CreateClasswork(int TeacherCourseId, string title, string classworkType, 
-            DateTime? deadline, int points, string description, HttpPostedFileBase[] files, bool noDueDate = false)
+            DateTime? deadline, int? points, string description, HttpPostedFileBase[] files, 
+            string questionsJson, string submissionMode, string publishMode, DateTime? scheduledPublishDate, 
+            bool noDueDate = false)
         {
             try
             {
@@ -1137,6 +1148,34 @@ namespace LMS.Controllers
                     return RedirectToAction("CreateClasswork", "Teacher", new { id = TeacherCourseId });
                 }
 
+                if (string.IsNullOrWhiteSpace(submissionMode))
+                {
+                    TempData["ErrorMessage"] = "Submission mode is required.";
+                    return RedirectToAction("CreateClasswork", "Teacher", new { id = TeacherCourseId });
+                }
+
+                // Validate publish mode and scheduled date
+                bool isScheduled = false;
+                DateTime? finalScheduledDate = null;
+                
+                if (publishMode == "scheduled")
+                {
+                    if (!scheduledPublishDate.HasValue)
+                    {
+                        TempData["ErrorMessage"] = "Scheduled publish date is required when scheduling classwork.";
+                        return RedirectToAction("CreateClasswork", "Teacher", new { id = TeacherCourseId });
+                    }
+
+                    if (scheduledPublishDate.Value <= DateTime.Now)
+                    {
+                        TempData["ErrorMessage"] = "Scheduled publish date must be in the future.";
+                        return RedirectToAction("CreateClasswork", "Teacher", new { id = TeacherCourseId });
+                    }
+
+                    isScheduled = true;
+                    finalScheduledDate = scheduledPublishDate.Value;
+                }
+
                 // Handle deadline - if noDueDate is checked, set to null
                 DateTime? finalDeadline = null;
                 if (!noDueDate && deadline.HasValue)
@@ -1149,10 +1188,42 @@ namespace LMS.Controllers
                     finalDeadline = deadline.Value;
                 }
 
-                if (points <= 0)
+                int finalPoints = 0;
+
+                // Validate based on submission mode
+                if (submissionMode == "manual")
                 {
-                    TempData["ErrorMessage"] = "Points must be greater than zero.";
-                    return RedirectToAction("CreateClasswork", "Teacher", new { id = TeacherCourseId });
+                    // For manual mode, validate questions
+                    if (string.IsNullOrWhiteSpace(questionsJson) || questionsJson == "[]")
+                    {
+                        TempData["ErrorMessage"] = "At least one question is required for manual submission mode.";
+                        return RedirectToAction("CreateClasswork", "Teacher", new { id = TeacherCourseId });
+                    }
+
+                    // Calculate points from questions JSON
+                    try
+                    {
+                        var questionsArray = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(questionsJson);
+                        foreach (var question in questionsArray)
+                        {
+                            finalPoints += (int)question.points;
+                        }
+                    }
+                    catch
+                    {
+                        finalPoints = points ?? 0;
+                    }
+                }
+                else if (submissionMode == "file")
+                {
+                    // For file mode, validate points
+                    if (!points.HasValue || points.Value <= 0)
+                    {
+                        TempData["ErrorMessage"] = "Points must be greater than zero for file submission mode.";
+                        return RedirectToAction("CreateClasswork", "Teacher", new { id = TeacherCourseId });
+                    }
+                    finalPoints = points.Value;
+                    questionsJson = null; // Clear questions for file mode
                 }
 
                 // Create the classwork record
@@ -1163,15 +1234,18 @@ namespace LMS.Controllers
                     ClassworkType = classworkType,
                     Description = description ?? string.Empty,
                     Deadline = finalDeadline,
-                    Points = points,
+                    Points = finalPoints,
+                    QuestionsJson = questionsJson, // Store questions JSON for manual mode only
                     DateCreated = DateTime.Now,
-                    IsActive = true
+                    IsActive = true,
+                    IsScheduled = isScheduled,
+                    ScheduledPublishDate = finalScheduledDate
                 };
 
                 db.Classworks.Add(classwork);
                 db.SaveChanges();
 
-                // Handle file uploads if any
+                // Handle file uploads if any (instructional materials)
                 if (files != null && files.Length > 0 && files[0] != null)
                 {
                     var uploadFolder = Server.MapPath("~/Uploads/Classwork/");
@@ -1226,7 +1300,9 @@ namespace LMS.Controllers
 
                 db.SaveChanges();
 
-                TempData["SuccessMessage"] = $"Classwork '{title}' created successfully for {enrolledStudents.Count} students!";
+                string modeText = submissionMode == "manual" ? "with questions" : "with file submission";
+                string scheduleText = isScheduled ? $" and scheduled for {finalScheduledDate.Value:MMM dd, yyyy h:mm tt}" : "";
+                TempData["SuccessMessage"] = $"{classworkType} '{title}' created successfully {modeText}{scheduleText} for {enrolledStudents.Count} students!";
                 return RedirectToAction("Classwork", "Teacher", new { id = TeacherCourseId });
             }
             catch (Exception ex)
@@ -1287,6 +1363,18 @@ namespace LMS.Controllers
                 ViewBag.ClassworkType = classwork.ClassworkType;
                 ViewBag.ClassworkDescription = classwork.Description;
                 ViewBag.ClassworkPoints = classwork.Points;
+                ViewBag.ClassworkQuestionsJson = classwork.QuestionsJson ?? "";
+                
+                // Scheduling properties
+                ViewBag.IsScheduled = classwork.IsScheduled;
+                if (classwork.IsScheduled && classwork.ScheduledPublishDate.HasValue)
+                {
+                    ViewBag.ScheduledPublishDate = classwork.ScheduledPublishDate.Value.ToString("yyyy-MM-ddTHH:mm");
+                }
+                else
+                {
+                    ViewBag.ScheduledPublishDate = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+                }
                 
                 // Check if deadline is null (no due date)
                 bool hasNoDueDate = !classwork.Deadline.HasValue;
@@ -1415,7 +1503,9 @@ namespace LMS.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult EditClasswork(int ClassworkId, int TeacherCourseId, string title, string classworkType,
-            DateTime? deadline, int points, string description, HttpPostedFileBase[] files, int[] filesToDelete, bool noDueDate = false)
+            DateTime? deadline, int? points, string description, HttpPostedFileBase[] files, string filesToDelete,
+            string questionsJson, string submissionMode, string publishMode, DateTime? scheduledPublishDate, 
+            bool noDueDate = false)
         {
             try
             {
@@ -1462,10 +1552,32 @@ namespace LMS.Controllers
                     return RedirectToAction("EditClasswork", "Teacher", new { id = TeacherCourseId, classworkId = ClassworkId });
                 }
 
-                if (points <= 0)
+                if (string.IsNullOrWhiteSpace(submissionMode))
                 {
-                    TempData["ErrorMessage"] = "Points must be greater than zero.";
+                    TempData["ErrorMessage"] = "Submission mode is required.";
                     return RedirectToAction("EditClasswork", "Teacher", new { id = TeacherCourseId, classworkId = ClassworkId });
+                }
+
+                // Validate publish mode and scheduled date
+                bool isScheduled = false;
+                DateTime? finalScheduledDate = null;
+                
+                if (publishMode == "scheduled")
+                {
+                    if (!scheduledPublishDate.HasValue)
+                    {
+                        TempData["ErrorMessage"] = "Scheduled publish date is required when scheduling classwork.";
+                        return RedirectToAction("EditClasswork", "Teacher", new { id = TeacherCourseId, classworkId = ClassworkId });
+                    }
+
+                    if (scheduledPublishDate.Value <= DateTime.Now)
+                    {
+                        TempData["ErrorMessage"] = "Scheduled publish date must be in the future.";
+                        return RedirectToAction("EditClasswork", "Teacher", new { id = TeacherCourseId, classworkId = ClassworkId });
+                    }
+
+                    isScheduled = true;
+                    finalScheduledDate = scheduledPublishDate.Value;
                 }
 
                 // Handle deadline - if noDueDate is checked, set to null
@@ -1475,17 +1587,59 @@ namespace LMS.Controllers
                     finalDeadline = deadline.Value;
                 }
 
+                int finalPoints = 0;
+
+                // Validate based on submission mode
+                if (submissionMode == "manual")
+                {
+                    // For manual mode, validate questions
+                    if (string.IsNullOrWhiteSpace(questionsJson) || questionsJson == "[]")
+                    {
+                        TempData["ErrorMessage"] = "At least one question is required for manual submission mode.";
+                        return RedirectToAction("EditClasswork", "Teacher", new { id = TeacherCourseId, classworkId = ClassworkId });
+                    }
+
+                    // Calculate points from questions JSON
+                    try
+                    {
+                        var questionsArray = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(questionsJson);
+                        foreach (var question in questionsArray)
+                        {
+                            finalPoints += (int)question.points;
+                        }
+                    }
+                    catch
+                    {
+                        finalPoints = points ?? 0;
+                    }
+                }
+                else if (submissionMode == "file")
+                {
+                    // For file mode, validate points
+                    if (!points.HasValue || points.Value <= 0)
+                    {
+                        TempData["ErrorMessage"] = "Points must be greater than zero for file submission mode.";
+                        return RedirectToAction("EditClasswork", "Teacher", new { id = TeacherCourseId, classworkId = ClassworkId });
+                    }
+                    finalPoints = points.Value;
+                    questionsJson = null; // Clear questions for file mode
+                }
+
                 // Update the classwork record
                 classwork.Title = title;
                 classwork.ClassworkType = classworkType;
                 classwork.Description = description ?? string.Empty;
                 classwork.Deadline = finalDeadline;
-                classwork.Points = points;
+                classwork.Points = finalPoints;
+                classwork.QuestionsJson = questionsJson; // Update questions
+                classwork.IsScheduled = isScheduled;
+                classwork.ScheduledPublishDate = finalScheduledDate;
 
                 // Delete files if requested
-                if (filesToDelete != null && filesToDelete.Length > 0)
+                if (!string.IsNullOrEmpty(filesToDelete))
                 {
-                    foreach (var fileId in filesToDelete)
+                    var fileIdsToDelete = filesToDelete.Split(',').Select(int.Parse).ToList();
+                    foreach (var fileId in fileIdsToDelete)
                     {
                         var fileToDelete = db.ClassworkFiles.FirstOrDefault(f => f.Id == fileId && f.ClassworkId == ClassworkId);
                         if (fileToDelete != null)
@@ -1535,7 +1689,9 @@ namespace LMS.Controllers
 
                 db.SaveChanges();
 
-                TempData["SuccessMessage"] = $"Classwork '{title}' updated successfully!";
+                string modeText = submissionMode == "manual" ? "with questions" : "with file submission";
+                string scheduleText = isScheduled ? $" and scheduled for {finalScheduledDate.Value:MMM dd, yyyy h:mm tt}" : "";
+                TempData["SuccessMessage"] = $"Classwork '{title}' updated successfully {modeText}{scheduleText}!";
                 return RedirectToAction("Classwork", "Teacher", new { id = TeacherCourseId });
             }
             catch (Exception ex)
@@ -1601,12 +1757,13 @@ namespace LMS.Controllers
         {
             try
             {
-                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                if (Session["Id"] == null)
                 {
                     return Json(new { success = false, message = "Session expired. Please log in again." });
                 }
 
-                int teacherId = Convert.ToInt32(Session["Id"]);
+                int userId = Convert.ToInt32(Session["Id"]);
+                string userRole = Session["Role"] as string;
 
                 var announcement = db.Announcements
                     .Include(a => a.TeacherCourseSection)
@@ -1618,8 +1775,22 @@ namespace LMS.Controllers
                     return Json(new { success = false, message = "Announcement not found." });
                 }
 
-                // Verify the teacher owns this announcement
-                if (announcement.TeacherCourseSection.TeacherId != teacherId)
+                // Teachers can delete any announcement in their course
+                // Students can only delete their own announcements
+                bool canDelete = false;
+                
+                if (userRole == "Teacher")
+                {
+                    // Teacher can delete any announcement in their course section
+                    canDelete = announcement.TeacherCourseSection.TeacherId == userId;
+                }
+                else if (userRole == "Student")
+                {
+                    // Student can only delete their own announcement
+                    canDelete = announcement.CreatedByUserId == userId;
+                }
+
+                if (!canDelete)
                 {
                     return Json(new { success = false, message = "You don't have access to delete this announcement." });
                 }

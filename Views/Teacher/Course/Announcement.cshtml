@@ -5,9 +5,8 @@
     int courseId = ViewBag.CourseId ?? Model.Id;
     ViewBag.ActiveTab = "Announcement";
     var announcements = ViewBag.Announcements as List<dynamic> ?? new List<dynamic>();
-    var teacherName = Session["FirstName"] + " " + Session["LastName"];
-    var teacherInitials = (Session["FirstName"]?.ToString().Substring(0, 1) ?? "T") +
-                         (Session["LastName"]?.ToString().Substring(0, 1) ?? "E");
+    var currentUserId = (int)Session["Id"];
+    var currentUserRole = Session["Role"] as string;
 }
 
 <link rel="stylesheet" href="~/Content/teacherCourse.css" />
@@ -41,11 +40,11 @@
                     foreach (var announcement in announcements)
                     {
                         <div class="announcement-item" data-announcement-id="@announcement.Id">
-                            <div class="announcement-avatar">@teacherInitials</div>
+                            <div class="announcement-avatar">@announcement.CreatedByInitials</div>
 
                             <div class="announcement-body">
                                 <div class="announcement-author-line">
-                                    <span class="announcement-author">@teacherName</span>
+                                    <span class="announcement-author">@announcement.CreatedByName</span>
                                     <span class="announcement-date">
                                         @{
                                             var postedAt = (DateTime)announcement.PostedAt;
@@ -83,7 +82,6 @@
                                                         .Replace(announcement.Content, "<.*?>", string.Empty)
                                                         .Trim();
 
-                                        // Remove extra whitespace and newlines
                                         plainText = System.Text.RegularExpressions.Regex.Replace(plainText, @"\s+", " ");
 
                                         if (plainText.Length > 120)
@@ -96,32 +94,38 @@
                             </div>
 
                             <div class="announcement-actions">
+                                @{
+                                    // Teacher can delete any announcement, or user can delete/edit their own
+                                    bool canDelete = (currentUserRole == "Teacher") || (announcement.CreatedByUserId == currentUserId);
+                                    bool canEdit = announcement.CreatedByUserId == currentUserId;
+                                }
 
-
-                                <div class="action-dropdown">
-                                    <button class="action-menu-btn" onclick="toggleDropdown(this); event.stopPropagation();">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-
-                                    <div class="dropdown-menu">
-                                        <button class="dropdown-item" onclick="editAnnouncement(@announcement.Id, @courseId); event.stopPropagation();">
-                                            <i class="fas fa-edit"></i>
-                                            Edit
+                                @if (canDelete || canEdit)
+                                {
+                                    <div class="action-dropdown">
+                                        <button class="action-menu-btn" onclick="toggleDropdown(this); event.stopPropagation();">
+                                            <i class="fas fa-ellipsis-v"></i>
                                         </button>
 
-                                        <button class="dropdown-item"
-                                                onclick="event.stopPropagation();"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#deleteModal"
-                                                data-item-id="@announcement.Id"
-                                                data-item-name="This announcement"
-                                                data-url="@Url.Action("DeleteAnnouncement", "Teacher")"
-                                                data-target-remove=".material-card">
-                                            <i class="fas fa-trash"></i>
-                                            Delete
-                                        </button>
+                                        <div class="dropdown-menu">
+                                            @if (canEdit)
+                                            {
+                                                <button class="dropdown-item" onclick="editAnnouncement(@announcement.Id, @courseId); event.stopPropagation();">
+                                                    <i class="fas fa-edit"></i>
+                                                    Edit
+                                                </button>
+                                            }
+                                            @if (canDelete)
+                                            {
+                                                <button class="dropdown-item delete-announcement-btn"
+                                                        onclick="deleteAnnouncement(@announcement.Id); event.stopPropagation();">
+                                                    <i class="fas fa-trash"></i>
+                                                    Delete
+                                                </button>
+                                            }
+                                        </div>
                                     </div>
-                                </div>
+                                }
                             </div>
                         </div>
                     }
@@ -141,8 +145,6 @@
 </div>
 
 @section scripts {
-    <script src="~/Scripts/Custom/deleteHandler.js"></script>
-    <script src="~/Scripts/Custom/announcementForm.js"></script>
     @Html.AntiForgeryToken()
     
     <script>
@@ -154,6 +156,31 @@
 
         function editAnnouncement(announcementId, courseId) {
             window.location.href = '@Url.Action("EditAnnouncement", "Teacher")' + '?id=' + courseId + '&announcementId=' + announcementId;
+        }
+
+        function deleteAnnouncement(announcementId) {
+            if (!confirm('Are you sure you want to delete this announcement?')) {
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("DeleteAnnouncement", "Teacher")',
+                type: 'POST',
+                data: {
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                    id: announcementId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert(response.message || 'Failed to delete announcement.');
+                    }
+                },
+                error: function() {
+                    alert('An error occurred while deleting the announcement.');
+                }
+            });
         }
 
         function toggleDropdown(button) {
