@@ -349,6 +349,62 @@ namespace LMS.Controllers
             return View();
         }
 
+        // 🔥 NEW: Search Students for ManageStudentCourses
+        [HttpGet]
+        public JsonResult SearchStudents(string query)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
+                {
+                    return Json(new { success = true, students = new object[0] }, JsonRequestBehavior.AllowGet);
+                }
+
+                var searchTerm = query.Trim().ToLower();
+
+                var students = db.Users
+                    .Where(u => u.Role == "Student" &&
+                               (u.FirstName.ToLower().Contains(searchTerm) ||
+                                u.LastName.ToLower().Contains(searchTerm) ||
+                                u.Email.ToLower().Contains(searchTerm) ||
+                                u.UserID.ToLower().Contains(searchTerm)))
+                    .OrderBy(u => u.LastName)
+                    .ThenBy(u => u.FirstName)
+                    .Take(20)
+                    .ToList();
+
+                var result = students.Select(student =>
+                {
+                    // Get student's section information
+                    var studentSection = db.StudentCourses
+                        .Include(sc => sc.Section)
+                        .Include(sc => sc.Section.Program)
+                        .Where(sc => sc.StudentId == student.Id)
+                        .FirstOrDefault();
+
+                    return new
+                    {
+                        id = student.Id,
+                        firstName = student.FirstName,
+                        lastName = student.LastName,
+                        studentId = student.UserID,
+                        email = student.Email,
+                        program = studentSection?.Section?.Program?.ProgramName ?? "N/A",
+                        programCode = studentSection?.Section?.Program?.ProgramCode ?? "N/A",
+                        yearLevel = studentSection?.Section?.YearLevel ?? 0,
+                        section = studentSection?.Section?.SectionName ?? "N/A"
+                    };
+                }).ToList();
+
+                return Json(new { success = true, students = result }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SearchStudents Error: {ex.Message}");
+                return Json(new { success = false, message = "Error searching students: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
         // GET: IT/GetCurriculumCourses - AJAX endpoint for modal
         [HttpGet]
         public JsonResult GetCurriculumCourses(int programId, int yearLevel, int semester)
@@ -546,6 +602,9 @@ namespace LMS.Controllers
 
                 db.TeacherCourseSections.Add(assignment);
                 db.SaveChanges();
+
+                // Send email notifications to students in the section about the new teacher assignment
+                LMS.Helpers.StudentNotificationService.NotifyTeacherAssigned(assignment.Id);
 
                 var studentCount = db.StudentCourses.Count(sc => sc.SectionId == sectionId && sc.CourseId == courseId);
 

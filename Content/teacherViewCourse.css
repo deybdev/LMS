@@ -236,7 +236,6 @@
         }
 
         .course-meta {
-            flex-direction: column;
             align-items: flex-start;
             gap: 0.5rem;
         }
@@ -271,3 +270,31 @@
             margin-top: 20px;
         }
     }
+
+    /* Make nav tabs slide on mobile */
+@media (max-width: 768px) {
+    .nav-tabs {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        gap: 0.5rem;
+        margin-top: -10px;
+    }
+
+    .nav-tabs::-webkit-scrollbar {
+        display: none; /* Chrome / Safari */
+    }
+
+    .nav-tab {
+        flex: 0 0 auto; /* Prevent shrinking */
+        min-width: max-content;
+        padding: 0.65rem 1.25rem;
+        font-size: 0.85rem;
+        border-radius: 20px;
+    }
+
+    .nav-tab.active {
+        background: white;
+        border-radius: 20px;
+    }
+}

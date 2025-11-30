@@ -14,7 +14,7 @@
     --success-color: #28a745;
     --warning-color: #ffc107;
     --danger-color: #dc3545;
-    --light-gray: #EFEDED;
+    --light-gray: #EEF4FA;
     --border-color: #dee2e6;
 }
 
@@ -60,6 +60,7 @@ body {
     display: flex;
     flex-direction: column;
     margin: 0;
+    overflow-x: hidden;
 }
 
 main {
@@ -69,7 +70,9 @@ main {
 .navbar {
     padding: .5rem 2rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-bottom: 10px solid black
+    border-bottom: 10px solid black;
+    position: relative;
+    z-index: 1040;
 }
 
 .navbar-brand {
@@ -129,6 +132,229 @@ main {
 .login-btn:hover{
     background: var(--primary-hover);
     color: #fff !important;
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1035;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Mobile Menu Styles */
+@media (max-width: 991.98px) {
+    .navbar {
+        padding: .5rem 1rem;
+    }
+    
+    .navbar-brand {
+        flex: 1;
+    }
+    
+    .navbar-brand .school-name {
+        font-size: 1rem;
+    }
+    
+    .navbar-brand span {
+        font-size: 0.7rem;
+    }
+    
+    .navbar-toggler {
+        border: none;
+        padding: 0.25rem 0.5rem;
+        z-index: 1041;
+    }
+    
+    .navbar-toggler:focus {
+        box-shadow: none;
+    }
+    
+    /* Mobile menu container */
+    .navbar-collapse.mobile-menu {
+        position: fixed;
+        top: 0;
+        right: -350px; /* Start off-screen to the right */
+        width: 300px;
+        height: 100vh;
+        background: white;
+        z-index: 1040;
+        padding: 0;
+        margin: 0;
+        box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+        transition: right 0.3s ease;
+        overflow-y: auto;
+        display: block !important; /* Override Bootstrap's display none */
+        visibility: hidden;
+    }
+    
+    .navbar-collapse.mobile-menu.show {
+        right: 0;
+        visibility: visible;
+    }
+    
+    /* Mobile menu close button */
+    .mobile-menu-close {
+        padding: 1rem;
+        text-align: right;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 1rem;
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
+    }
+    
+    .mobile-menu-close .btn-close,
+    .mobile-close-btn {
+        font-size: 1.2rem;
+        opacity: 0.8;
+        padding: 0.5rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--dark-primary-color);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+    
+    .mobile-menu-close .btn-close:hover,
+    .mobile-close-btn:hover {
+        opacity: 1;
+        background-color: #f8f9fa;
+        transform: scale(1.1);
+    }
+    
+    .mobile-menu-close .btn-close:focus,
+    .mobile-close-btn:focus {
+        box-shadow: 0 0 0 2px rgba(24, 82, 172, 0.25);
+        outline: none;
+        opacity: 1;
+    }
+    
+    .mobile-close-btn i {
+        font-size: 1rem;
+    }
+    
+    .navbar-nav {
+        padding: 0 1rem 2rem;
+        gap: 0;
+        width: 100%;
+    }
+    
+    .nav-link {
+        font-size: 1rem !important;
+        padding: 1rem !important;
+        border-bottom: 1px solid #f8f9fa;
+        color: var(--dark-primary-color) !important;
+        text-decoration: none !important;
+    }
+    
+    .nav-link:last-child {
+        border-bottom: none;
+    }
+    
+    .nav-link:hover {
+        background-color: #f8f9fa;
+        text-decoration: none !important;
+    }
+    
+    .navbar .login-btn {
+        margin: 0.5rem 0;
+        text-align: center;
+        display: block;
+        width: 100%;
+        border-radius: 8px;
+        padding: 0.75rem !important;
+    }
+    
+    /* Dropdown adjustments for mobile */
+    .dropdown-menu {
+        position: static !important;
+        float: none;
+        width: 100%;
+        margin-top: 0;
+        background-color: #f8f9fa;
+        border: none;
+        box-shadow: none;
+        border-radius: 0;
+        display: none;
+    }
+    
+    .dropdown-item {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        border-bottom: 1px solid #e9ecef;
+        color: var(--gray-text);
+    }
+    
+    .dropdown-item:hover {
+        background-color: #e9ecef;
+        color: var(--dark-primary-color);
+    }
+    
+    .dropdown-item:last-child {
+        border-bottom: none;
+    }
+    
+    .navbar-logo {
+        height: 35px;
+    }
+    
+    /* Prevent body scroll when mobile menu is open */
+    body.mobile-menu-open {
+        overflow: hidden;
+    }
+    
+    /* Hide desktop navbar collapse behavior */
+    .navbar-collapse:not(.show) {
+        display: block !important;
+    }
+}
+
+/* Extra small devices (phones in portrait) */
+@media (max-width: 575.98px) {
+    .navbar {
+        padding: .4rem 0.8rem;
+    }
+    
+    .navbar-brand .school-name {
+        font-size: 0.9rem;
+    }
+    
+    .navbar-brand span {
+        font-size: 0.65rem;
+    }
+    
+    .navbar-logo {
+        height: 30px;
+    }
+    
+    .navbar-collapse.mobile-menu {
+        width: 280px;
+        right: -280px;
+    }
+    
+    .nav-link {
+        font-size: 0.95rem !important;
+        padding: 0.9rem 1rem !important;
+    }
 }
 
 footer {
@@ -446,4 +672,25 @@ select:disabled::placeholder {
 input:disabled,
 select:disabled {
     opacity: 0.8;
+}
+
+@media (max-width: 768px){
+    .admin-container{
+        padding: .5rem;
+    }
+
+    .page-header{
+        padding: 20px;
+    }
+
+    .dashboard-header{
+        padding: 1.5rem 2rem ;
+    }
+
+    .dashboard-header h1{
+        font-size: 1.7rem;
+    }
+    .dashboard-header p{
+        font-size: .8rem;
+    }
 }

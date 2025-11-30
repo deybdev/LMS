@@ -97,53 +97,30 @@
                 </div>
             </div>
 
-            <!-- Performance Overview View -->
             <div id="performanceView" class="view-container">
                 <div class="classlist-container">
+                    <div class="performance-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.5rem 0;">
+                            <button id="addManualClassworkBtn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px;">
+                                <i class="fas fa-plus"></i> Add Classwork
+                            </button>
+                            <button id="exportPerformanceBtn" class="btn btn-success" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px;">
+                                <i class="fas fa-file-csv"></i> Export to CSV
+                            </button>
+                    </div>
                     <div class="table-responsive">
                         <table class="classlist-table performance-table">
                             <thead>
                                 <tr>
-                                    <th>Name</th>
-                                    <th>
-                                        Assignment 1
-                                        <div class="max-points">/50</div>
-                                    </th>
-                                    <th>
-                                        Quiz 1
-                                        <div class="max-points">/20</div>
-                                    </th>
-                                    <th>
-                                        Activity 1
-                                        <div class="max-points">/30</div>
-                                    </th>
-                                    <th>
-                                        Activity 2
-                                        <div class="max-points">/30</div>
-                                    </th>
-                                    <th>
-                                        Midterm Exam
-                                        <div class="max-points">/100</div>
-                                    </th>
+                                    <th>Student Name</th>
+                                    <!-- Dynamic headers will be loaded by JavaScript -->
                                 </tr>
                             </thead>
                             <tbody id="performanceTableBody">
-                                <!-- Sample data -->
                                 <tr>
-                                    <td><span class="student-name">Alice Johnson</span></td>
-                                    <td><span class="grade-score editable-grade" data-original="45" data-max="50" data-student-id="1" data-assignment="Assignment 1">45</span></td>
-                                    <td><span class="grade-score editable-grade" data-original="18" data-max="20" data-student-id="1" data-assignment="Quiz 1">18</span></td>
-                                    <td><span class="grade-score editable-grade" data-original="28" data-max="30" data-student-id="1" data-assignment="Activity 1">28</span></td>
-                                    <td><span class="grade-score editable-grade" data-original="29" data-max="30" data-student-id="1" data-assignment="Activity 2">29</span></td>
-                                    <td><span class="grade-score editable-grade" data-original="95" data-max="100" data-student-id="1" data-assignment="Midterm Exam">95</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="student-name">Bob Smith</span></td>
-                                    <td><span class="grade-score editable-grade" data-original="42" data-max="50" data-student-id="2" data-assignment="Assignment 1">42</span></td>
-                                    <td><span class="grade-score editable-grade" data-original="16" data-max="20" data-student-id="2" data-assignment="Quiz 1">16</span></td>
-                                    <td><span class="grade-score editable-grade" data-original="25" data-max="30" data-student-id="2" data-assignment="Activity 1">25</span></td>
-                                    <td><span class="grade-score editable-grade" data-original="27" data-max="30" data-student-id="2" data-assignment="Activity 2">27</span></td>
-                                    <td><span class="grade-score editable-grade" data-original="88" data-max="100" data-student-id="2" data-assignment="Midterm Exam">88</span></td>
+                                    <td class="loading-state">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <p style="margin-top: 1rem;">Loading performance data...</p>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -154,13 +131,48 @@
     </div>
 </div>
 
-@section scripts {
-    <script>
-        var teacherCourseSectionId = @(ViewBag.TeacherCourseSectionId ?? 0);
-        var courseId = @courseId;
-    </script>
-    <script src="~/Scripts/Custom/classlist.js"></script>
-}
+<!-- Manual Classwork Addition Modal -->
+<div id="addClassworkModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-plus"></i> Add Classwork</h3>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="addClassworkForm">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="classworkTitle" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Title:</label>
+                    <input type="text" id="classworkTitle" class="form-control" placeholder="Enter classwork title" required
+                           style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="classworkTypeSelect" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Type:</label>
+                    <select id="classworkTypeSelect" class="form-control" required
+                            style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">Select type</option>
+                        <option value="Assignment">Assignment</option>
+                        <option value="Quiz">Quiz</option>
+                        <option value="Exam">Exam</option>
+                        <option value="Project">Project</option>
+                        <option value="Activity">Activity</option>
+                        <option value="Homework">Homework</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="classworkPoints" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Points:</label>
+                    <input type="number" id="classworkPoints" class="form-control" placeholder="Total points" min="1" max="1000" required
+                           style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" id="addClassworkCancel">Cancel</button>
+            <button class="btn-confirm" id="addClassworkSave" disabled>
+                <i class="fas fa-plus"></i> Add Classwork
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- Late Minutes Modal -->
 <div id="lateModal" class="modal">
@@ -203,3 +215,12 @@
         </div>
     </div>
 </div>
+
+@section scripts {
+    @Html.AntiForgeryToken()
+    <script>
+        var teacherCourseSectionId = @ViewBag.TeacherCourseSectionId;
+        var courseId = @courseId;
+    </script>
+    <script src="~/Scripts/Custom/classlist.js"></script>
+}

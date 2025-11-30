@@ -1,6 +1,5 @@
 ﻿@model IEnumerable<LMS.Models.User>
 
-
 @{
     ViewData["Title"] = "Login";
 }
@@ -26,12 +25,15 @@
                 <input type="email" name="email" class="form-control mb-3 mt-2" required />
             </label>
 
-            <label class="w-100 text-start">
+            <label class="w-100 text-start position-relative">
                 Password
-                <input type="password" name="password" class="form-control mt-2" required />
+                <input type="password" name="password" id="passwordInput" class="form-control mt-2" required />
+                <span id="togglePassword" class="show-password-icon">
+                    <i class="fa fa-eye"></i>
+                </span>
             </label>
 
-            <a class="d-block my-3">Forgot Password?</a>
+            <a href="@Url.Action("ForgotPassword", "Account")" class="d-block my-3">Forgot Password?</a>
 
             <!-- Login Button with built-in spinner -->
             <button type="submit" id="loginBtn" class="login-form-btn w-100 d-flex justify-content-center align-items-center" style="gap:8px;">
@@ -47,9 +49,76 @@
         width: 1.5rem;
         height: 1.5rem;
     }
+    /* MEDIA QUERIES FOR MOBILE */
+@@media (max-width: 767.98px) {
+    .login-container {
+        padding: 1.5rem 1.5rem;
+        margin-bottom: 100px;
+    }
+
+    .login-container h1{
+        font-size: 1.3rem;
+    }
+
+    .login-container p{
+        font-size: .8rem;
+    }
+
+    .login-form-btn{
+        font-size: .95rem;
+        padding: .65rem .2rem;
+    }
+
+    .login-container img {
+        width: 70px;
+    }
+}
+
+.show-password-icon {
+    position: absolute;
+    top: 73%;
+    right: 15px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #777;
+    font-size: 1rem;
+}
+
+.show-password-icon:hover {
+    color: var(--dark-primary-color);
+}
+
+@@media (max-width: 575.98px) {
+    .login-container {
+        padding: 1rem 1rem;
+        max-width: 90%;
+    }
+
+    .login-container h1{
+        font-size: 1.2rem;
+    }
+
+    .login-container p{
+        font-size: .75rem;
+    }
+
+    .login-container img {
+        width: 60px;
+    }
+}
 </style>
 
 <script>
+
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('passwordInput');
+
+    togglePassword.addEventListener('click', function () {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.innerHTML = type === 'password' ? '<i class="fa fa-eye"></i>' : '<i class="fa fa-eye-slash"></i>';
+    });
+
     function showLoading() {
         const loginBtn = document.getElementById('loginBtn');
         const loginText = document.getElementById('loginText');

@@ -25,12 +25,14 @@
         border-radius: 12px;
         padding: 20px;
         transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
     }
 
-    .classwork-card:hover {
-        border-color: var(--primary-color);
-        box-shadow: 0 4px 12px rgba(24, 82, 172, 0.1);
-    }
+        .classwork-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(24, 82, 172, 0.1);
+        }
 
     .classwork-header {
         display: flex;
@@ -50,15 +52,18 @@
         color: #666;
         font-size: 18px;
         flex-shrink: 0;
+        transition: all 0.2s ease;
     }
 
     .classwork-title-section {
         flex: 1;
+        min-width: 0;
     }
 
     .classwork-title-row {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: 10px;
         margin-bottom: 5px;
     }
@@ -67,6 +72,10 @@
         font-size: 1.1rem;
         font-weight: 600;
         color: #333;
+        word-break: break-word;
+        line-height: 1.3;
+        margin: 0;
+        margin-bottom: 5px;
     }
 
     .classwork-type-badge {
@@ -75,6 +84,8 @@
         font-size: 0.75rem;
         font-weight: 600;
         text-transform: capitalize;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .badge-quiz {
@@ -97,9 +108,20 @@
         color: #7b1fa2;
     }
 
+    .badge-exam {
+        background: #ffebee;
+        color: #d32f2f;
+    }
+
+    .badge-activity {
+        background: #e0f2f1;
+        color: #00796b;
+    }
+
     .classwork-course {
         color: #666;
         font-size: 0.85rem;
+        word-break: break-word;
     }
 
     .classwork-type-info {
@@ -107,6 +129,7 @@
         align-items: center;
         gap: 8px;
         margin-top: 8px;
+        flex-wrap: wrap;
     }
 
     .classwork-type-label {
@@ -117,19 +140,20 @@
     .classwork-created-date {
         color: #999;
         font-size: 0.8rem;
-        margin-left: auto;
+        white-space: nowrap;
     }
 
     .classwork-details {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 15px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
         margin-bottom: 15px;
         padding-top: 15px;
         border-top: 1px solid #f0f0f0;
     }
 
     .detail-item {
+        flex: 1 1 150px; /* Grow, shrink, base width */
         display: flex;
         flex-direction: column;
         gap: 4px;
@@ -146,15 +170,16 @@
         color: #333;
         font-size: 0.95rem;
         font-weight: 600;
+        word-break: break-word;
     }
 
-    .detail-value.overdue {
-        color: #d32f2f;
-    }
+        .detail-value.overdue {
+            color: #d32f2f;
+        }
 
-    .detail-value.submitted {
-        color: #388e3c;
-    }
+        .detail-value.submitted {
+            color: #388e3c;
+        }
 
     .grade-display {
         font-size: 1.1rem;
@@ -162,18 +187,19 @@
         color: var(--primary-color);
     }
 
-    .grade-display.graded {
-        color: #388e3c;
-    }
+        .grade-display.graded {
+            color: #388e3c;
+        }
 
-    .grade-display.not-graded {
-        color: #999;
-    }
+        .grade-display.not-graded {
+            color: #999;
+        }
 
     .classwork-actions {
         display: flex;
         gap: 10px;
         justify-content: flex-end;
+        flex-wrap: wrap;
     }
 
     .btn-classwork {
@@ -187,6 +213,10 @@
         align-items: center;
         gap: 8px;
         font-size: 0.9rem;
+        min-height: 44px;
+        justify-content: center;
+        text-decoration: none;
+        white-space: nowrap;
     }
 
     .btn-view-details {
@@ -194,29 +224,33 @@
         color: #666;
     }
 
-    .btn-view-details:hover {
-        background: #e8e8e8;
-    }
+        .btn-view-details:hover {
+            background: #e8e8e8;
+            text-decoration: none;
+        }
 
     .btn-view-results {
         background: #f5f5f5;
         color: #666;
     }
 
-    .btn-view-results:hover {
-        background: #e8e8e8;
-    }
+        .btn-view-results:hover {
+            background: #e8e8e8;
+            text-decoration: none;
+        }
 
     .btn-start-assignment {
         background: var(--dark-primary-color);
         color: white;
     }
 
-    .btn-start-assignment:hover {
-        background: var(--primary-color);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-    }
+        .btn-start-assignment:hover {
+            background: var(--primary-color);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            text-decoration: none;
+            color: white;
+        }
 
     .status-indicator {
         display: inline-flex;
@@ -226,6 +260,7 @@
         border-radius: 12px;
         font-size: 0.75rem;
         font-weight: 600;
+        white-space: nowrap;
     }
 
     .status-submitted {
@@ -252,23 +287,32 @@
         text-align: center;
         padding: 60px 20px;
         color: #999;
+        background: white;
+        border-radius: 12px;
+        border: 2px dashed #e0e0e0;
     }
 
-    .no-classwork i {
-        font-size: 4rem;
-        color: #ddd;
-        margin-bottom: 20px;
-    }
+        .no-classwork i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
 
-    .no-classwork h3 {
-        color: #666;
-        margin-bottom: 10px;
-    }
+        .no-classwork h3 {
+            color: #666;
+            margin-bottom: 10px;
+            font-family: var(--archivo-plain-font);
+        }
 
-    .no-classwork p {
-        color: #999;
-        line-height: 1.6;
-    }
+        .no-classwork p {
+            color: #999;
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+        }
+
+            .no-classwork p:last-child {
+                margin-bottom: 0;
+            }
 
     .progress-bar {
         height: 6px;
@@ -284,8 +328,433 @@
         transition: width 0.3s ease;
     }
 
-    .progress-fill.complete {
-        background: #388e3c;
+        .progress-fill.complete {
+            background: #388e3c;
+        }
+
+    /* Header Section */
+    .header-actions {
+        margin-bottom: 1rem;
+    }
+
+    .announcements-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--dark-primary-color);
+        font-family: var(--archivo-plain-font);
+    }
+
+        .announcements-title i {
+            color: var(--primary-color);
+        }
+
+    /* Mobile Responsive Design */
+    @@media (max-width: 1024px) {
+        .admin-container {
+            padding: 1rem 1.5rem;
+        }
+
+        .classwork-list {
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .classwork-card {
+            padding: 18px;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .admin-container {
+            padding: 0.75rem 1rem;
+        }
+
+        .classwork-list {
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .classwork-card {
+            padding: 16px;
+            border-radius: 10px;
+        }
+
+            .classwork-card:hover {
+                transform: none;
+            }
+
+        .classwork-header {
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .classwork-icon {
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
+        }
+
+        .classwork-title {
+            font-size: 1rem;
+        }
+
+        .classwork-title-row {
+            gap: 8px;
+        }
+
+        .classwork-type-badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+        }
+
+        .classwork-course {
+            font-size: 0.8rem;
+        }
+
+        .classwork-type-info {
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .classwork-created-date {
+            font-size: 0.75rem;
+        }
+
+        .classwork-details {
+            flex-direction: row; /* Still row */
+            flex-wrap: wrap; /* Wrap to next line */
+            gap: 12px;
+        }
+
+        .detail-label {
+            font-size: 0.7rem;
+        }
+
+        .detail-value {
+            font-size: 0.9rem;
+        }
+
+        .grade-display {
+            font-size: 1rem;
+        }
+
+        .classwork-actions {
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .btn-classwork {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            gap: 6px;
+        }
+
+        .header-actions {
+            text-align: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .announcements-title {
+            font-size: 1.2rem;
+            justify-content: center;
+        }
+
+        .no-classwork {
+            padding: 40px 16px;
+        }
+
+            .no-classwork i {
+                font-size: 3rem;
+            }
+
+            .no-classwork h3 {
+                font-size: 1.2rem;
+            }
+
+            .no-classwork p {
+                font-size: 0.9rem;
+            }
+    }
+
+    @@media (max-width: 576px) {
+        .admin-container {
+            padding: 0.5rem 0.75rem;
+        }
+
+        .classwork-list {
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .classwork-card {
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .classwork-header {
+            margin-bottom: 10px;
+        }
+
+        .classwork-icon {
+            width: 32px;
+            height: 32px;
+            font-size: 14px;
+        }
+
+        .classwork-title-section {
+            width: 100%;
+        }
+
+        .classwork-title-row {
+            gap: 6px;
+        }
+
+        .classwork-title {
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .classwork-type-badge {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+        }
+
+        .classwork-course {
+            font-size: 0.75rem;
+        }
+
+        .classwork-type-info {
+            gap: 4px;
+        }
+
+        .classwork-created-date {
+            font-size: 0.7rem;
+            margin-left: 0;
+        }
+
+        .classwork-details {
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding-top: 10px;
+        }
+
+        .detail-item {
+            text-align: center;
+        }
+
+        .detail-label {
+            font-size: 0.65rem;
+        }
+
+        .detail-value {
+            font-size: 0.85rem;
+        }
+
+        .grade-display {
+            font-size: 0.9rem;
+        }
+
+        .classwork-actions {
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-classwork {
+            width: 100%;
+            padding: 10px 16px;
+            font-size: 0.8rem;
+            min-height: 40px;
+        }
+
+        .classwork-actions {
+            flex-wrap: nowrap;
+        }
+
+        .status-indicator {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+        }
+
+        .announcements-title {
+            font-size: 1.1rem;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .no-classwork {
+            padding: 30px 12px;
+        }
+
+            .no-classwork i {
+                font-size: 2.5rem;
+            }
+
+            .no-classwork h3 {
+                font-size: 1.1rem;
+            }
+
+            .no-classwork p {
+                font-size: 0.85rem;
+            }
+    }
+
+    @@media (max-width: 480px) {
+        .admin-container {
+            padding: 0.5rem;
+        }
+
+        .classwork-card {
+            padding: 10px;
+        }
+
+        .classwork-title {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .classwork-type-badge {
+            font-size: 0.6rem;
+            padding: 2px 5px;
+        }
+
+        .classwork-created-date {
+            font-size: 0.65rem;
+        }
+
+        .classwork-details {
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .detail-label {
+            font-size: 0.6rem;
+        }
+
+        .detail-value {
+            font-size: 0.8rem;
+        }
+
+        .btn-classwork {
+            padding: 8px 12px;
+            font-size: 0.75rem;
+        }
+
+        .status-indicator {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+        }
+
+        .no-classwork {
+            padding: 25px 10px;
+        }
+
+            .no-classwork i {
+                font-size: 2rem;
+            }
+
+            .no-classwork h3 {
+                font-size: 1rem;
+            }
+
+            .no-classwork p {
+                font-size: 0.8rem;
+            }
+    }
+
+    @@media (max-width: 360px) {
+        .classwork-title-row {
+            gap: 4px;
+        }
+
+        .classwork-type-info {
+            gap: 3px;
+        }
+
+        .classwork-details {
+            gap: 6px;
+        }
+
+        .classwork-actions {
+            gap: 6px;
+        }
+
+        .btn-classwork {
+            font-size: 0.7rem;
+            padding: 6px 10px;
+        }
+
+        .classwork-title {
+            font-size: 0.85rem;
+        }
+
+        .no-classwork {
+            padding: 20px 8px;
+        }
+
+            .no-classwork i {
+                font-size: 1.8rem;
+            }
+
+            .no-classwork h3 {
+                font-size: 0.95rem;
+            }
+
+            .no-classwork p {
+                font-size: 0.75rem;
+            }
+    }
+
+    /* Touch device optimizations */
+    @@media (hover: none) and (pointer: coarse) {
+        .classwork-card:hover {
+            transform: none;
+            box-shadow: 0 2px 4px rgba(24, 82, 172, 0.05);
+        }
+
+        .classwork-card:active {
+            background: #f8f9fa;
+            transform: scale(0.99);
+        }
+
+        .btn-classwork:hover {
+            transform: none;
+        }
+
+        .btn-start-assignment:hover {
+            transform: none;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .btn-classwork:active {
+            transform: scale(0.95);
+        }
+
+        .btn-start-assignment:active {
+            background: var(--primary-color);
+        }
+
+        .btn-view-details:active,
+        .btn-view-results:active {
+            background: #ddd;
+        }
+    }
+
+    /* Accessibility improvements */
+    .btn-classwork:focus {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
+    }
+
+    /* Reduced motion preference */
+    @@media (prefers-reduced-motion: reduce) {
+        .classwork-card,
+        .btn-classwork,
+        .progress-fill {
+            transition: none;
+        }
     }
 </style>
 
@@ -311,7 +780,7 @@
                     {
                         string typeClass = "badge-assignment";
                         string typeIcon = "fa-file-alt";
-                        
+
                         if (classwork.ClassworkType == "Quiz")
                         {
                             typeClass = "badge-quiz";
@@ -327,10 +796,20 @@
                             typeClass = "badge-homework";
                             typeIcon = "fa-book";
                         }
+                        else if (classwork.ClassworkType == "Exam")
+                        {
+                            typeClass = "badge-exam";
+                            typeIcon = "fa-file-signature";
+                        }
+                        else if (classwork.ClassworkType == "Activity")
+                        {
+                            typeClass = "badge-activity";
+                            typeIcon = "fa-tasks";
+                        }
 
                         string statusClass = "status-not-submitted";
                         string statusText = "Not Submitted";
-                        
+
                         if (classwork.SubmissionStatus == "Graded")
                         {
                             statusClass = "status-graded";
@@ -358,13 +837,16 @@
                                 </div>
                                 <div class="classwork-title-section">
                                     <div class="classwork-title-row">
-                                        <h3 class="classwork-title">@classwork.Title</h3>
-                                        <span class="classwork-type-badge @typeClass">@classwork.ClassworkType</span>
+                                        <div>
+                                            <h3 class="classwork-title">@classwork.Title</h3>
+                                            <span class="status-indicator @statusClass">@statusText</span>
+                                        </div>
+                                        <div>
+                                            <span class="classwork-created-date me-3">Created @classwork.DateCreated.ToString("MM/dd/yyyy")</span>
+                                            <span class="classwork-type-badge @typeClass">@classwork.ClassworkType</span>
+                                        </div>
                                     </div>
-                                    <div class="classwork-course">@Model.CourseTitle</div>
                                     <div class="classwork-type-info">
-                                        <span class="status-indicator @statusClass">@statusText</span>
-                                        <span class="classwork-created-date">Created @classwork.DateCreated.ToString("MM/dd/yyyy")</span>
                                     </div>
                                 </div>
                             </div>
@@ -422,21 +904,21 @@
                             <div class="classwork-actions">
                                 @if (isGraded || isSubmitted)
                                 {
-                                    <button class="btn-classwork btn-view-results" onclick="window.location.href='@Url.Action("ViewClasswork", "Student", new { id = courseId, classworkId = classwork.Id })'">
+                                    <a class="btn-classwork btn-view-results" href="@Url.Action("ViewClasswork", "Student", new { id = courseId, classworkId = classwork.Id })">
                                         <i class="fas fa-eye"></i>
                                         View @(isGraded ? "Results" : "Details")
-                                    </button>
+                                    </a>
                                 }
                                 else
                                 {
-                                    <button class="btn-classwork btn-view-details" onclick="window.location.href='@Url.Action("ViewClasswork", "Student", new { id = courseId, classworkId = classwork.Id })'">
+                                    <a class="btn-classwork btn-view-details" href="@Url.Action("ViewClasswork", "Student", new { id = courseId, classworkId = classwork.Id })">
                                         <i class="fas fa-eye"></i>
                                         View Details
-                                    </button>
-                                    <button class="btn-classwork btn-start-assignment" onclick="window.location.href='@Url.Action("SubmitClasswork", "Student", new { id = courseId, classworkId = classwork.Id })'">
+                                    </a>
+                                    <a class="btn-classwork btn-start-assignment" href="@Url.Action("SubmitClasswork", "Student", new { id = courseId, classworkId = classwork.Id })">
                                         <i class="fas fa-play"></i>
                                         Start Assignment
-                                    </button>
+                                    </a>
                                 }
                             </div>
                         </div>
@@ -458,9 +940,9 @@
 
 @section scripts {
     <script>
-        // Add any additional JavaScript functionality here
-        $(document).ready(function() {
+        $(document).ready(function () {
             console.log('Classwork page loaded');
         });
     </script>
 }
+

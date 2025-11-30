@@ -1,4 +1,4 @@
-// Question Builder JavaScript
+﻿// Question Builder JavaScript
 let questions = [];
 let questionCounter = 0;
 let lastSelectedType = ''; // Remember last selected question type
@@ -137,7 +137,7 @@ $(document).ready(function () {
     });
 });
 
-// Add a new question
+// Add a new question manually
 function addQuestion() {
     const type = $('#questionTypeSelect').val();
     
@@ -184,8 +184,267 @@ function addQuestion() {
     questions.push(question);
     renderQuestions();
     
-    // DON'T reset selector - keep the last selected type
-    // The selector will automatically maintain the selected value
+    // Scroll to the newly added question
+    setTimeout(() => {
+        const questionCards = document.querySelectorAll('.question-card');
+        if (questionCards.length > 0) {
+            questionCards[questionCards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }, 100);
+}
+
+// CSV Import Function - APPENDS to existing questions
+function importQuestionsFromCSV() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.csv';
+    
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            try {
+                parseCSVAndAddQuestions(event.target.result);
+            } catch (error) {
+                alert('Error parsing CSV file: ' + error.message);
+                console.error('CSV Parse Error:', error);
+            }
+        };
+        reader.readAsText(file);
+    };
+    
+    input.click();
+}
+
+// Parse CSV and ADD questions to existing ones
+function parseCSVAndAddQuestions(csvText) {
+    const lines = csvText.split('\n').filter(line => line.trim() !== '');
+    
+    if (lines.length < 2) {
+        alert('CSV file is empty or invalid');
+        return;
+    }
+    
+    // Parse header
+    const headers = parseCSVLine(lines[0]).map(h => h.trim().toLowerCase());
+    
+    // Expected headers
+    const requiredHeaders = ['type', 'question', 'points'];
+    const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+    
+    if (missingHeaders.length > 0) {
+        alert('CSV missing required columns: ' + missingHeaders.join(', ') + '\n\nRequired columns: type, question, points\nOptional columns: option1, option2, option3, option4, option5, correct_answer, case_sensitive, max_words');
+        return;
+    }
+    
+    let importedCount = 0;
+    let errorCount = 0;
+    const errors = [];
+    const startingQuestionCount = questions.length;
+    
+    // Parse data rows and ADD to existing questions
+    for (let i = 1; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i]);
+        
+        if (values.length === 0 || values.every(v => v.trim() === '')) {
+            continue; // Skip empty lines
+        }
+        
+        try {
+            const row = {};
+            headers.forEach((header, index) => {
+                row[header] = values[index] ? values[index].trim() : '';
+            });
+            
+            const question = createQuestionFromCSVRow(row, i + 1);
+            if (question) {
+                questionCounter++;
+                question.id = questionCounter;
+                questions.push(question); // APPEND to existing questions
+                importedCount++;
+            }
+        } catch (error) {
+            errorCount++;
+            errors.push(`Row ${i + 1}: ${error.message}`);
+        }
+    }
+    
+    renderQuestions();
+    
+    // Build success message
+    let message = `✅ Successfully imported ${importedCount} question(s)`;
+    
+    if (startingQuestionCount > 0) {
+        message += `\n\n📝 Total questions now: ${questions.length} (${startingQuestionCount} existing + ${importedCount} imported)`;
+    }
+    
+    if (errorCount > 0) {
+        message += `\n\n❌ Errors: ${errorCount}\n${errors.slice(0, 5).join('\n')}`;
+        if (errors.length > 5) {
+            message += `\n... and ${errors.length - 5} more errors`;
+        }
+    }
+    
+    message += '\n\n💡 Tip: You can continue adding questions manually or import more CSV files!';
+    
+    alert(message);
+    
+    // Scroll to show the newly imported questions
+    if (importedCount > 0) {
+        setTimeout(() => {
+            const questionCards = document.querySelectorAll('.question-card');
+            if (questionCards.length > startingQuestionCount) {
+                questionCards[startingQuestionCount].scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 300);
+    }
+}
+
+// Parse CSV line (handles quotes and commas)
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+                current += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === ',' && !inQuotes) {
+            result.push(current);
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    
+    result.push(current);
+    return result;
+}
+
+// Create question object from CSV row
+function createQuestionFromCSVRow(row, rowNumber) {
+    const type = row.type.toLowerCase();
+    const questionText = row.question;
+    const points = parseInt(row.points) || 1;
+    
+    if (!questionText) {
+        throw new Error('Question text is required');
+    }
+    
+    const question = {
+        type: '',
+        questionText: questionText,
+        points: points,
+        required: true
+    };
+    
+    // Map CSV type to internal type
+    const typeMap = {
+        'multiple choice': 'multipleChoice',
+        'multiplechoice': 'multipleChoice',
+        'mc': 'multipleChoice',
+        'multiple answer': 'multipleAnswer',
+        'multipleanswer': 'multipleAnswer',
+        'ma': 'multipleAnswer',
+        'true/false': 'trueFalse',
+        'truefalse': 'trueFalse',
+        'tf': 'trueFalse',
+        'identification': 'identification',
+        'ident': 'identification',
+        'essay': 'essay',
+        'text': 'essay',
+        'file upload': 'fileUpload',
+        'fileupload': 'fileUpload',
+        'file': 'fileUpload'
+    };
+    
+    question.type = typeMap[type];
+    
+    if (!question.type) {
+        throw new Error(`Invalid question type: ${row.type}. Valid types: multiple choice, multiple answer, true/false, identification, essay, file upload`);
+    }
+    
+    // Handle type-specific fields
+    if (question.type === 'multipleChoice' || question.type === 'multipleAnswer') {
+        const options = [];
+        const correctAnswers = (row.correct_answer || '').split('|').map(a => a.trim().toUpperCase());
+        
+        // Collect options from option1, option2, etc.
+        for (let i = 1; i <= 10; i++) {
+            const optionKey = 'option' + i;
+            if (row[optionKey] && row[optionKey].trim() !== '') {
+                const optionLetter = String.fromCharCode(64 + i); // A, B, C, D, etc.
+                options.push({
+                    text: row[optionKey].trim(),
+                    isCorrect: correctAnswers.includes(optionLetter)
+                });
+            }
+        }
+        
+        if (options.length < 2) {
+            throw new Error('Multiple choice/answer questions must have at least 2 options');
+        }
+        
+        if (!options.some(opt => opt.isCorrect)) {
+            throw new Error('At least one option must be marked as correct');
+        }
+        
+        question.options = options;
+        
+    } else if (question.type === 'trueFalse') {
+        const answer = (row.correct_answer || '').trim().toLowerCase();
+        if (answer === 'true' || answer === 't' || answer === '1') {
+            question.correctAnswer = true;
+        } else if (answer === 'false' || answer === 'f' || answer === '0') {
+            question.correctAnswer = false;
+        } else {
+            throw new Error('True/False question must have correct_answer as "true" or "false"');
+        }
+        
+    } else if (question.type === 'identification') {
+        if (!row.correct_answer || row.correct_answer.trim() === '') {
+            throw new Error('Identification question must have a correct_answer');
+        }
+        question.correctAnswer = row.correct_answer.trim();
+        question.caseSensitive = (row.case_sensitive || '').toLowerCase() === 'true' || (row.case_sensitive || '').toLowerCase() === 'yes';
+        
+    } else if (question.type === 'essay') {
+        question.maxWords = row.max_words ? parseInt(row.max_words) : null;
+        
+    } else if (question.type === 'fileUpload') {
+        question.allowedFileTypes = row.allowed_file_types || '.pdf,.doc,.docx';
+        question.maxFileSize = row.max_file_size ? parseInt(row.max_file_size) : 10;
+    }
+    
+    return question;
+}
+
+// Download CSV Template
+function downloadCSVTemplate() {
+    const template = `type,question,points,option1,option2,option3,option4,option5,correct_answer,case_sensitive,max_words,allowed_file_types,max_file_size
+multiple choice,"What is 2 + 2?",1,2,3,4,5,,C,,,
+multiple answer,"Select all prime numbers",2,1,2,3,4,,B|C,,,
+true/false,"The Earth is flat",1,,,,,,false,,,
+identification,"Capital of France",1,,,,,,Paris,yes,,
+essay,"Explain photosynthesis",5,,,,,,,,,200,
+file upload,"Upload your assignment",10,,,,,,,,,.pdf|.docx,5`;
+    
+    const blob = new Blob([template], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'questions_template.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
 }
 
 // Render all questions
@@ -197,7 +456,7 @@ function renderQuestions() {
         container.html(`
             <div class="empty-questions">
                 <i class="fas fa-clipboard-question"></i>
-                <p>No questions added yet. Click "Add Question" above to create questions.</p>
+                <p>No questions added yet. Click "Add Question" above to create questions manually or "Import CSV" to bulk import.</p>
                 <small style="color: #999; margin-top: 10px; display: block;">
                     At least one question is required for manual submission mode.
                 </small>
@@ -272,7 +531,7 @@ function createQuestionCard(question, index) {
                     <span class="question-type-badge ${question.type}">${typeLabels[question.type]}</span>
                 </div>
                 <div class="question-actions">
-                    <button type="button" class="btn-question-action btn-delete-question" onclick="deleteQuestion(${index})">
+                    <button type="button" class="btn-question-action btn-delete-question" onclick="deleteQuestion(${index})" title="Delete question">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -465,6 +724,9 @@ function createFileUploadFields(question, index) {
 // Update question property
 function updateQuestion(index, property, value) {
     questions[index][property] = value;
+    if (property === 'points') {
+        updateTotalPoints();
+    }
 }
 
 // Update option text
@@ -523,7 +785,7 @@ function updateTotalPoints() {
     if (questions.length > 0) {
         headerText.html(`
             Create questions for students to answer. 
-            <strong style="color: var(--primary-color);">Total Points: ${total}</strong>
+            <strong style="color: var(--primary-color);">Total: ${questions.length} question${questions.length !== 1 ? 's' : ''} • ${total} point${total !== 1 ? 's' : ''}</strong>
         `);
     } else {
         headerText.text('Create questions for students to answer. Points will be calculated from questions.');

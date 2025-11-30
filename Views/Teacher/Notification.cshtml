@@ -1,8 +1,504 @@
-﻿
-@{
-    ViewBag.Title = "Notification";
+﻿@{
+    ViewBag.Title = "Notifications";
 }
 
-@Html.Partial("_BackButton")
+<div class="admin-container">
+    @Html.Partial("_BackButton")
 
+    <div class="dashboard-header">
+        <h1>Notifications</h1>
+        <p>Stay updated with student activities, system alerts, and important announcements.</p>
+    </div>
 
+    <div class="admin-content">
+        
+
+        <!-- Notification Filters -->
+        <div class="notification-filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="submission">Submissions</button>
+            <button class="filter-btn" data-filter="announcement">Announcements</button>
+            <button class="filter-btn" data-filter="reminder">Reminders</button>
+        </div>
+
+        <!-- Notifications List -->
+        <div class="notification-wrapper">
+            <div class="notifications-container" id="notificationsContainer"></div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-notifications" style="display: none;">
+            <i class="fa-solid fa-bell-slash"></i>
+            <h3>No Notifications</h3>
+            <p>You're all caught up! Check back later for updates.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+.notification-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--dark-primary-color);
+    font-family: var(--archivo-black-font);
+}
+
+.notification-title i {
+    color: var(--primary-color);
+}
+
+.notification-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background: white;
+    color: var(--gray-text);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: var(--archivo-plain-font);
+    font-weight: 500;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(24, 82, 172, 0.2);
+}
+
+.notification-wrapper {
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.notification-wrapper::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notification-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.notification-wrapper::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.notification-wrapper::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-text);
+}
+
+.notifications-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.notification-item {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+}
+
+.notification-item:hover {
+    box-shadow: 0 4px 15px rgba(24, 82, 172, 0.1);
+    transform: translateY(-2px);
+    border-color: var(--primary-color);
+}
+
+.notification-item.unread {
+    background: var(--light-blue);
+}
+
+.notification-item.read {
+    opacity: 0.8;
+}
+
+.notification-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.submission-icon {
+    background: #E3F2FD;
+    color: #1976D2;
+}
+
+.question-icon {
+    background: #FFF3E0;
+    color: #F57C00;
+}
+
+.reminder-icon {
+    background: #FCE4EC;
+    color: #C2185B;
+}
+
+.system-icon {
+    background: #F3E5F5;
+    color: #7B1FA2;
+}
+
+.deadline-icon {
+    background: #FFEBEE;
+    color: var(--danger-color);
+}
+
+.late-icon {
+    background: #FFF8E1;
+    color: #FF8F00;
+}
+
+.notification-content {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-main {
+    flex: 1;
+}
+
+.notification-title-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--dark-primary-color);
+    margin-bottom: 0.5rem;
+    font-family: var(--archivo-plain-font);
+}
+
+.notification-message {
+    color: var(--gray-text);
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+    font-family: var(--archivo-plain-font);
+}
+
+.notification-date {
+    font-size: 0.85rem;
+    color: var(--gray-text);
+    font-weight: 500;
+    font-family: var(--archivo-plain-font);
+}
+
+.notification-chevron {
+    color: var(--gray-text);
+    font-size: 0.85rem;
+    margin-left: 1rem;
+}
+
+.empty-notifications {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--gray-text);
+    font-family: var(--archivo-plain-font);
+}
+
+.empty-notifications i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+    color: var(--primary-color);
+}
+
+.empty-notifications h3 {
+    margin-bottom: 1rem;
+    color: var(--dark-primary-color);
+    font-family: var(--archivo-black-font);
+}
+
+/* Responsive Design */
+@@media (max-width: 768px) {
+    .notification-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .notification-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .notification-item {
+        padding: 1rem 0.75rem;
+    }
+
+    .notification-icon {
+        width: 40px;
+        height: 40px;
+        margin-right: 0.75rem;
+    }
+
+    .notification-filters {
+        gap: 8px;
+    }
+
+    .filter-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Loading state animation */
+.notifications-container.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Focus states for accessibility */
+.filter-btn:focus,
+.notification-item:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Smooth scrolling for long notification lists */
+.notifications-container {
+    scroll-behavior: smooth;
+}
+</style>
+
+<script>
+function parseNetDate(value) {
+    if (!value) return null;
+    if (typeof value === 'string') {
+        var match = /\/Date\((\d+)\)\//.exec(value);
+        if (match) {
+            return new Date(parseInt(match[1], 10));
+        }
+        var parsed = new Date(value);
+        return isNaN(parsed) ? null : parsed;
+    }
+    if (typeof value === 'number') {
+        return new Date(value);
+    }
+    return null;
+}
+
+function pad(num) {
+    return num < 10 ? '0' + num : '' + num;
+}
+
+function formatDate(value) {
+    var date = parseNetDate(value);
+    if (!date) return '';
+    var mm = pad(date.getMonth() + 1);
+    var dd = pad(date.getDate());
+    var yyyy = date.getFullYear();
+    var hours = date.getHours();
+    var ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    if (hours === 0) hours = 12;
+    var mins = pad(date.getMinutes());
+    return `${mm}/${dd}/${yyyy} ${hours}:${mins} ${ampm}`;
+}
+
+const iconConfig = {
+    submission: { className: 'submission-icon', icon: '<i class="fa-solid fa-file-arrow-up"></i>' },
+    reminder: { className: 'reminder-icon', icon: '<i class="fa-solid fa-clock"></i>' },
+    announcement: { className: 'question-icon', icon: '<i class="fa-solid fa-question-circle"></i>' },
+    deadline: { className: 'deadline-icon', icon: '<i class="fa-solid fa-calendar-exclamation"></i>' },
+    default: { className: 'system-icon', icon: '<i class="fa-solid fa-circle-info"></i>' }
+};
+
+function buildNotificationItem(notification) {
+    var type = notification.type || 'system';
+    var icon = iconConfig[type] || iconConfig.default;
+    if (notification.isDeadline) {
+        icon = iconConfig.deadline;
+    }
+
+    var wrapper = document.createElement('div');
+    wrapper.className = 'notification-item ' + (notification.unread ? 'unread' : 'read');
+    wrapper.setAttribute('data-type', type);
+    wrapper.setAttribute('data-id', notification.id || '');
+    wrapper.setAttribute('tabindex', '0');
+
+    if (notification.url) {
+        wrapper.setAttribute('data-url', notification.url);
+    }
+
+    wrapper.innerHTML = `
+        <div class="notification-icon ${icon.className}">
+            ${icon.icon}
+        </div>
+        <div class="notification-content">
+            <div class="notification-main">
+                <h4 class="notification-title-text">${notification.title || 'Notification'}</h4>
+                <p class="notification-message">${notification.message || ''}</p>
+                <span class="notification-date">${formatDate(notification.date)}</span>
+            </div>
+            <div class="notification-chevron">
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
+        </div>
+    `;
+
+    wrapper.addEventListener('click', function () {
+        var url = this.getAttribute('data-url');
+        if (url) {
+            window.location.href = url;
+        }
+    });
+
+    wrapper.addEventListener('keypress', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            var url = this.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
+        }
+    });
+
+    return wrapper;
+}
+
+function setEmptyState(isEmpty) {
+    const emptyState = document.querySelector('.empty-notifications');
+    const container = document.getElementById('notificationsContainer');
+    if (isEmpty) {
+        container.style.display = 'none';
+        emptyState.style.display = 'block';
+    } else {
+        container.style.display = 'flex';
+        emptyState.style.display = 'none';
+    }
+}
+
+function renderNotifications(list) {
+    const container = document.getElementById('notificationsContainer');
+    container.innerHTML = '';
+
+    if (!list || list.length === 0) {
+        setEmptyState(true);
+        container.classList.remove('loading');
+        return;
+    }
+
+    list.forEach(item => container.appendChild(buildNotificationItem(item)));
+    setEmptyState(false);
+    container.classList.remove('loading');
+}
+
+function loadNotifications(showToast) {
+    const container = document.getElementById('notificationsContainer');
+    container.classList.add('loading');
+
+    fetch('@Url.Action("GetNotifications", "Teacher")', {
+        method: 'GET',
+        credentials: 'same-origin'
+    })
+        .then(resp => resp.json())
+        .then(res => {
+            if (!res || !res.success) {
+                showAlert('danger', (res && res.message) ? res.message : 'Failed to load notifications');
+                renderNotifications([]);
+                return;
+            }
+
+            renderNotifications(res.notifications || []);
+            if (showToast) {
+                showAlert('success', 'Notifications refreshed');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showAlert('danger', 'Error loading notifications');
+            renderNotifications([]);
+        });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function () {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const filter = this.dataset.filter;
+            const notifications = document.querySelectorAll('.notification-item');
+            let visibleCount = 0;
+
+            notifications.forEach(notification => {
+                if (filter === 'all' || notification.dataset.type === filter) {
+                    notification.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    notification.style.display = 'none';
+                }
+            });
+
+            if (visibleCount === 0 && filter !== 'all') {
+                showAlert('info', `No ${filter} notifications found`);
+            }
+        });
+    });
+
+    loadNotifications(false);
+});
+
+function showAlert(type, message) {
+    const alertId = 'alert-' + Date.now();
+    const alertHtml = `
+        <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show mb-3" 
+             style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border-radius: 10px;" role="alert">
+            <i class="fa-solid fa-${
+                type === 'success' ? 'check-circle' :
+                type === 'danger' ? 'circle-exclamation' :
+                type === 'warning' ? 'triangle-exclamation' : 'circle-info'
+            } me-2"></i>
+            <span style="font-family: var(--archivo-plain-font);">${message}</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', alertHtml);
+    setTimeout(function () {
+        const alert = document.getElementById(alertId);
+        if (alert) {
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateY(-20px)';
+            setTimeout(() => alert.remove(), 300);
+        }
+    }, 5000);
+}
+
+function refreshNotifications() {
+    loadNotifications(true);
+}
+
+setInterval(refreshNotifications, 300000);
+</script>

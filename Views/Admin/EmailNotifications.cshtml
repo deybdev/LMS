@@ -1,0 +1,156 @@
+@{
+    ViewBag.Title = "Email Notification System Test";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="admin-container" style="padding: 2rem;">
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fas fa-envelope"></i> Email Notification System</h2>
+        </div>
+        <div class="card-body">
+            <p>This page provides administrative controls for the student email notification system.</p>
+            
+            <h4>Available Email Notifications:</h4>
+            <ul>
+                <li><strong>Material Posted:</strong> Sent when teachers upload new materials</li>
+                <li><strong>Announcement Posted:</strong> Sent when teachers or students post announcements</li>
+                <li><strong>Classwork Posted:</strong> Sent when teachers create new assignments/activities</li>
+                <li><strong>Due Date Reminders:</strong> Sent 24 hours before classwork deadline</li>
+                <li><strong>Teacher Assigned:</strong> Sent when IT assigns a teacher to a student's course section</li>
+            </ul>
+
+            <div class="alert alert-info">
+                <h5>Automatic Notifications:</h5>
+                <p>The system automatically runs background tasks every 30 minutes to:</p>
+                <ul>
+                    <li>Check for scheduled classwork that should now be published</li>
+                    <li>Send due date reminders for pending assignments</li>
+                </ul>
+            </div>
+
+            <div class="mt-4">
+                <button id="triggerNotifications" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Test Notification System
+                </button>
+                <button id="testEmailConfig" class="btn btn-info">
+                    <i class="fas fa-cog"></i> Test Email Configuration
+                </button>
+            </div>
+
+            <div id="notificationResult" class="mt-3" style="display: none;"></div>
+
+            <hr class="my-4">
+
+            <h4>System Configuration:</h4>
+            <p>Configure email settings in <code>Web.config</code>:</p>
+            <pre><code>&lt;appSettings&gt;
+  &lt;add key="EmailHost" value="smtp.gmail.com" /&gt;
+  &lt;add key="EmailPort" value="587" /&gt;
+  &lt;add key="EmailUsername" value="your-email@gmail.com" /&gt;
+  &lt;add key="EmailPassword" value="your-app-password" /&gt;
+  &lt;add key="EmailFromName" value="G2 Academy University" /&gt;
+  &lt;add key="EmailEnableSSL" value="true" /&gt;
+&lt;/appSettings&gt;</code></pre>
+            
+            <div class="alert alert-warning">
+                <strong>Note:</strong> Make sure to use App Passwords for Gmail accounts with 2FA enabled.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('#triggerNotifications').on('click', function() {
+        const $btn = $(this);
+        const originalText = $btn.html();
+        
+        $btn.prop('disabled', true)
+             .html('<i class="fas fa-spinner fa-spin"></i> Testing...');
+
+        $.post('@Url.Action("TriggerEmailNotifications", "Admin")', {
+            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+        })
+        .done(function(response) {
+            if (response.success) {
+                $('#notificationResult')
+                    .removeClass('alert-danger')
+                    .addClass('alert alert-success')
+                    .html('<i class="fas fa-check-circle"></i> ' + response.message + '<br><small>Executed at: ' + response.timestamp + '</small>')
+                    .show();
+            } else {
+                $('#notificationResult')
+                    .removeClass('alert-success')
+                    .addClass('alert alert-danger')
+                    .html('<i class="fas fa-exclamation-triangle"></i> ' + response.message)
+                    .show();
+            }
+        })
+        .fail(function() {
+            $('#notificationResult')
+                .removeClass('alert-success')
+                .addClass('alert alert-danger')
+                .html('<i class="fas fa-exclamation-triangle"></i> Network error occurred')
+                .show();
+        })
+        .always(function() {
+            $btn.prop('disabled', false).html(originalText);
+        });
+    });
+
+    $('#testEmailConfig').on('click', function() {
+        alert('Email configuration test would check if SMTP settings are valid.\n\nThis feature can be implemented as a separate endpoint that attempts to send a test email.');
+    });
+});
+</script>
+
+@Html.AntiForgeryToken()
+
+<style>
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border: none;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #1852AC, #24619E);
+    color: white;
+    border-radius: 10px 10px 0 0;
+    padding: 1rem 1.5rem;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+pre {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.btn-primary {
+    background: #1852AC;
+    border-color: #1852AC;
+}
+
+.btn-info {
+    background: #17a2b8;
+    border-color: #17a2b8;
+}
+</style>

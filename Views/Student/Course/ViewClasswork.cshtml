@@ -1,0 +1,917 @@
+@model LMS.Models.Course
+@using LMS.Models
+
+@{
+    ViewBag.Title = "View Results";
+    int courseId = ViewBag.CourseId ?? Model.Id;
+    var classwork = ViewBag.Classwork as dynamic;
+    var submission = ViewBag.Submission as LMS.Models.ClassworkSubmission;
+    
+    List<dynamic> questions = null;
+    List<dynamic> answers = null;
+    
+    if (!string.IsNullOrEmpty(classwork.QuestionsJson))
+    {
+        questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(classwork.QuestionsJson);
+    }
+    
+    if (submission != null && !string.IsNullOrEmpty(submission.AnswersJson))
+    {
+        answers = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(submission.AnswersJson);
+    }
+    
+    bool isSubmitted = submission != null && submission.Status != "Not Submitted";
+    bool isGraded = submission != null && submission.Status == "Graded";
+    
+    // Get submission files if submitted
+    List<SubmissionFile> submissionFiles = new List<SubmissionFile>();
+    if (isSubmitted && submission != null)
+    {
+        using (var db = new LMSContext())
+        {
+            submissionFiles = db.SubmissionFiles.Where(sf => sf.SubmissionId == submission.Id).ToList();
+        }
+    }
+}
+
+<link rel="stylesheet" href="~/Content/teacherCourse.css" />
+<link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
+
+<style>
+    .results-container {
+        padding: 10px;
+    }
+
+    .results-header {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        margin-bottom: 30px;
+        margin-top: 20px;
+    }
+
+    .results-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .results-type {
+        color: #666;
+        font-size: 1rem;
+        margin-bottom: 20px;
+    }
+
+    .score-card {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .score-item {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .score-label {
+        color: #666;
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .score-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .score-value.graded {
+        color: #4CAF50;
+    }
+
+    .score-value.pending {
+        color: #ff9800;
+    }
+
+    .percentage {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 5px;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .status-graded {
+        background: #e8f5e9;
+        color: #388e3c;
+    }
+
+    .status-submitted {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+
+    .status-not-submitted {
+        background: #ffebee;
+        color: #d32f2f;
+    }
+
+    .question-review {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+
+    .question-review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .question-review-number {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .question-review-points {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .points-earned {
+        color: #4CAF50;
+        font-weight: 700;
+    }
+
+    .points-total {
+        color: #999;
+    }
+
+    .correct-indicator {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .correct-indicator.correct {
+        background: #e8f5e9;
+        color: #4CAF50;
+    }
+
+    .correct-indicator.incorrect {
+        background: #ffebee;
+        color: #d32f2f;
+    }
+
+    .correct-indicator.pending {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+
+    .question-review-text {
+        font-size: 1.05rem;
+        line-height: 1.6;
+        color: #333;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .answer-review {
+        margin-top: 15px;
+    }
+
+    .answer-label {
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .answer-option-review {
+        padding: 12px 15px;
+        margin-bottom: 8px;
+        border-radius: 8px;
+        border: 2px solid #e0e0e0;
+        background: white;
+    }
+
+    .answer-option-review.selected {
+        background: #fff9e6;
+        border-color: #ffc107;
+    }
+
+    .answer-option-review.correct {
+        background: #e8f5e9;
+        border-color: #4CAF50;
+    }
+
+    .answer-option-review.incorrect {
+        background: #ffebee;
+        border-color: #d32f2f;
+    }
+
+    .answer-text-review {
+        padding: 15px;
+        margin-bottom: 10px;
+    }
+
+    .correct-answer-section {
+        margin-top: 15px;
+        padding: 15px;
+        background: #e8f5e9;
+        border-radius: 8px;
+    }
+
+    .correct-answer-label {
+        font-weight: 600;
+        color: #2e7d32;
+        margin-bottom: 8px;
+    }
+
+    .feedback-section {
+        background: #fff3e0;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 15px;
+    }
+
+    .feedback-label {
+        font-weight: 600;
+        color: #e65100;
+        margin-bottom: 10px;
+    }
+
+    .feedback-text {
+        color: #333;
+        line-height: 1.6;
+    }
+
+    /* Updated No Submission Section - More User Friendly */
+    .no-submission {
+        background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%);
+        border: 2px dashed var(--dark-primary-color);
+        border-radius: 16px;
+        padding: 50px 30px;
+        text-align: center;
+        position: relative;
+        margin: 20px 0;
+    }
+
+    .no-submission-icon {
+        font-size: 4rem;
+        color: var(--dark-primary-color);
+        margin-bottom: 20px;
+        animation: bounce 2s infinite;
+    }
+
+    .no-submission-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 15px;
+        line-height: 1.3;
+    }
+
+    .no-submission-description {
+        color: #666;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 30px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .classwork-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 30px 0;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .classwork-info-item {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border: 1px solid #e0e0e0;
+    }
+
+    .classwork-info-label {
+        font-size: 0.8rem;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .classwork-info-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .btn-start {
+        display: inline-block;
+        padding: 18px 40px;
+        background: var(--dark-primary-color);
+        color: white;
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-start::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-start:hover {
+        background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-start:hover::before {
+        left: 100%;
+    }
+
+    .btn-start i {
+        margin-right: 10px;
+        font-size: 1.2rem;
+    }
+
+    @@keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+
+    /* Mobile responsiveness for no-submission section */
+    @@media (max-width: 768px) {
+        .no-submission {
+            padding: 40px 20px;
+            margin: 15px;
+        }
+        
+        .no-submission-icon {
+            font-size: 3rem;
+        }
+        
+        .no-submission-title {
+            font-size: 1.3rem;
+        }
+        
+        .classwork-info-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .btn-start {
+            padding: 16px 32px;
+            font-size: 1rem;
+            width: 100%;
+            max-width: 300px;
+        }
+    }
+</style>
+
+
+
+<div class="results-container">
+
+    @Html.Partial("_BackButton")
+
+    <div class="results-header">
+        <h1 class="results-title">@classwork.Title</h1>
+        <p class="results-type">@classwork.ClassworkType</p>
+
+        @if (isSubmitted)
+        {
+            <div class="status-badge @(isGraded ? "status-graded" : "status-submitted")">
+                @(isGraded ? "Graded" : "Submitted - Pending Grading")
+            </div>
+
+            <div class="score-card">
+                @if (isGraded && submission.Grade.HasValue)
+                {
+                    var percentage = (submission.Grade.Value / classwork.Points) * 100;
+                    <div class="score-item">
+                        <div class="score-label">Your Score</div>
+                        <div class="score-value graded">@submission.Grade.Value/@classwork.Points</div>
+                        <div class="percentage">@percentage.ToString("F1")%</div>
+                    </div>
+                }
+                else
+                {
+                    <div class="score-item">
+                        <div class="score-label">Status</div>
+                        <div class="score-value pending">Pending</div>
+                        <div class="percentage">Awaiting teacher review</div>
+                    </div>
+                }
+
+                <div class="score-item">
+                    <div class="score-label">Submitted</div>
+                    <div class="score-value" style="font-size: 1.2rem; color: #666;">
+                        @if (submission.SubmittedAt.HasValue)
+                        {
+                            @submission.SubmittedAt.Value.ToString("MMM dd, yyyy")
+                            <div style="font-size: 0.9rem; margin-top: 5px;">@submission.SubmittedAt.Value.ToString("hh:mm tt")</div>
+                        }
+                        else
+                        {
+                            <text>N/A</text>
+                        }
+                    </div>
+                </div>
+
+                @if (submission.GradedAt.HasValue)
+                {
+                    <div class="score-item">
+                        <div class="score-label">Graded</div>
+                        <div class="score-value" style="font-size: 1.2rem; color: #666;">
+                            @submission.GradedAt.Value.ToString("MMM dd, yyyy")
+                            <div style="font-size: 0.9rem; margin-top: 5px;">@submission.GradedAt.Value.ToString("hh:mm tt")</div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            if (!string.IsNullOrEmpty(submission.Feedback))
+            {
+                <div class="feedback-section">
+                    <div class="feedback-label">Teacher's Feedback:</div>
+                    <div class="feedback-text">@submission.Feedback</div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="no-submission">
+                <div class="no-submission-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <h3 class="no-submission-title">Ready to Start Your @classwork.ClassworkType?</h3>
+                <p class="no-submission-description">@classwork.Description</p>
+                
+                <div class="classwork-info-grid">
+                    <div class="classwork-info-item">
+                        <div class="classwork-info-label">Type</div>
+                        <div class="classwork-info-value">@classwork.ClassworkType</div>
+                    </div>
+                    <div class="classwork-info-item">
+                        <div class="classwork-info-label">Points</div>
+                        <div class="classwork-info-value">@classwork.Points pts</div>
+                    </div>
+                    @if (classwork.Deadline != null)
+                    {
+                        <div class="classwork-info-item">
+                            <div class="classwork-info-label">Due Date</div>
+                            <div class="classwork-info-value" style="font-size: 0.95rem;">
+                                @DateTime.Parse(classwork.Deadline.ToString()).ToString("MMM dd, yyyy")
+                            </div>
+                        </div>
+                    }
+                </div>
+                
+                <a href="@Url.Action("SubmitClasswork", "Student", new { id = courseId, classworkId = classwork.Id })" class="btn-start">
+                    <i class="fas fa-play"></i> Start @classwork.ClassworkType
+                </a>
+            </div>
+        }
+    </div>
+
+    @if (isSubmitted && questions != null && answers != null)
+    {
+        <h2 style="margin-bottom: 20px; color: #333;">Question Review</h2>
+
+        for (int i = 0; i < questions.Count; i++)
+        {
+            var question = questions[i];
+            var answer = answers.Count > i ? answers[i] : null;
+
+            bool isCorrect = false;
+            bool canGrade = false;
+            string questionType = question.type.ToString();
+
+            // Determine if answer is correct
+            if (questionType == "multipleChoice")
+            {
+                canGrade = true;
+                var correctIndex = -1;
+                for (int j = 0; j < question.options.Count; j++)
+                {
+                    if ((bool)question.options[j].isCorrect)
+                    {
+                        correctIndex = j;
+                        break;
+                    }
+                }
+                isCorrect = answer?.answer != null && answer.answer.ToString() == correctIndex.ToString();
+            }
+            else if (questionType == "multipleAnswer")
+            {
+                canGrade = true;
+                // Get correct indices
+                var correctIndices = new List<int>();
+                for (int j = 0; j < question.options.Count; j++)
+                {
+                    if ((bool)question.options[j].isCorrect)
+                    {
+                        correctIndices.Add(j);
+                    }
+                }
+
+                // Get student answers
+                var studentAnswers = new List<int>();
+                if (answer?.answer != null)
+                {
+                    var answerArray = answer.answer as Newtonsoft.Json.Linq.JArray;
+                    if (answerArray != null)
+                    {
+                        studentAnswers = answerArray.Select(a => (int)a).ToList();
+                    }
+                }
+
+                // Check if correct
+                isCorrect = correctIndices.Count == studentAnswers.Count &&
+                           correctIndices.All(studentAnswers.Contains);
+            }
+            else if (questionType == "trueFalse")
+            {
+                canGrade = true;
+                bool correctAnswer = (bool)question.correctAnswer;
+                isCorrect = answer?.answer != null && answer.answer.ToString().ToLower() == correctAnswer.ToString().ToLower();
+            }
+            else if (questionType == "identification")
+            {
+                canGrade = true;
+                string correctAnswer = question.correctAnswer.ToString();
+                string studentAnswer = answer?.answer?.ToString() ?? "";
+                bool caseSensitive = question.caseSensitive ?? false;
+
+                if (caseSensitive)
+                {
+                    isCorrect = studentAnswer.Trim() == correctAnswer.Trim();
+                }
+                else
+                {
+                    isCorrect = studentAnswer.Trim().Equals(correctAnswer.Trim(), StringComparison.OrdinalIgnoreCase);
+                }
+            }
+
+            <div class="question-review">
+                <div class="question-review-header">
+                    <span class="question-review-number">Question @(i + 1)</span>
+                    <div class="question-review-points">
+                        @if (isGraded && canGrade)
+                        {
+                            <span class="points-earned">@(isCorrect ? question.points : 0)</span>
+                            <span class="points-total">/ @question.points pts</span>
+                            <div class="correct-indicator @(isCorrect ? "correct" : "incorrect")">
+                                <i class="fas @(isCorrect ? "fa-check" : "fa-times")"></i>
+                            </div>
+                        }
+                        else if (isGraded && !canGrade)
+                        {
+                            <span class="points-total">@question.points pts</span>
+                            <div class="correct-indicator pending">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="points-total">@question.points pts</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="question-review-text">@Html.Raw(question.questionText)</div>
+
+                <div class="answer-review">
+                    @if (questionType == "multipleChoice")
+                    {
+                        <span class="answer-label">Your Answer:</span>
+                        for (int j = 0; j < question.options.Count; j++)
+                        {
+                            var option = question.options[j];
+                            bool wasSelected = answer?.answer != null && answer.answer.ToString() == j.ToString();
+                            bool isCorrectOption = (bool)option.isCorrect;
+
+                            string cssClass = "";
+                            if (isGraded)
+                            {
+                                if (isCorrectOption)
+                                {
+                                    cssClass = "correct";
+                                }
+                                else if (wasSelected)
+                                {
+                                    cssClass = "incorrect";
+                                }
+                            }
+                            else if (wasSelected)
+                            {
+                                cssClass = "selected";
+                            }
+
+                            <div class="answer-option-review @cssClass">
+                                @option.text
+                                @if (isGraded && isCorrectOption)
+                                {
+                                    <i class="fas fa-check" style="color: #4CAF50; float: right;"></i>
+                                }
+                            </div>
+                        }
+                    }
+                    else if (questionType == "multipleAnswer")
+                    {
+                        <span class="answer-label">Your Answer:</span>
+
+                        // Get student's selected answers
+                        var studentAnswers = new List<int>();
+                        if (answer?.answer != null)
+                        {
+                            var answerArray = answer.answer as Newtonsoft.Json.Linq.JArray;
+                            if (answerArray != null)
+                            {
+                                studentAnswers = answerArray.Select(a => (int)a).ToList();
+                            }
+                        }
+
+                        for (int j = 0; j < question.options.Count; j++)
+                        {
+                            var option = question.options[j];
+                            bool wasSelected = studentAnswers.Contains(j);
+                            bool isCorrectOption = (bool)option.isCorrect;
+
+                            string cssClass = "";
+                            if (isGraded)
+                            {
+                                if (isCorrectOption && wasSelected)
+                                {
+                                    cssClass = "correct"; // Correct and selected
+                                }
+                                else if (isCorrectOption && !wasSelected)
+                                {
+                                    cssClass = "correct"; // Correct but not selected
+                                }
+                                else if (!isCorrectOption && wasSelected)
+                                {
+                                    cssClass = "incorrect"; // Incorrect but selected
+                                }
+                            }
+                            else if (wasSelected)
+                            {
+                                cssClass = "selected";
+                            }
+
+                            <div class="answer-option-review @cssClass">
+                                @if (wasSelected)
+                                {
+                                    <i class="fas fa-check-square" style="color: var(--primary-color); margin-right: 8px;"></i>
+                                }
+                                else
+                                {
+                                    <i class="far fa-square" style="color: #999; margin-right: 8px;"></i>
+                                }
+                                @option.text
+                                @if (isGraded && isCorrectOption)
+                                {
+                                    <i class="fas fa-check" style="color: #4CAF50; float: right;"></i>
+                                }
+                            </div>
+                        }
+                    }
+                    else if (questionType == "trueFalse")
+                    {
+                        <span class="answer-label">Your Answer:</span>
+                        var studentAnswer = answer?.answer?.ToString().ToLower() == "true" ? "True" : "False";
+                        var correctAnswer = (bool)question.correctAnswer ? "True" : "False";
+
+                        <div class="answer-text-review @(isGraded ? (isCorrect ? "correct" : "incorrect") : "")">
+                            <strong>@studentAnswer</strong>
+                            @if (isGraded && !isCorrect)
+                            {
+                                <i class="fas fa-times" style="color: #d32f2f; float: right;"></i>
+                            }
+                            else if (isGraded)
+                            {
+                                <i class="fas fa-check" style="color: #4CAF50; float: right;"></i>
+                            }
+                        </div>
+
+                        if (isGraded && !isCorrect)
+                        {
+                            <div class="correct-answer-section">
+                                <div class="correct-answer-label">Correct Answer:</div>
+                                <div><strong>@correctAnswer</strong></div>
+                            </div>
+                        }
+                    }
+                    else if (questionType == "identification")
+                    {
+                        <span class="answer-label">Your Answer:</span>
+                        <div class="answer-text-review @(isGraded ? (isCorrect ? "correct" : "incorrect") : "")">
+                            @(answer?.answer?.ToString() ?? "(No answer provided)")
+                            @if (isGraded && !isCorrect)
+                            {
+                                <i class="fas fa-times" style="color: #d32f2f; float: right;"></i>
+                            }
+                            else if (isGraded && isCorrect)
+                            {
+                                <i class="fas fa-check" style="color: #4CAF50; float: right;"></i>
+                            }
+                        </div>
+
+                        if (isGraded && !isCorrect)
+                        {
+                            <div class="correct-answer-section">
+                                <div class="correct-answer-label">Correct Answer:</div>
+                                <div><strong>@question.correctAnswer</strong></div>
+                            </div>
+                        }
+                    }
+                    else if (questionType == "essay")
+                    {
+                        <span class="answer-label">Your Answer:</span>
+                        <div class="answer-text-review">
+                            @(answer?.answer?.ToString() ?? "(No answer provided)")
+                        </div>
+                    }
+                    else if (questionType == "fileUpload")
+                    {
+                        <span class="answer-label">Your Answer:</span>
+                        
+                            // Find files related to this specific question
+                            var questionFiles = submissionFiles
+                                .Where(f => f.FileName.StartsWith($"Q{i + 1}_") || 
+                                           f.FileName.Contains($"question_{i + 1}") ||
+                                           f.FileName.Contains($"q{i + 1}_"))
+                                .ToList();
+                            
+                            // If no specific files found and this is the only file upload question, show all files
+                            if (!questionFiles.Any())
+                            {
+                                var fileUploadQuestions = questions.Where(q => q.type.ToString() == "fileUpload").Count();
+                                if (fileUploadQuestions == 1 && submissionFiles.Any())
+                                {
+                                    questionFiles = submissionFiles.ToList();
+                                }
+                            }
+                        
+                        if (questionFiles.Any())
+                        {
+                            <div class="answer-text-review" style="padding: 0;">
+                                @foreach (var file in questionFiles)
+                                {
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: #f8f9fa; border-radius: 8px; border: 2px solid #e0e0e0; margin-bottom: 8px;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <i class="fas fa-file" style="color: var(--primary-color);"></i>
+                                            <span style="font-weight: 500;">@file.FileName</span>
+                                            <span style="color: #999; font-size: 0.85rem;">(@file.SizeInMB.ToString("F2") MB)</span>
+                                            <span style="color: #4CAF50; font-size: 0.8rem;">
+                                                <i class="fas fa-upload"></i> Uploaded @file.UploadedAt.ToString("MMM dd, yyyy HH:mm")
+                                            </span>
+                                        </div>
+                                        <a href="@file.FilePath" target="_blank" style="color: #4CAF50; text-decoration: none; font-weight: 600;">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="answer-text-review">
+                                <p style="color: #d32f2f; margin: 0;">
+                                    <i class="fas fa-exclamation-triangle"></i> No file uploaded for this question.
+                                </p>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        }
+    }
+
+    @* Display submitted files if any *@
+    @if (isSubmitted && submissionFiles.Any())
+    {
+            // Get files that were already shown in file upload questions
+            var filesShownInQuestions = new List<SubmissionFile>();
+            
+            if (questions != null)
+            {
+                for (int i = 0; i < questions.Count; i++)
+                {
+                    var question = questions[i];
+                    if (question.type.ToString() == "fileUpload")
+                    {
+                        // Find files related to this specific question
+                        var questionFiles = submissionFiles
+                            .Where(f => f.FileName.StartsWith($"Q{i + 1}_") || 
+                                       f.FileName.Contains($"question_{i + 1}") ||
+                                       f.FileName.Contains($"q{i + 1}_"))
+                            .ToList();
+                        
+                        // If no specific files found and this is the only file upload question, mark all files as shown
+                        if (!questionFiles.Any())
+                        {
+                            var fileUploadQuestions = questions.Where(q => q.type.ToString() == "fileUpload").Count();
+                            if (fileUploadQuestions == 1)
+                            {
+                                questionFiles = submissionFiles.ToList();
+                            }
+                        }
+                        
+                        filesShownInQuestions.AddRange(questionFiles);
+                    }
+                }
+            }
+            
+            // Get remaining files not shown in questions
+            var remainingFiles = submissionFiles.Except(filesShownInQuestions).ToList();
+        
+        if (remainingFiles.Any())
+        {
+            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-top: 20px;">
+                <h3 style="margin-bottom: 15px; color: #333;">
+                    <i class="fas fa-file-upload"></i> Additional Submitted Files
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    @foreach (var file in remainingFiles)
+                    {
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: #f8f9fa; border-radius: 8px; border: 2px solid #e0e0e0;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-file" style="color: var(--primary-color);"></i>
+                                <span style="font-weight: 500;">@file.FileName</span>
+                                <span style="color: #999; font-size: 0.85rem;">(@file.SizeInMB.ToString("F2") MB)</span>
+                            </div>
+                            <a href="@file.FilePath" target="_blank" style="color: #4CAF50; text-decoration: none; font-weight: 600;">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+
+    <div style="margin-top: 30px; text-align: center;">
+        <a href="@Url.Action("Classwork", "Student", new { id = courseId })" class="btn-back" style="display: inline-block; padding: 12px 24px; background: var(--primary-color); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.2s;">
+            <i class="fas fa-arrow-left me-3"></i> Back to Classwork
+        </a>
+    </div>
+</div>

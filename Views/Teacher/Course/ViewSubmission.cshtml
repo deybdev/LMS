@@ -1,0 +1,1159 @@
+@model LMS.Models.Course
+
+@{
+    ViewBag.Title = "View Submission";
+    int courseId = ViewBag.CourseId;
+    ViewBag.ActiveTab = "Gradebook";
+    var submission = ViewBag.Submission as LMS.Models.ClassworkSubmission;
+    var questions = ViewBag.Questions as List<dynamic>;
+    var studentAnswers = ViewBag.StudentAnswers as List<dynamic>;
+}
+
+<link rel="stylesheet" href="~/Content/teacherCourse.css" />
+<link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
+
+<style>
+    .results-container {
+        padding: 30px;
+    }
+
+    .results-header {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        margin-bottom: 30px;
+        margin-top: 20px;
+    }
+
+    .results-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .results-type {
+        color: #666;
+        font-size: 1rem;
+        margin-bottom: 20px;
+    }
+
+    .score-card {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .score-item {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .score-label {
+        color: #666;
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .score-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .score-value.graded {
+        color: #4CAF50;
+    }
+
+    .score-value.pending {
+        color: #ff9800;
+    }
+
+    .percentage {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 5px;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .status-graded {
+        background: #e8f5e9;
+        color: #388e3c;
+    }
+
+    .status-submitted {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+
+    .status-not-submitted {
+        background: #ffebee;
+        color: #d32f2f;
+    }
+
+    .question-review {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+
+    .question-review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .question-review-number {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .question-review-points {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .points-earned {
+        color: #4CAF50;
+        font-weight: 700;
+    }
+
+    .points-total {
+        color: #999;
+    }
+
+    .correct-indicator {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .correct-indicator.correct {
+        background: #e8f5e9;
+        color: #4CAF50;
+    }
+
+    .correct-indicator.incorrect {
+        background: #ffebee;
+        color: #d32f2f;
+    }
+
+    .correct-indicator.pending {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+
+    .question-review-text {
+        font-size: 1.05rem;
+        line-height: 1.6;
+        color: #333;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .answer-review {
+        margin-top: 15px;
+    }
+
+    .answer-label {
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .answer-option-review {
+        padding: 12px 15px;
+        margin-bottom: 8px;
+        border-radius: 8px;
+        border: 2px solid #e0e0e0;
+        background: white;
+    }
+
+    .answer-option-review.selected {
+        background: #fff9e6;
+        border-color: #ffc107;
+    }
+
+    .answer-option-review.correct {
+        background: #e8f5e9;
+        border-color: #4CAF50;
+    }
+
+    .answer-option-review.incorrect {
+        background: #ffebee;
+        border-color: #d32f2f;
+    }
+
+    .answer-text-review {
+        padding: 15px;
+        margin-bottom: 10px;
+    }
+
+    .correct-answer-section {
+        margin-top: 15px;
+        padding: 15px;
+        background: #e8f5e9;
+        border-radius: 8px;
+    }
+
+    .correct-answer-label {
+        font-weight: 600;
+        color: #2e7d32;
+        margin-bottom: 8px;
+    }
+
+    .feedback-section {
+        background: #fff3e0;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 15px;
+    }
+
+    .feedback-label {
+        font-weight: 600;
+        color: #e65100;
+        margin-bottom: 10px;
+    }
+
+    .feedback-text {
+        color: #333;
+        line-height: 1.6;
+    }
+
+    /* Teacher-specific grading controls */
+    .grading-controls {
+        background: #e3f2fd;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+    }
+
+    .grading-controls label {
+        font-weight: 600;
+        color: #1976d2;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .score-input {
+        width: 80px;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-weight: 600;
+        text-align: center;
+        margin-right: 10px;
+    }
+
+    .score-input:focus {
+        border-color: #2196F3;
+        outline: none;
+        box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
+    }
+
+    .auto-grade-badge {
+        background: #4CAF50;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        margin-left: 8px;
+    }
+
+    .manual-grade-badge {
+        background: #ff9800;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        margin-left: 8px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 40px;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .btn-cancel {
+        padding: 12px 24px;
+        background: #f5f5f5;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: none;
+        color: #666;
+        transition: all 0.3s;
+    }
+
+    .btn-cancel:hover {
+        background: #e0e0e0;
+        text-decoration: none;
+        color: #666;
+    }
+
+    .btn-release {
+        padding: 12px 24px;
+        background: #2196F3;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+
+    .btn-release:hover {
+        background: #1976d2;
+    }
+
+    .total-score-section {
+        background: #e8f5e9;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    .total-score-label {
+        font-weight: 600;
+        color: #2e7d32;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+    }
+
+    .total-score-input {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2196F3;
+        border: 1px solid #ddd;
+        width: 100px;
+        text-align: center;
+        background: white;
+        border-radius: 6px;
+        padding: 10px;
+        margin: 0 10px;
+    }
+
+    .feedback-input {
+        width: 100%;
+        min-height: 100px;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        margin-top: 10px;
+    }
+
+    .btn-back {
+        display: inline-block;
+        padding: 12px 24px;
+        background: var(--primary-color, #2196F3);
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .btn-back:hover {
+        background: var(--dark-primary-color, #1976d2);
+        text-decoration: none;
+        color: white;
+    }
+</style>
+
+<div class="results-container">
+    @Html.Partial("_BackButton")
+
+    @if (submission != null)
+    {
+        <div class="results-header">
+            <h1 class="results-title">@submission.Classwork.Title</h1>
+            <p class="results-type">@submission.Classwork.ClassworkType - Reviewing @submission.Student.FirstName @submission.Student.LastName's Submission</p>
+
+            <div class="status-badge @(submission.Status == "Graded" ? "status-graded" : "status-submitted")">
+                @(submission.Status == "Graded" ? "Graded" : "Submitted - Pending Grading")
+            </div>
+
+            <div class="score-card">
+                @if (submission.Grade.HasValue)
+                {
+                    var percentage = (submission.Grade.Value / submission.Classwork.Points) * 100;
+                    <div class="score-item">
+                        <div class="score-label">Current Score</div>
+                        <div class="score-value graded">@submission.Grade.Value/@submission.Classwork.Points</div>
+                        <div class="percentage">@percentage.ToString("F1")%</div>
+                    </div>
+                }
+                else if (ViewBag.AutoCalculatedScore != null)
+                {
+                    var autoPercentage = ViewBag.AutoCalculatedPercentage ?? 0;
+                    <div class="score-item">
+                        <div class="score-label">Auto-Calculated Score</div>
+                        <div class="score-value pending" id="currentScoreDisplay">@ViewBag.AutoCalculatedScore/@submission.Classwork.Points</div>
+                        <div class="percentage" id="currentPercentageDisplay">@autoPercentage%</div>
+                    </div>
+                }
+                else
+                {
+                    <div class="score-item">
+                        <div class="score-label">Current Score</div>
+                        <div class="score-value pending" id="currentScoreDisplay">0/@submission.Classwork.Points</div>
+                        <div class="percentage" id="currentPercentageDisplay">0%</div>
+                    </div>
+                }
+
+                <div class="score-item">
+                    <div class="score-label">Submitted</div>
+                    <div class="score-value" style="font-size: 1.2rem; color: #666;">
+                        @if (submission.SubmittedAt.HasValue)
+                        {
+                            @submission.SubmittedAt.Value.ToString("MMM dd, yyyy")
+                            <div style="font-size: 0.9rem; margin-top: 5px;">@submission.SubmittedAt.Value.ToString("hh:mm tt")</div>
+                        }
+                        else
+                        {
+                            <text>N/A</text>
+                        }
+                    </div>
+                </div>
+
+                @if (submission.GradedAt.HasValue)
+                {
+                    <div class="score-item">
+                        <div class="score-label">Graded</div>
+                        <div class="score-value" style="font-size: 1.2rem; color: #666;">
+                            @submission.GradedAt.Value.ToString("MMM dd, yyyy")
+                            <div style="font-size: 0.9rem; margin-top: 5px;">@submission.GradedAt.Value.ToString("hh:mm tt")</div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="score-item">
+                        <div class="score-label">Total Points</div>
+                        <div class="score-value" style="font-size: 1.5rem; color: #666;">
+                            @submission.Classwork.Points
+                            <div style="font-size: 0.8rem; margin-top: 5px;">Maximum Score</div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (!string.IsNullOrEmpty(submission.Feedback))
+            {
+                <div class="feedback-section">
+                    <div class="feedback-label">Current Feedback:</div>
+                    <div class="feedback-text">@submission.Feedback</div>
+                </div>
+            }
+        </div>
+
+        if (questions != null && questions.Count > 0)
+        {
+            <h2 style="margin-bottom: 20px; color: #333;">Question Review & Grading</h2>
+
+            for (int i = 0; i < questions.Count; i++)
+            {
+                var question = questions[i];
+                var answer = i < studentAnswers.Count ? studentAnswers[i] : null;
+
+                bool isCorrect = false;
+                bool canAutoGrade = false;
+                string questionType = question.type?.ToString() ?? "";
+
+                // Determine if answer is correct for auto-gradable questions
+                if (questionType == "multipleChoice")
+                {
+                    canAutoGrade = true;
+                    var correctIndex = -1;
+                    for (int j = 0; j < question.options.Count; j++)
+                    {
+                        if ((bool)question.options[j].isCorrect)
+                        {
+                            correctIndex = j;
+                            break;
+                        }
+                    }
+                    isCorrect = answer?.answer != null && answer.answer.ToString() == correctIndex.ToString();
+                }
+                else if (questionType == "multipleAnswer")
+                {
+                    canAutoGrade = true;
+                    // Get correct indices
+                    var correctIndices = new List<int>();
+                    for (int j = 0; j < question.options.Count; j++)
+                    {
+                        if ((bool)question.options[j].isCorrect)
+                        {
+                            correctIndices.Add(j);
+                        }
+                    }
+
+                    // Get student answers
+                    var studentAnswers_MA = new List<int>();
+                    if (answer?.answer != null)
+                    {
+                        var answerArray = answer.answer as Newtonsoft.Json.Linq.JArray;
+                        if (answerArray != null)
+                        {
+                            studentAnswers_MA = answerArray.Select(a => (int)a).ToList();
+                        }
+                    }
+
+                    // Check if correct
+                    isCorrect = correctIndices.Count == studentAnswers_MA.Count &&
+                               correctIndices.All(studentAnswers_MA.Contains);
+                }
+                else if (questionType == "trueFalse")
+                {
+                    canAutoGrade = true;
+                    bool correctAnswer_TF = (bool)question.correctAnswer;
+                    isCorrect = answer?.answer != null && answer.answer.ToString().ToLower() == correctAnswer_TF.ToString().ToLower();
+                }
+                else if (questionType == "identification")
+                {
+                    canAutoGrade = true;
+                    string correctAnswer_ID = question.correctAnswer.ToString();
+                    string studentAnswer_ID = answer?.answer?.ToString() ?? "";
+                    bool caseSensitive = question.caseSensitive ?? false;
+
+                    if (caseSensitive)
+                    {
+                        isCorrect = studentAnswer_ID.Trim() == correctAnswer_ID.Trim();
+                    }
+                    else
+                    {
+                        isCorrect = studentAnswer_ID.Trim().Equals(correctAnswer_ID.Trim(), StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+
+                <div class="question-review">
+                    <div class="question-review-header">
+                        <span class="question-review-number">Question @(i + 1)</span>
+                        <div class="question-review-points">
+                            @if (canAutoGrade)
+                            {
+                                <span class="points-earned">@(isCorrect ? question.points : 0)</span>
+                                <span class="points-total">/ @question.points pts</span>
+                                <div class="correct-indicator @(isCorrect ? "correct" : "incorrect")">
+                                    <i class="fas @(isCorrect ? "fa-check" : "fa-times")"></i>
+                                </div>
+                                <span class="auto-grade-badge">Auto-Graded</span>
+                            }
+                            else
+                            {
+                                <span class="points-total">@question.points pts</span>
+                                <div class="correct-indicator pending">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <span class="manual-grade-badge">Manual Grading</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="question-review-text">@Html.Raw(question.questionText?.ToString() ?? question.question?.ToString() ?? "")</div>
+
+                    <div class="answer-review">
+                        @if (questionType == "multipleChoice")
+                        {
+                            <span class="answer-label">Student's Answer:</span>
+                            for (int j = 0; j < question.options.Count; j++)
+                            {
+                                var option = question.options[j];
+                                bool wasSelected = answer?.answer != null && answer.answer.ToString() == j.ToString();
+                                bool isCorrectOption = (bool)option.isCorrect;
+
+                                string cssClass = "";
+                                if (isCorrectOption)
+                                {
+                                    cssClass = "correct";
+                                }
+                                else if (wasSelected)
+                                {
+                                    cssClass = "incorrect";
+                                }
+                                else if (wasSelected)
+                                {
+                                    cssClass = "selected";
+                                }
+
+                                <div class="answer-option-review @cssClass">
+                                    @option.text
+                                    @if (isCorrectOption)
+                                    {
+                                        <i class="fas fa-check" style="color: #4CAF50; float: right;"></i>
+                                    }
+                                    @if (wasSelected && !isCorrectOption)
+                                    {
+                                        <i class="fas fa-times" style="color: #d32f2f; float: right;"></i>
+                                    }
+                                </div>
+                            }
+                        }
+                        else if (questionType == "multipleAnswer")
+                        {
+                            <span class="answer-label">Student's Answer:</span>
+
+                                // Get student's selected answers
+                                var studentAnswers_Display = new List<int>();
+                                if (answer?.answer != null)
+                                {
+                                    var answerArray = answer.answer as Newtonsoft.Json.Linq.JArray;
+                                    if (answerArray != null)
+                                    {
+                                        studentAnswers_Display = answerArray.Select(a => (int)a).ToList();
+                                    }
+                                }
+
+                            for (int j = 0; j < question.options.Count; j++)
+                            {
+                                var option = question.options[j];
+                                bool wasSelected = studentAnswers_Display.Contains(j);
+                                bool isCorrectOption = (bool)option.isCorrect;
+
+                                string cssClass = "";
+                                if (isCorrectOption && wasSelected)
+                                {
+                                    cssClass = "correct"; // Correct and selected
+                                }
+                                else if (isCorrectOption && !wasSelected)
+                                {
+                                    cssClass = "correct"; // Correct but not selected
+                                }
+                                else if (!isCorrectOption && wasSelected)
+                                {
+                                    cssClass = "incorrect"; // Incorrect but selected
+                                }
+                                else if (wasSelected)
+                                {
+                                    cssClass = "selected";
+                                }
+
+                                <div class="answer-option-review @cssClass">
+                                    @if (wasSelected)
+                                    {
+                                        <i class="fas fa-check-square" style="color: var(--primary-color); margin-right: 8px;"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="far fa-square" style="color: #999; margin-right: 8px;"></i>
+                                    }
+                                    @option.text
+                                    @if (isCorrectOption)
+                                    {
+                                        <i class="fas fa-check" style="color: #4CAF50; float: right;"></i>
+                                    }
+                                </div>
+                            }
+                        }
+                        else if (questionType == "trueFalse")
+                        {
+                            <span class="answer-label">Student's Answer:</span>
+                                var studentAnswer_TF = answer?.answer?.ToString().ToLower() == "true" ? "True" : "False";
+                                var correctAnswer_TF_Display = (bool)question.correctAnswer ? "True" : "False";
+
+                            <div class="answer-text-review @(isCorrect ? "correct" : "incorrect")">
+                                <strong>@studentAnswer_TF</strong>
+                                @if (!isCorrect)
+                                {
+                                    <i class="fas fa-times" style="color: #d32f2f; float: right;"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-check" style="color: #4CAF50; float: right;"></i>
+                                }
+                            </div>
+
+                            if (!isCorrect)
+                            {
+                                <div class="correct-answer-section">
+                                    <div class="correct-answer-label">Correct Answer:</div>
+                                    <div><strong>@correctAnswer_TF_Display</strong></div>
+                                </div>
+                            }
+                        }
+                        else if (questionType == "identification")
+                        {
+                            <span class="answer-label">Student's Answer:</span>
+                            <div class="answer-text-review @(isCorrect ? "correct" : "incorrect")">
+                                @(answer?.answer?.ToString() ?? "(No answer provided)")
+                                @if (!isCorrect && !string.IsNullOrEmpty(answer?.answer?.ToString()))
+                                {
+                                    <i class="fas fa-times" style="color: #d32f2f; float: right;"></i>
+                                }
+                                else if (isCorrect)
+                                {
+                                    <i class="fas fa-check" style="color: #4CAF50; float: right;"></i>
+                                }
+                            </div>
+
+                            if (!isCorrect)
+                            {
+                                <div class="correct-answer-section">
+                                    <div class="correct-answer-label">Correct Answer:</div>
+                                    <div><strong>@question.correctAnswer</strong></div>
+                                </div>
+                            }
+                        }
+                        else if (questionType == "essay")
+                        {
+                            <span class="answer-label">Student's Answer:</span>
+                            <div class="answer-text-review">
+                                @(answer?.answer?.ToString() ?? "(No answer provided)")
+                            </div>
+                        }
+                        else if (questionType == "fileUpload")
+                        {
+                            <span class="answer-label">Student's File Upload:</span>
+                            
+                                // Find files related to this specific question
+                                var questionFiles = submission.SubmissionFiles
+                                    .Where(f => f.FileName.StartsWith($"Q{i + 1}_") || 
+                                               f.FileName.Contains($"question_{i + 1}") ||
+                                               f.FileName.Contains($"q{i + 1}_"))
+                                    .ToList();
+                                
+                                // If no specific files found and this is the only file upload question, show all files
+                                if (!questionFiles.Any())
+                                {
+                                    var fileUploadQuestions = questions.Where(q => (q.type?.ToString() ?? "") == "fileUpload").Count();
+                                    if (fileUploadQuestions == 1 && submission.SubmissionFiles.Any())
+                                    {
+                                        questionFiles = submission.SubmissionFiles.ToList();
+                                    }
+                                }
+                            
+                            if (questionFiles.Any())
+                            {
+                                <div class="answer-text-review" style="padding: 0;">
+                                    @foreach (var file in questionFiles)
+                                    {
+                                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: #f8f9fa; border-radius: 6px; margin-bottom: 8px; border: 1px solid #e0e0e0;">
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <i class="fas fa-file" style="color: var(--primary-color);"></i>
+                                                <span style="font-weight: 500;">@file.FileName</span>
+                                                <span style="color: #999; font-size: 0.85rem;">(@file.SizeInMB.ToString("F2") MB)</span>
+                                                <span style="color: #4CAF50; font-size: 0.8rem;">
+                                                    <i class="fas fa-upload"></i> @file.UploadedAt.ToString("MMM dd, HH:mm")
+                                                </span>
+                                            </div>
+                                            <a href="@file.FilePath" target="_blank" style="color: #4CAF50; text-decoration: none; font-weight: 600; padding: 4px 8px; border-radius: 4px; background: #e8f5e9;">
+                                                <i class="fas fa-download"></i> View
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="answer-text-review" style="background: #ffebee; border-color: #f44336;">
+                                    <i class="fas fa-exclamation-triangle"></i> No file uploaded for this question.
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <!-- Manual grading controls for subjective questions only -->
+                    @if (questionType == "essay" || questionType == "fileUpload")
+                    {
+                        <div class="grading-controls">
+                            <label>Manual Score for this Question:</label>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="number" 
+                                       class="score-input" 
+                                       id="question_@(i)_score" 
+                                       min="0" 
+                                       max="@question.points" 
+                                       step="0.5" 
+                                       value="0"
+                                       placeholder="0" />
+                                <span>/ @question.points points</span>
+                                <button type="button" class="btn" style="background: #4CAF50; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;" 
+                                        onclick="setQuestionScore(@(i), @question.points)">
+                                    Full Points
+                                </button>
+                                <button type="button" class="btn" style="background: #f44336; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;" 
+                                        onclick="setQuestionScore(@(i), 0)">
+                                    Zero
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+
+        <!-- Total Score and Feedback Section -->
+        <div class="total-score-section">
+            <div class="total-score-label">Total Score</div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <input type="number" 
+                       class="total-score-input" 
+                       id="totalScoreInput" 
+                       min="0" 
+                       max="@submission.Classwork.Points" 
+                       step="0.5" 
+                       value="@(ViewBag.AutoCalculatedScore ?? submission.Grade?.ToString() ?? "")" />
+                <span style="font-size: 1.2rem; color: #666;">/ @submission.Classwork.Points points</span>
+                @if (ViewBag.AutoCalculatedPercentage != null)
+                {
+                    <span style="color: #4CAF50; font-weight: 600; font-size: 1.1rem;" id="totalPercentageDisplay">
+                        (@ViewBag.AutoCalculatedPercentage%)
+                    </span>
+                }
+                <button type="button" class="btn" style="background: #2196F3; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 600;" 
+                        onclick="calculateTotalFromQuestions()">
+                    <i class="fas fa-calculator"></i> Calculate from Questions
+                </button>
+            </div>
+            
+            <!-- Score Breakdown Display -->
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #e0e0e0;">
+                <div style="font-weight: 600; color: #666; margin-bottom: 10px; font-size: 0.9rem;">Score Breakdown:</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.9rem;">
+                    <div>
+                        <span style="color: #4CAF50;">Auto-Graded Questions:</span>
+                        <span id="autoGradedTotal" style="font-weight: 600; margin-left: 5px;">0 pts</span>
+                    </div>
+                    <div>
+                        <span style="color: #ff9800;">Manual Grading:</span>
+                        <span id="manualGradedTotal" style="font-weight: 600; margin-left: 5px;">0 pts</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: left;">
+                <label class="feedback-label" style="color: #2e7d32;">Teacher's Feedback:</label>
+                <textarea id="feedbackInput" 
+                          class="feedback-input" 
+                          placeholder="Provide detailed feedback for the student...">@submission.Feedback</textarea>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="@Url.Action("Gradebook", "Teacher", new { id = courseId })" class="btn-cancel">
+                <i class="fas fa-arrow-left"></i> Back to Gradebook
+            </a>
+            <button type="button" class="btn-release" onclick="releaseGrade()">
+                <i class="fas fa-check"></i> Save & Release Grade
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="results-header">
+            <p style="color: #f44336; text-align: center; font-size: 1.2rem;">
+                <i class="fas fa-exclamation-triangle"></i>
+                Submission not found or access denied.
+            </p>
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="@Url.Action("Gradebook", "Teacher", new { id = courseId })" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Back to Gradebook
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@section scripts {
+    <script>
+        // Store auto-graded scores for reference
+        var autoGradedScores = {};
+        
+        // Initialize auto-graded scores on page load
+        function initializeAutoGradedScores() {
+            @if (questions != null && questions.Count > 0)
+            {
+                for (int i = 0; i < questions.Count; i++)
+                {
+                    var question = questions[i];
+                    var answer = i < studentAnswers.Count ? studentAnswers[i] : null;
+                    string questionType = question.type?.ToString() ?? "";
+                    
+                    bool canAutoGrade = questionType == "multipleChoice" || questionType == "multipleAnswer" || 
+                                       questionType == "trueFalse" || questionType == "identification";
+                    
+                    if (canAutoGrade)
+                    {
+                        bool isCorrect = false;
+                        
+                        if (questionType == "multipleChoice")
+                        {
+                            var correctIndex = -1;
+                            for (int j = 0; j < question.options.Count; j++)
+                            {
+                                if ((bool)question.options[j].isCorrect)
+                                {
+                                    correctIndex = j;
+                                    break;
+                                }
+                            }
+                            isCorrect = answer?.answer != null && answer.answer.ToString() == correctIndex.ToString();
+                        }
+                        else if (questionType == "multipleAnswer")
+                        {
+                            // Get correct indices
+                            var correctIndices = new List<int>();
+                            for (int j = 0; j < question.options.Count; j++)
+                            {
+                                if ((bool)question.options[j].isCorrect)
+                                {
+                                    correctIndices.Add(j);
+                                }
+                            }
+
+                            // Get student answers
+                            var studentAnswers_MA = new List<int>();
+                            if (answer?.answer != null)
+                            {
+                                var answerArray = answer.answer as Newtonsoft.Json.Linq.JArray;
+                                if (answerArray != null)
+                                {
+                                    studentAnswers_MA = answerArray.Select(a => (int)a).ToList();
+                                }
+                            }
+
+                            // Check if correct
+                            isCorrect = correctIndices.Count == studentAnswers_MA.Count &&
+                                       correctIndices.All(studentAnswers_MA.Contains);
+                        }
+                        else if (questionType == "trueFalse")
+                        {
+                            bool correctAnswer_TF = (bool)question.correctAnswer;
+                            isCorrect = answer?.answer != null && answer.answer.ToString().ToLower() == correctAnswer_TF.ToString().ToLower();
+                        }
+                        else if (questionType == "identification")
+                        {
+                            string correctAnswer_ID = question.correctAnswer.ToString();
+                            string studentAnswer_ID = answer?.answer?.ToString() ?? "";
+                            bool caseSensitive = question.caseSensitive ?? false;
+
+                            if (caseSensitive)
+                            {
+                                isCorrect = studentAnswer_ID.Trim() == correctAnswer_ID.Trim();
+                            }
+                            else
+                            {
+                                isCorrect = studentAnswer_ID.Trim().Equals(correctAnswer_ID.Trim(), StringComparison.OrdinalIgnoreCase);
+                            }
+                        }
+                        
+                        <text>
+                        autoGradedScores[@i] = @(isCorrect ? question.points : 0);
+                        </text>
+                    }
+                }
+            }
+        }
+
+        // Auto-calculate total score from individual question scores
+        function calculateTotalFromQuestions() {
+            let autoTotal = 0;
+            let manualTotal = 0;
+            
+            // Add auto-graded scores
+            for (var questionIndex in autoGradedScores) {
+                if (autoGradedScores.hasOwnProperty(questionIndex)) {
+                    autoTotal += autoGradedScores[questionIndex];
+                }
+            }
+            
+            // Add manual scores from input fields
+            $('[id^="question_"][id$="_score"]').each(function() {
+                const score = parseFloat($(this).val()) || 0;
+                manualTotal += score;
+            });
+            
+            const total = autoTotal + manualTotal;
+            
+            $('#totalScoreInput').val(total);
+            
+            // Update breakdown display
+            $('#autoGradedTotal').text(autoTotal + ' pts');
+            $('#manualGradedTotal').text(manualTotal + ' pts');
+            
+            updatePercentage();
+        }
+
+        // Set individual question score
+        function setQuestionScore(questionIndex, score) {
+            $('#question_' + questionIndex + '_score').val(score);
+            calculateTotalFromQuestions();
+        }
+
+        // Update percentage display
+        function updatePercentage() {
+            const total = parseFloat($('#totalScoreInput').val()) || 0;
+            const maxPoints = @(submission?.Classwork?.Points ?? 0);
+            const percentage = maxPoints > 0 ? ((total / maxPoints) * 100).toFixed(1) : 0;
+            
+            // Update any percentage displays if they exist
+            $('.percentage').text(percentage + '%');
+            
+            // Update the score card display if it exists
+            $('#currentScoreDisplay').text(total + '/' + maxPoints);
+            $('#currentPercentageDisplay').text(percentage + '%');
+            
+            // Update the total score section percentage
+            $('#totalPercentageDisplay').text('(' + percentage + '%)');
+        }
+
+        // Auto-calculate when question scores change
+        $(document).on('input', '[id^="question_"][id$="_score"]', function() {
+            calculateTotalFromQuestions();
+        });
+
+        // Auto-calculate percentage when total score changes
+        $(document).on('input', '#totalScoreInput', function() {
+            updatePercentage();
+        });
+
+        // Initialize manual scores with any existing grades
+        function initializeManualScores() {
+            @if (submission?.Grade.HasValue == true)
+            {
+                <text>
+                // If already graded, try to distribute the grade proportionally to manual questions
+                var existingGrade = @submission.Grade.Value;
+                var autoTotal = 0;
+                for (var questionIndex in autoGradedScores) {
+                    if (autoGradedScores.hasOwnProperty(questionIndex)) {
+                        autoTotal += autoGradedScores[questionIndex];
+                    }
+                }
+                
+                var manualGrade = existingGrade - autoTotal;
+                var manualQuestions = $('[id^="question_"][id$="_score"]');
+                
+                if (manualQuestions.length > 0 && manualGrade > 0) {
+                    var scorePerQuestion = manualGrade / manualQuestions.length;
+                    manualQuestions.each(function() {
+                        $(this).val(scorePerQuestion);
+                    });
+                }
+                
+                $('#totalScoreInput').val(existingGrade);
+                </text>
+            }
+            else
+            {
+                <text>
+                // Set initial values for manual questions to 0
+                $('[id^="question_"][id$="_score"]').val(0);
+                </text>
+            }
+        }
+
+        function releaseGrade() {
+            const score = $('#totalScoreInput').val();
+            const feedback = $('#feedbackInput').val();
+            const maxPoints = @(submission?.Classwork?.Points ?? 0);
+
+            if (!score || score === '') {
+                alert('Please enter a total score');
+                return;
+            }
+
+            if (parseFloat(score) > maxPoints) {
+                alert('Score cannot exceed ' + maxPoints + ' points');
+                return;
+            }
+
+            if (parseFloat(score) < 0) {
+                alert('Score cannot be negative');
+                return;
+            }
+
+            // Add CSRF token
+            var token = $('input[name="__RequestVerificationToken"]').val();
+
+            // Show loading state
+            const btnRelease = $('.btn-release');
+            const originalText = btnRelease.html();
+            btnRelease.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+
+            $.ajax({
+                url: '@Url.Action("GradeSubmission", "Teacher")',
+                type: 'POST',
+                data: {
+                    __RequestVerificationToken: token,
+                    submissionId: @(submission?.Id ?? 0),
+                    grade: score,
+                    feedback: feedback
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('Grade released successfully!');
+                        window.location.href = '@Url.Action("Gradebook", "Teacher", new { id = courseId })';
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Error releasing grade');
+                },
+                complete: function() {
+                    // Restore button state
+                    btnRelease.prop('disabled', false).html(originalText);
+                }
+            });
+        }
+
+        // Initialize on page load
+        $(document).ready(function() {
+            // Initialize auto-graded scores
+            initializeAutoGradedScores();
+            
+            // Initialize manual scores
+            initializeManualScores();
+            
+            // Calculate initial total
+            calculateTotalFromQuestions();
+            
+            // Show breakdown in console for debugging
+            console.log('Auto-graded scores:', autoGradedScores);
+            console.log('Initial total calculation complete');
+        });
+    </script>
+    @Html.AntiForgeryToken()
+}

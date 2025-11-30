@@ -21,10 +21,11 @@ namespace LMS.Models
         public string Password { get; set; }
         public DateTime? LastLogin { get; set; }
 
+        // Password Reset Properties
+        public string ResetToken { get; set; }
+        public DateTime? ResetTokenExpiry { get; set; }
+
         // Date Created
         public DateTime DateCreated { get; set; }
-
-
-
     }
 }

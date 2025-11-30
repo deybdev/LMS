@@ -75,6 +75,261 @@ namespace LMS.Controllers
 
         }
 
+        // GET: Account/ForgotPassword
+        [HttpGet]
+        public ActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        // POST: Account/ForgotPassword - Handle email submission
+        [HttpPost]
+        public ActionResult ForgotPassword(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                ViewBag.Error = "Please enter your email address.";
+                ViewBag.Step = 1;
+                return View();
+            }
+
+            var user = db.Users.FirstOrDefault(u => u.Email == email);
+            if (user == null)
+            {
+                ViewBag.Error = "No account found with this email address.";
+                ViewBag.Step = 1;
+                return View();
+            }
+
+            try
+            {
+                // Generate 6-digit reset code
+                var resetCode = GenerateResetCode();
+                
+                // Set expiry time (15 minutes from now)
+                var expiryTime = DateTime.Now.AddMinutes(15);
+                
+                // Update user with reset token
+                user.ResetToken = HashPassword(resetCode);
+                user.ResetTokenExpiry = expiryTime;
+                db.SaveChanges();
+
+                // Send reset email
+                var htmlBody = EmailHelper.GenerateEmailTemplate(
+                    EmailType.PasswordReset,
+                    new
+                    {
+                        Name = $"{user.FirstName} {user.LastName}",
+                        ResetCode = resetCode,
+                        ExpiryTime = expiryTime.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                    }
+                );
+
+                bool emailSent = EmailHelper.SendEmail(
+                    toEmail: email,
+                    subject: "Password Reset - G2 Academy LMS",
+                    htmlBody: htmlBody
+                );
+
+                if (emailSent)
+                {
+                    ViewBag.Success = "A password reset code has been sent to your email address.";
+                    ViewBag.Step = 2;
+                    ViewBag.Email = email;
+                }
+                else
+                {
+                    ViewBag.Error = "Failed to send reset email. Please try again later.";
+                    ViewBag.Step = 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SendResetCode Error: {ex.Message}");
+                ViewBag.Error = "An error occurred. Please try again later.";
+                ViewBag.Step = 1;
+            }
+
+            return View();
+        }
+
+        // POST: Account/VerifyCode - Handle code verification
+        [HttpPost]
+        public ActionResult VerifyCode(string email, string resetCode)
+        {
+            ViewBag.Email = email;
+
+            if (string.IsNullOrEmpty(resetCode) || resetCode.Length != 6)
+            {
+                ViewBag.Error = "Please enter the 6-digit reset code.";
+                ViewBag.Step = 2;
+                return View("ForgotPassword");
+            }
+
+            var user = db.Users.FirstOrDefault(u => u.Email == email);
+            if (user == null)
+            {
+                ViewBag.Error = "No account found with this email address.";
+                ViewBag.Step = 1;
+                return View("ForgotPassword");
+            }
+
+            // Check if reset token exists and is not expired
+            if (string.IsNullOrEmpty(user.ResetToken) || user.ResetTokenExpiry == null || 
+                user.ResetTokenExpiry < DateTime.Now)
+            {
+                ViewBag.Error = "Reset code has expired. Please request a new one.";
+                ViewBag.Step = 1;
+                return View("ForgotPassword");
+            }
+
+            // Verify reset code
+            if (HashPassword(resetCode) != user.ResetToken)
+            {
+                ViewBag.Error = "Invalid reset code.";
+                ViewBag.Step = 2;
+                return View("ForgotPassword");
+            }
+
+            ViewBag.Success = "Reset code verified successfully.";
+            ViewBag.Step = 3;
+            ViewBag.ResetCode = resetCode;
+            return View("ForgotPassword");
+        }
+
+        // POST: Account/ResetPasswordFinal - Handle final password reset
+        [HttpPost]
+        public ActionResult ResetPasswordFinal(string email, string resetCode, string newPassword, string confirmPassword)
+        {
+            ViewBag.Email = email;
+            ViewBag.ResetCode = resetCode;
+
+            if (string.IsNullOrEmpty(newPassword) || string.IsNullOrEmpty(confirmPassword))
+            {
+                ViewBag.Error = "Please fill in both password fields.";
+                ViewBag.Step = 3;
+                return View("ForgotPassword");
+            }
+
+            if (newPassword != confirmPassword)
+            {
+                ViewBag.Error = "New passwords do not match.";
+                ViewBag.Step = 3;
+                return View("ForgotPassword");
+            }
+
+            if (newPassword.Length < 6)
+            {
+                ViewBag.Error = "Password must be at least 6 characters long.";
+                ViewBag.Step = 3;
+                return View("ForgotPassword");
+            }
+
+            var user = db.Users.FirstOrDefault(u => u.Email == email);
+            if (user == null)
+            {
+                ViewBag.Error = "No account found with this email address.";
+                ViewBag.Step = 1;
+                return View("ForgotPassword");
+            }
+
+            // Check if reset token exists and is not expired
+            if (string.IsNullOrEmpty(user.ResetToken) || user.ResetTokenExpiry == null || 
+                user.ResetTokenExpiry < DateTime.Now)
+            {
+                ViewBag.Error = "Reset code has expired. Please request a new one.";
+                ViewBag.Step = 1;
+                return View("ForgotPassword");
+            }
+
+            // Verify reset code
+            if (HashPassword(resetCode) != user.ResetToken)
+            {
+                ViewBag.Error = "Invalid reset code.";
+                ViewBag.Step = 2;
+                return View("ForgotPassword");
+            }
+
+            try
+            {
+                // Update password and clear reset token
+                user.Password = HashPassword(newPassword);
+                user.ResetToken = null;
+                user.ResetTokenExpiry = null;
+                db.SaveChanges();
+
+                ViewBag.Step = 4;
+                return View("ForgotPassword");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ResetPassword Error: {ex.Message}");
+                ViewBag.Error = "An error occurred. Please try again later.";
+                ViewBag.Step = 3;
+                return View("ForgotPassword");
+            }
+        }
+
+        // POST: Account/ResendCode - Handle resending reset code
+        [HttpPost]
+        public ActionResult ResendCode(string email)
+        {
+            ViewBag.Email = email;
+
+            var user = db.Users.FirstOrDefault(u => u.Email == email);
+            if (user == null)
+            {
+                ViewBag.Error = "No account found with this email address.";
+                ViewBag.Step = 1;
+                return View("ForgotPassword");
+            }
+
+            try
+            {
+                // Generate new reset code
+                var resetCode = GenerateResetCode();
+                var expiryTime = DateTime.Now.AddMinutes(15);
+                
+                user.ResetToken = HashPassword(resetCode);
+                user.ResetTokenExpiry = expiryTime;
+                db.SaveChanges();
+
+                // Send reset email
+                var htmlBody = EmailHelper.GenerateEmailTemplate(
+                    EmailType.PasswordReset,
+                    new
+                    {
+                        Name = $"{user.FirstName} {user.LastName}",
+                        ResetCode = resetCode,
+                        ExpiryTime = expiryTime.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                    }
+                );
+
+                bool emailSent = EmailHelper.SendEmail(
+                    toEmail: email,
+                    subject: "Password Reset - G2 Academy LMS",
+                    htmlBody: htmlBody
+                );
+
+                if (emailSent)
+                {
+                    ViewBag.Success = "Reset code sent again!";
+                }
+                else
+                {
+                    ViewBag.Error = "Failed to resend code. Please try again.";
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ResendCode Error: {ex.Message}");
+                ViewBag.Error = "An error occurred. Please try again later.";
+            }
+
+            ViewBag.Step = 2;
+            return View("ForgotPassword");
+        }
+
         // POST: Account/UploadAccounts
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -688,6 +943,13 @@ namespace LMS.Controllers
             var random = new Random();
             return new string(Enumerable.Repeat(chars, length)
               .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        // Reset Code Generator (6 digits)
+        private string GenerateResetCode()
+        {
+            var random = new Random();
+            return random.Next(100000, 999999).ToString();
         }
 
         private string HashPassword(string password)

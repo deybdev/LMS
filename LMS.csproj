@@ -218,7 +218,9 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\EmailHelper.cs" />
+    <Compile Include="Helpers\EmailNotificationScheduler.cs" />
     <Compile Include="Helpers\ProgramNameHelper.cs" />
+    <Compile Include="Helpers\StudentNotificationService.cs" />
     <Compile Include="Migrations\202511121514315_Initial.cs" />
     <Compile Include="Migrations\202511121514315_Initial.Designer.cs">
       <DependentUpon>202511121514315_Initial.cs</DependentUpon>
@@ -316,6 +318,14 @@
     <Compile Include="Migrations\202511271841075_asnasa.Designer.cs">
       <DependentUpon>202511271841075_asnasa.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202511300135440_AddResetPassword.cs" />
+    <Compile Include="Migrations\202511300135440_AddResetPassword.Designer.cs">
+      <DependentUpon>202511300135440_AddResetPassword.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511300413129_asod.cs" />
+    <Compile Include="Migrations\202511300413129_asod.Designer.cs">
+      <DependentUpon>202511300413129_asod.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Announcement.cs" />
     <Compile Include="Models\AttendanceRecord.cs" />
@@ -369,6 +379,7 @@
     <Content Include="Content\manageUser.css" />
     <Content Include="Content\programManagement.css" />
     <Content Include="Content\Site.css" />
+    <Content Include="Content\studentAssignment.css" />
     <Content Include="Content\teacherClasslist.css" />
     <Content Include="Content\teacherCourse.css" />
     <Content Include="Content\teacherCreateCourse.css" />
@@ -475,6 +486,16 @@
     <Content Include="Views\Student\Course\CreateAnnouncement.cshtml" />
     <Content Include="Views\Student\Course\EditAnnouncement.cshtml" />
     <Content Include="Views\Teacher\Course\EditClasswork.cshtml" />
+    <Content Include="Views\Student\Course\TakeQuiz.cshtml" />
+    <Content Include="Views\Student\Course\ViewClasswork.cshtml" />
+    <Content Include="Views\Teacher\Course\ViewSubmission.cshtml" />
+    <Content Include="Views\Shared\_TodoNavigation.cshtml" />
+    <Content Include="Views\Student\Todo\Assigned.cshtml" />
+    <Content Include="Views\Student\Todo\Missing.cshtml" />
+    <Content Include="Views\Student\Todo\Finished.cshtml" />
+    <Content Include="Views\Account\ForgotPassword.cshtml" />
+    <Content Include="Views\Account\ResetPassword.cshtml" />
+    <Content Include="Views\Admin\EmailNotifications.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -578,6 +599,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202511271841075_asnasa.resx">
       <DependentUpon>202511271841075_asnasa.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511300135440_AddResetPassword.resx">
+      <DependentUpon>202511300135440_AddResetPassword.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511300413129_asod.resx">
+      <DependentUpon>202511300413129_asod.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

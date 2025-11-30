@@ -1,5 +1,4 @@
-﻿
-@{
+﻿@{
     ViewBag.Title = "Index";
 }
 
@@ -83,6 +82,8 @@
                     <!-- Days will be dynamically generated here -->
                 </div>
             </div>
+            
+            <!-- Mobile Horizontal Calendar (will be inserted dynamically) -->
         </div>
     </div>
 </div>
@@ -122,28 +123,80 @@
 
 <style>
     .date-time {
-    text-align: right;
-    font-family: var(--archivo-plain-font);
-}
+        text-align: right;
+        font-family: var(--archivo-plain-font);
+    }
 
-.current-date {
-    font-size: .9rem;
-    color: var(--gray-text);
-    margin-bottom: 0.25rem;
-}
+    .current-date {
+        font-size: .9rem;
+        color: var(--gray-text);
+        margin-bottom: 0.25rem;
+    }
 
-.current-time {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--dark-primary-color);
-}
+    .current-time {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dark-primary-color);
+    }
+
+    /* Enhanced Mobile Responsive Styles for Date-Time */
+    @@media (max-width: 768px) {
+        .dashboard-header .d-flex {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .date-time {
+            text-align: left;
+            margin-top: 1rem;
+        }
+
+        .current-time {
+            font-size: 1.5rem;
+        }
+
+        .current-date {
+            font-size: 0.8rem;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .dashboard-header {
+            padding: 1.25rem 1.5rem;
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .current-time {
+            font-size: 1.3rem;
+        }
+
+        .current-date {
+            font-size: 0.75rem;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .current-time {
+            font-size: 1.2rem;
+        }
+
+        .current-date {
+            font-size: 0.7rem;
+        }
+    }
 </style>
 
 @section scripts {
     <script src="~/Scripts/Custom/schoolCalendar.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            new SchoolCalendar('teacher');
+            // Initialize calendar with teacher role
+            calendar = new SchoolCalendar('teacher');
+            
+            // Initialize date/time updates
             updateDateTime();
             setInterval(updateDateTime, 1000);
         });

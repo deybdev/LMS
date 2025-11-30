@@ -1,7 +1,64 @@
-﻿
-@{
-    ViewBag.Title = "TodoList";
+﻿@{
+    ViewBag.Title = "Todo List";
 }
 
-<h2>TodoList</h2>
+<link rel="stylesheet" href="~/Content/teacherCourse.css" />
+
+<div class="admin-container">
+    <div class="empty-state-section">
+        <div class="empty-state-content">
+            <i class="fas fa-clipboard-list"></i>
+            <h3>Redirecting to Todo List</h3>
+            <p>You will be automatically redirected to your course assignments.</p>
+            <p>If the page doesn't redirect automatically, please click on "To-Do List" in the navigation menu.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .empty-state-section {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
+        background: white;
+        border-radius: 12px;
+        border: 2px dashed var(--border-color);
+    }
+
+    .empty-state-content {
+        text-align: center;
+        color: var(--gray-text);
+    }
+
+    .empty-state-content i {
+        font-size: 5rem;
+        color: #dee2e6;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state-content h3 {
+        color: var(--dark-primary-color);
+        margin-bottom: 0.5rem;
+        font-family: var(--archivo-black-font);
+    }
+
+    .empty-state-content p {
+        margin: 0.5rem 0;
+        font-family: var(--archivo-plain-font);
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        // Auto redirect after 3 seconds if this view is shown
+        setTimeout(function() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '@Url.Action("Course", "Student")';
+            }
+        }, 3000);
+    });
+</script>
 

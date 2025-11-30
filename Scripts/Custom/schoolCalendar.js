@@ -9,13 +9,25 @@
         this.selectedDate = null;
         this.isEditMode = false;
         this.currentEventId = null;
+        this.isMobileView = false;
         this.init();
     }
 
     init() {
+        this.checkMobileView();
         this.loadEventsFromServer();
         this.bindEvents();
         this.renderCalendar();
+        
+        // Listen for resize events to switch between desktop and mobile views
+        window.addEventListener('resize', () => {
+            this.checkMobileView();
+            this.renderCalendar();
+        });
+    }
+
+    checkMobileView() {
+        this.isMobileView = window.innerWidth <= 768;
     }
 
     bindEvents() {
@@ -51,7 +63,18 @@
     renderCalendar() {
         const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         document.getElementById('currentMonth').textContent = `${monthNames[this.currentMonth]} ${this.currentYear}`;
+        
+        if (this.isMobileView) {
+            this.renderMobileHorizontalCalendar();
+        } else {
+            this.renderDesktopCalendar();
+        }
+    }
+
+    renderDesktopCalendar() {
         const daysGrid = document.getElementById('calendarDays');
+        if (!daysGrid) return;
+        
         daysGrid.innerHTML = '';
 
         const firstDay = new Date(this.currentYear, this.currentMonth, 1);
@@ -67,6 +90,145 @@
         const remaining = 42 - daysGrid.children.length;
         for (let d = 1; d <= remaining; d++)
             daysGrid.appendChild(this.createDayElement(d, true, new Date(this.currentYear, this.currentMonth + 1, d)));
+    }
+
+    renderMobileHorizontalCalendar() {
+        // Create mobile horizontal calendar if it doesn't exist
+        let mobileContainer = document.querySelector('.mobile-horizontal-calendar');
+        if (!mobileContainer) {
+            const calendarContent = document.querySelector('.calendar-content');
+            if (calendarContent) {
+                mobileContainer = document.createElement('div');
+                mobileContainer.className = 'mobile-horizontal-calendar';
+                mobileContainer.innerHTML = `
+                    <div class="horizontal-days-container">
+                        <div class="horizontal-days-scroll" id="horizontalDaysScroll">
+                        </div>
+                    </div>
+                `;
+                calendarContent.appendChild(mobileContainer);
+            }
+        }
+
+        const horizontalDaysScroll = document.getElementById('horizontalDaysScroll');
+        if (!horizontalDaysScroll) return;
+
+        horizontalDaysScroll.innerHTML = '';
+
+        // Get all days for the current month plus a few days from prev/next months
+        const firstDay = new Date(this.currentYear, this.currentMonth, 1);
+        const daysInMonth = new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
+        const startOfWeek = new Date(firstDay);
+        startOfWeek.setDate(firstDay.getDate() - firstDay.getDay());
+
+        // Show 35 days (5 weeks) for mobile view
+        for (let i = 0; i < 35; i++) {
+            const currentDate = new Date(startOfWeek);
+            currentDate.setDate(startOfWeek.getDate() + i);
+            
+            const dayCard = this.createMobileDayCard(currentDate);
+            horizontalDaysScroll.appendChild(dayCard);
+        }
+
+        // Scroll to today or first day of current month
+        this.scrollToCurrentDay();
+    }
+
+    createMobileDayCard(date) {
+        const dayCard = document.createElement('div');
+        const isCurrentMonth = date.getMonth() === this.currentMonth && date.getFullYear() === this.currentYear;
+        const isToday = this.isSameDay(date, this.today);
+        
+        dayCard.className = `horizontal-day-card${!isCurrentMonth ? ' other-month' : ''}${isToday ? ' today' : ''}`;
+        
+        const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+        const events = this.getEventsForDate(date);
+        
+        let eventsHtml = '';
+        if (events.length > 0) {
+            events.slice(0, 3).forEach(event => {
+                eventsHtml += `
+                    <div class="horizontal-event-item ${event.type}" onclick="calendar.showEventDetails(${JSON.stringify(event).replace(/"/g, '&quot;')})">
+                        ${event.title}
+                    </div>
+                `;
+            });
+            
+            if (events.length > 3) {
+                eventsHtml += `
+                    <div class="horizontal-event-item more-events" onclick="calendar.showDayEvents(new Date('${date.toISOString()}'), ${JSON.stringify(events).replace(/"/g, '&quot;')})">
+                        +${events.length - 3} more events
+                    </div>
+                `;
+            }
+        } else {
+            eventsHtml = '<div class="no-events-message">No events</div>';
+        }
+
+        dayCard.innerHTML = `
+            <div class="horizontal-day-header">
+                <div class="horizontal-day-number">${date.getDate()}</div>
+                <div class="horizontal-day-name">${dayNames[date.getDay()]}</div>
+            </div>
+            <div class="horizontal-events-container">
+                ${eventsHtml}
+            </div>
+        `;
+
+        // Add click event for admin date selection
+        if (this.role === 'admin' && isCurrentMonth) {
+            dayCard.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('horizontal-event-item')) {
+                    this.selectMobileDate(date, dayCard);
+                }
+            });
+        }
+
+        return dayCard;
+    }
+
+    scrollToCurrentDay() {
+        const horizontalContainer = document.querySelector('.horizontal-days-scroll');
+        const todayCard = document.querySelector('.horizontal-day-card.today');
+        
+        if (horizontalContainer && todayCard) {
+            const containerWidth = horizontalContainer.offsetWidth;
+            const cardWidth = todayCard.offsetWidth;
+            const cardLeft = todayCard.offsetLeft;
+            const scrollLeft = cardLeft - (containerWidth / 2) + (cardWidth / 2);
+            
+            horizontalContainer.scrollTo({
+                left: scrollLeft,
+                behavior: 'smooth'
+            });
+        } else {
+            // If no today card, scroll to first day of current month
+            const currentMonthCard = document.querySelector('.horizontal-day-card:not(.other-month)');
+            if (horizontalContainer && currentMonthCard) {
+                const containerWidth = horizontalContainer.offsetWidth;
+                const cardWidth = currentMonthCard.offsetWidth;
+                const cardLeft = currentMonthCard.offsetLeft;
+                const scrollLeft = cardLeft - (containerWidth / 2) + (cardWidth / 2);
+                
+                horizontalContainer.scrollTo({
+                    left: scrollLeft,
+                    behavior: 'smooth'
+                });
+            }
+        }
+    }
+
+    selectMobileDate(date, cardElement) {
+        if (this.role !== 'admin') return;
+        
+        // Remove previous selection
+        document.querySelectorAll('.horizontal-day-card.selected').forEach(card => 
+            card.classList.remove('selected'));
+        
+        // Add selection to current card
+        cardElement.classList.add('selected');
+        this.selectedDate = date;
+        this.openEventModal(false, date);
     }
 
     createDayElement(day, other, date) {

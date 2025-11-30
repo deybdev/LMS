@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="~/Content/teacherCourse.css" />
 <link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
 <link rel="stylesheet" href="~/Content/classworkForm.css" />
+<link rel="stylesheet" href="~/Content/studentAssignment.css" />
 
 <div class="admin-container">
     @Html.Partial("_BackButton")
@@ -25,6 +26,7 @@
                 @Html.AntiForgeryToken()
 
                 <input type="hidden" name="TeacherCourseId" value="@courseId" />
+                <input type="hidden" id="selectedStudentIdsInput" name="selectedStudentIds" value="" />
 
                 <!-- Title, Classwork Type Row -->
                 <div class="form-row">
@@ -49,23 +51,23 @@
                 <div class="form-row">
                     <div class="form-group full-width">
                         <label>Publish Mode<span class="required">*</span></label>
-                        <div class="submission-mode-options">
-                            <label class="mode-option">
+                        <div class="submission-mode-options" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="mode-option" style="width: 100%;">
                                 <input type="radio" name="publishMode" id="publishNow" value="now" checked />
-                                <div class="mode-card">
+                                <label for="publishNow" class="mode-card" style="width: 100%; display: block;">
                                     <i class="fas fa-upload"></i>
                                     <h4>Upload Now</h4>
                                     <p>Make classwork available immediately</p>
-                                </div>
-                            </label>
-                            <label class="mode-option">
+                                </label>
+                            </div>
+                            <div class="mode-option" style="width: 100%;">
                                 <input type="radio" name="publishMode" id="publishScheduled" value="scheduled" />
-                                <div class="mode-card">
+                                <label for="publishScheduled" class="mode-card" style="width: 100%; display: block;">
                                     <i class="fas fa-clock"></i>
                                     <h4>Schedule</h4>
                                     <p>Set a future date to publish classwork</p>
-                                </div>
-                            </label>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -81,30 +83,8 @@
                     </div>
                 </div>
 
-                <!-- Submission Mode Selection -->
-                <div class="form-row" id="submissionModeRow" style="display: none;">
-                    <div class="form-group full-width">
-                        <label>Submission Mode<span class="required">*</span></label>
-                        <div class="submission-mode-options">
-                            <label class="mode-option">
-                                <input type="radio" name="submissionMode" id="modeManual" value="manual" checked />
-                                <div class="mode-card">
-                                    <i class="fas fa-clipboard-question"></i>
-                                    <h4>Manual Questions</h4>
-                                    <p>Create questions for students to answer</p>
-                                </div>
-                            </label>
-                            <label class="mode-option">
-                                <input type="radio" name="submissionMode" id="modeFile" value="file" />
-                                <div class="mode-card">
-                                    <i class="fas fa-file-upload"></i>
-                                    <h4>File Submission</h4>
-                                    <p>Students upload files as their work</p>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
+                <!-- Hidden field for submission mode - always manual for Quiz/Exam -->
+                <input type="hidden" name="submissionMode" id="submissionModeHidden" value="manual" />
 
                 <!-- Deadline Row -->
                 <div class="deadline-points-row">
@@ -116,10 +96,6 @@
                             No due date
                         </label>
                     </div>
-                    <div class="form-group" id="pointsGroup">
-                        <label>Points<span class="required">*</span></label>
-                        <input type="number" name="points" id="totalPoints" required placeholder="0" min="0" />
-                    </div>
                 </div>
 
                 <!-- Description -->
@@ -130,27 +106,8 @@
                     </div>
                 </div>
 
-                <!-- File Upload Area (for instructional materials) - Only in File Mode -->
-                <div class="form-row" id="fileAttachmentSection" style="display: none;">
-                    <div class="form-group full-width">
-                        <label>Instructional Materials / Attachments</label>
-                        <div class="upload-area" id="uploadArea">
-                            <div class="upload-icon">
-                                <i class="fa-solid fa-cloud-arrow-up"></i>
-                            </div>
-                            <div class="upload-text">Click to upload or drag and drop</div>
-                            <div class="upload-subtext">PDF, DOC, PPT, XLS files supported</div>
-                            <button type="button" class="choose-file-btn" onclick="document.getElementById('fileInput').click()">
-                                Choose file
-                            </button>
-                            <input type="file" id="fileInput" name="files" multiple class="file-input-hidden" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx" />
-                        </div>
-                        <div class="uploaded-files-list" id="uploadedFilesList"></div>
-                    </div>
-                </div>
-
-                <!-- Questions Section (Manual Mode Only) -->
-                <div id="questionsSection" style="display: none;">
+                <!-- Questions Section (Available for all types) -->
+                <div id="questionsSection">
                     <div class="section-header">
                         <div>
                             <h3><i class="fa-solid fa-clipboard-question"></i> Questions</h3>
@@ -167,11 +124,41 @@
                                 <option value="trueFalse">True/False</option>
                                 <option value="identification">Identification</option>
                                 <option value="essay">Essay/Text</option>
-                                <option value="fileUpload">File Upload</option>
                             </select>
                             <button type="button" class="btn-add-question" onclick="addQuestion()">
                                 <i class="fa-solid fa-plus"></i> Add Question
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- CSV Import Section -->
+                    <div class="csv-import-section" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #dee2e6;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <h4 style="margin: 0 0 5px 0; font-size: 14px; color: #333;">
+                                    <i class="fas fa-file-csv"></i> Import Questions from CSV
+                                </h4>
+                                <small style="color: #666;">
+                                    Bulk import questions - adds to any existing questions you've created manually
+                                </small>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button type="button" class="btn-csv-template" onclick="downloadCSVTemplate()" 
+                                        style="padding: 8px 16px; background: #fff; border: 1px solid #dee2e6; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.3s;">
+                                    <i class="fas fa-download"></i> Download Template
+                                </button>
+                                <button type="button" class="btn-import-csv" onclick="importQuestionsFromCSV()"
+                                        style="padding: 8px 16px; background: var(--primary-color, #4CAF50); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.3s;">
+                                    <i class="fas fa-file-import"></i> Import CSV
+                                </button>
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px; padding: 10px; background: #fff; border-radius: 4px; font-size: 12px; color: #555;">
+                            <strong>💡 How it works:</strong> Add questions manually below, import from CSV, or do both! CSV imports will be added to your existing questions.
+                            <br>
+                            <strong>CSV Format:</strong> type, question, points, option1-5, correct_answer, case_sensitive, max_words
+                            <br>
+                            <strong>Supported Types:</strong> multiple choice, multiple answer, true/false, identification, essay
                         </div>
                     </div>
 
@@ -197,11 +184,14 @@
 </div>
 
 @section scripts {
+    <script>
+        var teacherCourseSectionId = @(ViewBag.TeacherCourseSectionId ?? 0);
+        var isEditMode = false;
+    </script>
     <script src="~/Scripts/Custom/classworkForm.js"></script>
     <script src="~/Scripts/Custom/questionBuilder.js"></script>
     <script>
         $(document).ready(function() {
-            // Handle publish mode change
             $('input[name="publishMode"]').on('change', function() {
                 var mode = $(this).val();
                 if (mode === 'scheduled') {
@@ -213,7 +203,6 @@
                 }
             });
 
-            // Validate scheduled date is after current time
             $('#classworkForm').on('submit', function(e) {
                 var publishMode = $('input[name="publishMode"]:checked').val();
                 if (publishMode === 'scheduled') {
@@ -226,7 +215,62 @@
                         return false;
                     }
                 }
+
+                if (typeof questions !== 'undefined' && questions.length > 0) {
+                    $('#questionsData').val(JSON.stringify(questions));
+                }
+
+                var questionsJson = $('#questionsData').val();
+                
+                if (!questionsJson || questionsJson === '[]' || questionsJson === '') {
+                    e.preventDefault();
+                    alert('Please add at least one question for this classwork.');
+                    return false;
+                }
+
+                if (typeof questions !== 'undefined' && questions.length > 0) {
+                    var totalPoints = questions.reduce(function(sum, q) { return sum + (q.points || 0); }, 0);
+                    if ($('#totalPoints').length === 0) {
+                        $('<input>').attr({
+                            type: 'hidden',
+                            id: 'totalPoints',
+                            name: 'points',
+                            value: totalPoints
+                        }).appendTo('#classworkForm');
+                    } else {
+                        $('#totalPoints').val(totalPoints);
+                    }
+                }
             });
         });
     </script>
+    <style>
+        .btn-csv-template:hover {
+            background: #e9ecef !important;
+            border-color: #adb5bd !important;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .btn-import-csv:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        }
+        
+        .csv-import-section {
+            animation: slideInDown 0.3s ease-out;
+        }
+        
+        @@keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 }

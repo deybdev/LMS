@@ -1,0 +1,28 @@
+﻿@{
+    int courseId = ViewBag.CourseId ?? Model.Id;
+    string activeTab = ViewBag.ActiveTab as string ?? "";
+    string userRole = Session["Role"] as string ?? "";
+    bool showingAllCourses = ViewBag.ShowingAllCourses ?? false;
+}
+
+<!-- Navigation Tabs -->
+<div class="course-navigation">
+    <div class="nav-tabs">
+        <!-- Todo Status Tabs -->
+        <button class="nav-tab @(activeTab == "Assigned" ? "active" : "")"
+                onclick="window.location.href='@Url.Action("Assigned", "Student")'">
+            Assigned
+        </button>
+
+        <button class="nav-tab @(activeTab == "Missing" ? "active" : "")"
+                onclick="window.location.href='@Url.Action("Missing", "Student")'">
+            Missing
+        </button>
+
+        <button class="nav-tab @(activeTab == "Finished" ? "active" : "")"
+                onclick="window.location.href='@Url.Action("Finished", "Student")'">
+            Finished
+        </button>
+    </div>
+</div>
+

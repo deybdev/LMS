@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Newtonsoft.Json;
 
 namespace LMS.Controllers
 {
@@ -170,10 +171,10 @@ namespace LMS.Controllers
                     .Select(tcs => tcs.Id)
                     .FirstOrDefault();
 
-                // Get classwork for this section (teachers see all classwork including scheduled)
                 var classworks = db.Classworks
                     .Where(c => c.TeacherCourseSectionId == teacherCourseSectionId)
                     .OrderByDescending(c => c.DateCreated)
+                    .Where(c => !c.IsManualEntry)
                     .ToList()
                     .Select(c =>
                     {
@@ -464,12 +465,11 @@ namespace LMS.Controllers
         // POST: Create Announcement
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [ValidateInput(false)] // Allow HTML content
+        [ValidateInput(false)]
         public ActionResult CreateAnnouncement(int TeacherCourseId, int TeacherCourseSectionId, string content)
         {
             try
             {
-                // Validate session
                 if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
                 {
                     return Json(new { success = false, message = "Session expired. Please log in again." });
@@ -477,7 +477,6 @@ namespace LMS.Controllers
 
                 int teacherId = Convert.ToInt32(Session["Id"]);
 
-                // Verify the teacher owns this course section
                 var teacherCourseSection = db.TeacherCourseSections
                     .FirstOrDefault(tcs => tcs.Id == TeacherCourseSectionId && tcs.TeacherId == teacherId);
 
@@ -491,18 +490,20 @@ namespace LMS.Controllers
                     return Json(new { success = false, message = "Content is required." });
                 }
 
-                // Create the announcement
                 var announcement = new Announcement
                 {
                     TeacherCourseSectionId = TeacherCourseSectionId,
                     CreatedByUserId = teacherId,
-                    Content = content, // HTML content from rich text editor
+                    Content = content,
                     PostedAt = DateTime.Now,
                     IsActive = true
                 };
 
                 db.Announcements.Add(announcement);
                 db.SaveChanges();
+
+                // Send email notifications to students
+                LMS.Helpers.StudentNotificationService.NotifyAnnouncementPosted(TeacherCourseSectionId, announcement.Id);
 
                 return Json(new { success = true, message = "Announcement posted successfully!" });
             }
@@ -516,7 +517,7 @@ namespace LMS.Controllers
         // POST: Update Announcement
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [ValidateInput(false)] // Allow HTML content
+        [ValidateInput(false)]
         public ActionResult UpdateAnnouncement(int AnnouncementId, int TeacherCourseId, int TeacherCourseSectionId, string content)
         {
             try
@@ -559,6 +560,10 @@ namespace LMS.Controllers
                 announcement.PostedAt = DateTime.Now; // Update timestamp to reflect edit
 
                 db.SaveChanges();
+
+                // Send email notifications to students (only if content was actually updated)
+                // For updates, you might want to check if content has actually changed
+                // LMS.Helpers.StudentNotificationService.NotifyAnnouncementPosted(TeacherCourseSectionId, AnnouncementId);
 
                 return Json(new { success = true, message = "Announcement updated successfully!" });
             }
@@ -871,6 +876,9 @@ namespace LMS.Controllers
                 }
 
                 db.SaveChanges();
+
+                // Send email notifications to students
+                LMS.Helpers.StudentNotificationService.NotifyMaterialPosted(teacherCourseSectionId, material.Id);
 
                 return Json(new { 
                     success = true, 
@@ -1300,6 +1308,12 @@ namespace LMS.Controllers
 
                 db.SaveChanges();
 
+                // Send email notifications to students if classwork is not scheduled for future
+                if (!isScheduled || (finalScheduledDate.HasValue && finalScheduledDate.Value <= DateTime.Now))
+                {
+                    LMS.Helpers.StudentNotificationService.NotifyClassworkPosted(teacherCourseSection.Id, classwork.Id);
+                }
+
                 string modeText = submissionMode == "manual" ? "with questions" : "with file submission";
                 string scheduleText = isScheduled ? $" and scheduled for {finalScheduledDate.Value:MMM dd, yyyy h:mm tt}" : "";
                 TempData["SuccessMessage"] = $"{classworkType} '{title}' created successfully {modeText}{scheduleText} for {enrolledStudents.Count} students!";
@@ -1691,7 +1705,7 @@ namespace LMS.Controllers
 
                 string modeText = submissionMode == "manual" ? "with questions" : "with file submission";
                 string scheduleText = isScheduled ? $" and scheduled for {finalScheduledDate.Value:MMM dd, yyyy h:mm tt}" : "";
-                TempData["SuccessMessage"] = $"Classwork '{title}' updated successfully {modeText}{scheduleText}!";
+                TempData["SuccessMessage"] = $"{classworkType} '{title}' updated successfully {modeText}{scheduleText}!";
                 return RedirectToAction("Classwork", "Teacher", new { id = TeacherCourseId });
             }
             catch (Exception ex)
@@ -1710,12 +1724,11 @@ namespace LMS.Controllers
             {
                 if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
                 {
-                    return Json(new { success = false, message = "Unauthorized access" }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = "Unauthorized" }, JsonRequestBehavior.AllowGet);
                 }
 
                 int teacherId = Convert.ToInt32(Session["Id"]);
 
-                // Verify the teacher owns this course section
                 var teacherCourseSection = db.TeacherCourseSections
                     .FirstOrDefault(tcs => tcs.Id == teacherCourseSectionId && tcs.TeacherId == teacherId);
 
@@ -1732,7 +1745,7 @@ namespace LMS.Controllers
                     {
                         id = c.Id,
                         title = c.Title,
-                        type = c.ClassworkType,
+                        classworkType = c.ClassworkType,
                         deadline = c.Deadline,
                         points = c.Points,
                         isActive = c.IsActive,
@@ -2002,6 +2015,824 @@ namespace LMS.Controllers
 
             // Return the specific tab view
             return View($"~/Views/Teacher/Course/{viewName}.cshtml", course);
+        }
+
+        // GET: Get Gradebook Classworks
+        [HttpGet]
+        public JsonResult GetGradebookClassworks(int courseId)
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    return Json(new { success = false, message = "Unauthorized" }, JsonRequestBehavior.AllowGet);
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                var teacherCourseSection = db.TeacherCourseSections
+                    .FirstOrDefault(tcs => tcs.CourseId == courseId && tcs.TeacherId == teacherId);
+
+                if (teacherCourseSection == null)
+                {
+                    return Json(new { success = false, message = "Access denied" }, JsonRequestBehavior.AllowGet);
+                }
+
+                var classworks = db.Classworks
+                    .Where(c => c.TeacherCourseSectionId == teacherCourseSection.Id && c.IsActive)
+                    .Where(c => !c.IsManualEntry)
+                    .Select(c => new
+                    {
+                        Id = c.Id,
+                        Title = c.Title,
+                        ClassworkType = c.ClassworkType,
+                        Points = c.Points,
+                        Deadline = c.Deadline
+                    })
+                    .ToList();
+
+                return Json(new { success = true, classworks }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // GET: Get Classwork Submissions
+        [HttpGet]
+        public JsonResult GetClassworkSubmissions(int classworkId)
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    return Json(new { success = false, message = "Unauthorized" }, JsonRequestBehavior.AllowGet);
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                var classwork = db.Classworks
+                    .Include(c => c.TeacherCourseSection)
+                    .FirstOrDefault(c => c.Id == classworkId);
+
+                if (classwork == null || classwork.TeacherCourseSection.TeacherId != teacherId)
+                {
+                    return Json(new { success = false, message = "Access denied" }, JsonRequestBehavior.AllowGet);
+                }
+
+                var submissions = db.ClassworkSubmissions
+                    .Where(cs => cs.ClassworkId == classworkId)
+                    .Include(s => s.Student)
+                    .Include(s => s.SubmissionFiles)
+                    .Select(s => new
+                    {
+                        Id = s.Id,
+                        StudentName = s.Student.FirstName + " " + s.Student.LastName,
+                        Status = s.Status,
+                        SubmittedAt = s.SubmittedAt,
+                        Grade = s.Grade,
+                        Feedback = s.Feedback,
+                        Files = s.SubmissionFiles.Select(f => new
+                        {
+                            FileName = f.FileName,
+                            FilePath = f.FilePath,
+                            SizeInMB = f.SizeInMB
+                        }).ToList()
+                    })
+                    .ToList();
+
+                return Json(new { success = true, submissions }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // POST: Grade Submission
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult GradeSubmission(int submissionId, decimal grade, string feedback)
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    return Json(new { success = false, message = "Unauthorized" });
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                var submission = db.ClassworkSubmissions
+                    .Include(s => s.Classwork.TeacherCourseSection)
+                    .FirstOrDefault(s => s.Id == submissionId);
+
+                if (submission == null || submission.Classwork.TeacherCourseSection.TeacherId != teacherId)
+                {
+                    return Json(new { success = false, message = "Access denied" });
+                }
+
+                submission.Grade = grade;
+                submission.Feedback = feedback;
+                submission.GradedAt = DateTime.Now;
+                submission.Status = "Graded";
+
+                db.SaveChanges();
+
+                return Json(new { success = true, message = "Grade saved successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // GET: Export Gradebook
+        public ActionResult ExportGradebook(int classworkId)
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    return RedirectToAction("Login", "Home");
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                var classwork = db.Classworks
+                    .Include(c => c.TeacherCourseSection)
+                    .Include(c => c.ClassworkSubmissions.Select(s => s.Student))
+                    .FirstOrDefault(c => c.Id == classworkId);
+
+                if (classwork == null || classwork.TeacherCourseSection.TeacherId != teacherId)
+                {
+                    TempData["ErrorMessage"] = "Access denied";
+                    return RedirectToAction("Gradebook", "Teacher");
+                }
+
+                // Create CSV content
+                var csv = new System.Text.StringBuilder();
+                csv.AppendLine("Student ID,Name,Status,Grade,Submitted At,Graded At,Feedback");
+
+                foreach (var submission in classwork.ClassworkSubmissions.OrderBy(s => s.Student.LastName))
+                {
+                    csv.AppendLine($"\"{submission.Student.UserID}\",\"{submission.Student.FirstName} {submission.Student.LastName}\",\"{submission.Status}\",\"{submission.Grade}\",\"{submission.SubmittedAt}\",\"{submission.GradedAt}\",\"{submission.Feedback}\"");
+                }
+
+                var bytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+                return File(bytes, "text/csv", $"Gradebook_{classwork.Title}_{DateTime.Now:yyyyMMdd}.csv");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error: " + ex.Message;
+                return RedirectToAction("Gradebook", "Teacher");
+            }
+        }
+
+        // POST: Release All Marks
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult ReleaseAllMarks(int classworkId)
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    return Json(new { success = false, message = "Unauthorized" });
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                var classwork = db.Classworks
+                    .Include(c => c.TeacherCourseSection)
+                    .FirstOrDefault(c => c.Id == classworkId);
+
+                if (classwork == null || classwork.TeacherCourseSection.TeacherId != teacherId)
+                {
+                    return Json(new { success = false, message = "Access denied" });
+                }
+
+                // Get all graded submissions for this classwork
+                var gradedSubmissions = db.ClassworkSubmissions
+                    .Where(s => s.ClassworkId == classworkId && 
+                               s.Grade.HasValue && 
+                               s.Status != "Released")
+                    .ToList();
+
+                if (!gradedSubmissions.Any())
+                {
+                    return Json(new { success = false, message = "No graded submissions to release" });
+                }
+
+                // Mark all graded submissions as released
+                foreach (var submission in gradedSubmissions)
+                {
+                    submission.Status = "Graded"; // Or "Released" if you want a separate status
+                    submission.GradedAt = DateTime.Now;
+                }
+
+                db.SaveChanges();
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"Marks released for {gradedSubmissions.Count} student(s)",
+                    releasedCount = gradedSubmissions.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error: " + ex.Message });
+            }
+        }
+
+        // GET: View Submission with Answer Analysis
+        public ActionResult ViewSubmission(int? courseId, int? submissionId)
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    TempData["ErrorMessage"] = "Session expired. Please log in again.";
+                    return RedirectToAction("Login", "Home");
+                }
+
+                // Validate parameters
+                if (!courseId.HasValue || !submissionId.HasValue)
+                {
+                    TempData["ErrorMessage"] = "Invalid parameters. Missing course ID or submission ID.";
+                    return RedirectToAction("Course", "Teacher");
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+
+                // Verify teacher has access to this course
+                var teacherCourseSection = db.TeacherCourseSections
+                    .Include(tcs => tcs.Course)
+                    .Include(tcs => tcs.Section)
+                    .Include(tcs => tcs.Section.Program)
+                    .FirstOrDefault(tcs => tcs.CourseId == courseId.Value && tcs.TeacherId == teacherId);
+
+                if (teacherCourseSection == null)
+                {
+                    TempData["ErrorMessage"] = "Course not found or you don't have access.";
+                    return RedirectToAction("Course", "Teacher");
+                }
+
+                // Get the submission with classwork and student details
+                var submission = db.ClassworkSubmissions
+                    .Include(s => s.Classwork)
+                    .Include(s => s.Student)
+                    .Include(s => s.SubmissionFiles)
+                    .FirstOrDefault(s => s.Id == submissionId.Value && s.Classwork.TeacherCourseSectionId == teacherCourseSection.Id);
+
+                if (submission == null)
+                {
+                    TempData["ErrorMessage"] = "Submission not found or you don't have access.";
+                    return RedirectToAction("Gradebook", "Teacher", new { id = courseId.Value });
+                }
+
+                // Parse questions and answers if available
+                List<dynamic> questions = new List<dynamic>();
+                List<dynamic> studentAnswers = new List<dynamic>();
+
+                if (!string.IsNullOrEmpty(submission.Classwork.QuestionsJson))
+                {
+                    try
+                    {
+                        questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(submission.Classwork.QuestionsJson);
+                    }
+                    catch
+                    {
+                        questions = new List<dynamic>();
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(submission.AnswersJson))
+                {
+                    try
+                    {
+                        studentAnswers = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(submission.AnswersJson);
+                    }
+                    catch
+                    {
+                        studentAnswers = new List<dynamic>();
+                    }
+                }
+
+                // Calculate score if not already graded
+                if (submission.Grade == null && questions.Count > 0 && studentAnswers.Count > 0)
+                {
+                    decimal totalPoints = 0;
+                    decimal earnedPoints = 0;
+
+                    for (int i = 0; i < Math.Min(questions.Count, studentAnswers.Count); i++)
+                    {
+                        var question = questions[i];
+                        var answer = studentAnswers[i];
+                        
+                        if (question != null && answer != null)
+                        {
+                            decimal questionPoints = (decimal)(question.points ?? 0);
+                            totalPoints += questionPoints;
+
+                            // Check if answer is correct (basic implementation)
+                            string correctAnswer = question.correctAnswer?.ToString() ?? "";
+                            string studentAnswer = answer.answer?.ToString() ?? "";
+                            
+                            if (!string.IsNullOrEmpty(correctAnswer) && !string.IsNullOrEmpty(studentAnswer))
+                            {
+                                if (correctAnswer.Trim().ToLower() == studentAnswer.Trim().ToLower())
+                                {
+                                    earnedPoints += questionPoints;
+                                }
+                            }
+                        }
+                    }
+
+                    // Auto-calculate percentage if total points match classwork points
+                    if (totalPoints > 0 && totalPoints == submission.Classwork.Points)
+                    {
+                        ViewBag.AutoCalculatedScore = earnedPoints;
+                        ViewBag.AutoCalculatedPercentage = Math.Round((earnedPoints / totalPoints) * 100, 1);
+                    }
+                }
+
+                ViewBag.Submission = submission;
+                ViewBag.Questions = questions;
+                ViewBag.StudentAnswers = studentAnswers;
+                ViewBag.CourseId = courseId.Value;
+                ViewBag.SectionName = $"{teacherCourseSection.Section.Program.ProgramCode}-{teacherCourseSection.Section.YearLevel}{teacherCourseSection.Section.SectionName}";
+
+                return View("~/Views/Teacher/Course/ViewSubmission.cshtml", teacherCourseSection.Course);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ViewSubmission Error: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred while loading the submission: " + ex.Message;
+                
+                // Try to redirect to gradebook if we have courseId, otherwise go to course list
+                if (courseId.HasValue)
+                {
+                    return RedirectToAction("Gradebook", "Teacher", new { id = courseId.Value });
+                }
+                else
+                {
+                    return RedirectToAction("Course", "Teacher");
+                }
+            }
+        }
+
+        // Save grade inline in Performance Overview
+        [HttpPost]
+        public JsonResult SaveGrade(int studentId, int classworkId, decimal grade)
+        {
+            try
+            {
+                var classwork = db.Classworks.Find(classworkId);
+                if (classwork == null)
+                {
+                    return Json(new { success = false, message = "Classwork not found." });
+                }
+
+                if (grade < 0 || grade > classwork.Points)
+                {
+                    return Json(new { success = false, message = $"Grade must be between 0 and {classwork.Points}." });
+                }
+
+                // Find or create submission
+                var submission = db.ClassworkSubmissions
+                    .FirstOrDefault(cs => cs.ClassworkId == classworkId && cs.StudentId == studentId);
+
+                if (submission == null)
+                {
+                    // Create a new submission record for grading
+                    submission = new ClassworkSubmission
+                    {
+                        ClassworkId = classworkId,
+                        StudentId = studentId,
+                        Status = "Graded",
+                        Grade = grade,
+                        GradedAt = DateTime.Now,
+                        SubmittedAt = null // No actual submission, just grade entry
+                    };
+                    db.ClassworkSubmissions.Add(submission);
+                }
+                else
+                {
+                    // Update existing submission
+                    submission.Grade = grade;
+                    submission.Status = "Graded";
+                    submission.GradedAt = DateTime.Now;
+                }
+
+                db.SaveChanges();
+
+                return Json(new { success = true, message = "Grade saved successfully." });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SaveGrade Error: {ex.Message}");
+                return Json(new { success = false, message = "Error saving grade: " + ex.Message });
+            }
+        }
+
+        // Performance Overview endpoint for Class List
+        [HttpGet]
+        public JsonResult GetPerformanceData(int teacherCourseSectionId)
+        {
+            try
+            {
+                var teacherCourseSection = db.TeacherCourseSections
+                    .Include(tcs => tcs.Teacher)
+                    .Include(tcs => tcs.Course)
+                    .Include(tcs => tcs.Section)
+                    .FirstOrDefault(tcs => tcs.Id == teacherCourseSectionId);
+
+                if (teacherCourseSection == null)
+                {
+                    return Json(new { success = false, message = "Course section not found." }, JsonRequestBehavior.AllowGet);
+                }
+
+                // Get all classworks for this teacher course section
+                var classworks = db.Classworks
+                    .Where(c => c.TeacherCourseSectionId == teacherCourseSectionId && c.IsActive)
+                    .OrderBy(c => c.DateCreated)
+                    .Select(c => new
+                    {
+                        Id = c.Id,
+                        Title = c.Title,
+                        MaxPoints = c.Points,
+                        ClassworkType = c.ClassworkType,
+                        DateCreated = c.DateCreated
+                    })
+                    .ToList();
+
+                // Get all enrolled students for this section and course
+                var enrolledStudents = db.StudentCourses
+                    .Where(sc => sc.SectionId == teacherCourseSection.SectionId && sc.CourseId == teacherCourseSection.CourseId)
+                    .Include(sc => sc.Student)
+                    .Select(sc => new
+                    {
+                        StudentId = sc.StudentId,
+                        StudentName = sc.Student.FirstName + " " + sc.Student.LastName,
+                        StudentNumber = sc.Student.UserID
+                    })
+                    .OrderBy(s => s.StudentName)
+                    .ToList();
+
+                // Get all submissions for these classworks and students
+                var classworkIds = classworks.Select(c => c.Id).ToList();
+                var studentIds = enrolledStudents.Select(s => s.StudentId).ToList();
+
+                var submissions = db.ClassworkSubmissions
+                    .Where(cs => classworkIds.Contains(cs.ClassworkId) && cs.StudentId.HasValue && studentIds.Contains(cs.StudentId.Value))
+                    .GroupBy(cs => new { StudentId = cs.StudentId.Value, cs.ClassworkId })
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.OrderByDescending(cs => cs.SubmittedAt).FirstOrDefault()
+                    );
+
+                // Build student performance data
+                var studentsData = enrolledStudents.Select(student => new
+                {
+                    StudentId = student.StudentId,
+                    StudentName = student.StudentName,
+                    StudentNumber = student.StudentNumber,
+                    Grades = classworks.Select(classwork =>
+                    {
+                        var submissionKey = new { StudentId = student.StudentId, ClassworkId = classwork.Id };
+                        var submission = submissions.ContainsKey(submissionKey) ? submissions[submissionKey] : null;
+
+                        return new
+                        {
+                            ClassworkId = classwork.Id,
+                            Grade = submission?.Grade,
+                            MaxPoints = classwork.MaxPoints,
+                            Status = submission?.Status ?? "Not Submitted",
+                            SubmittedAt = submission?.SubmittedAt
+                        };
+                    }).ToList()
+                }).ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    students = studentsData,
+                    classworks = classworks
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetPerformanceData Error: {ex.Message}");
+                return Json(new { success = false, message = "Error loading performance data: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // GET: Get Grading Configuration
+        [HttpGet]
+        public JsonResult GetGradingConfiguration(int teacherCourseSectionId)
+        {
+            try
+            {
+                // For now, return default configuration - you can store this in database later
+                // You could also check for stored configuration in ViewBag or Session
+                var defaultConfig = new
+                {
+                    success = true,
+                    configuration = new
+                    {
+                        classworkTypes = new[]
+                        {
+                            new { type = "Assignment", percentage = 30 },
+                            new { type = "Quiz", percentage = 20 },
+                            new { type = "Exam", percentage = 50 }
+                        }
+                    }
+                };
+
+                return Json(defaultConfig, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetGradingConfiguration Error: {ex.Message}");
+                return Json(new { success = false, message = "Error loading grading configuration: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // Save grading configuration for a course section
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult SaveGradingConfiguration(int teacherCourseSectionId, string typePercentagesJson)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(typePercentagesJson))
+                {
+                    return Json(new { success = false, message = "No configuration data provided" });
+                }
+
+                // Parse the JSON configuration
+                var typePercentages = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(typePercentagesJson);
+                
+                // Validate that percentages sum to 100
+                decimal totalPercentage = 0;
+                foreach (var item in typePercentages)
+                {
+                    if (item.ContainsKey("percentage"))
+                    {
+                        totalPercentage += Convert.ToDecimal(item["percentage"]);
+                    }
+                }
+
+                if (Math.Abs(totalPercentage - 100) > 0.01m) // Allow for small floating point differences
+                {
+                    return Json(new { success = false, message = "Percentages must sum to exactly 100%" });
+                }
+
+                // Here you would save to database - for now just return success
+                // You can create a GradingConfiguration table later to store this data
+                // For now, we'll just validate and return success
+
+                return Json(new { success = true, message = "Grading configuration saved successfully!" });
+            }
+            catch (JsonException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SaveGradingConfiguration JSON Error: {ex.Message}");
+                return Json(new { success = false, message = "Invalid configuration data format" });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SaveGradingConfiguration Error: {ex.Message}");
+                return Json(new { success = false, message = "Error saving grading configuration: " + ex.Message });
+            }
+        }
+
+        // Add manual classwork (quick add for grading purposes)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult AddManualClasswork(int teacherCourseSectionId, string title, string classworkType, int points)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(classworkType) || points <= 0)
+                {
+                    return Json(new { success = false, message = "Please provide valid title, type, and points." });
+                }
+
+                var classwork = new Classwork
+                {
+                    TeacherCourseSectionId = teacherCourseSectionId,
+                    Title = title.Trim(),
+                    ClassworkType = classworkType,
+                    Description = $"Manual entry for grading - {classworkType}",
+                    Points = points,
+                    DateCreated = DateTime.Now,
+                    IsActive = true,
+                    IsManualEntry = true, // Mark as manual entry - not visible to students
+                    Deadline = null // No deadline for manual entries
+                };
+
+                db.Classworks.Add(classwork);
+                db.SaveChanges();
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Classwork added successfully! Note: This is a manual entry for grading purposes only and will not be visible to students.",
+                    classwork = new
+                    {
+                        Id = classwork.Id,
+                        Title = classwork.Title,
+                        MaxPoints = classwork.Points,
+                        ClassworkType = classwork.ClassworkType,
+                        DateCreated = classwork.DateCreated,
+                        IsManualEntry = classwork.IsManualEntry
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"AddManualClasswork Error: {ex.Message}");
+                return Json(new { success = false, message = "Error adding classwork: " + ex.Message });
+            }
+        }
+
+        // GET: Get Notifications for Teacher
+        [HttpGet]
+        public JsonResult GetNotifications()
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Teacher")
+                {
+                    return Json(new { success = false, message = "Unauthorized" }, JsonRequestBehavior.AllowGet);
+                }
+
+                int teacherId = Convert.ToInt32(Session["Id"]);
+                var now = DateTime.Now;
+                var past7Days = now.AddDays(-7);
+
+                // Get teacher's course sections
+                var teacherCourseSections = db.TeacherCourseSections
+                    .Include(tcs => tcs.Course)
+                    .Include(tcs => tcs.Section)
+                    .Include(tcs => tcs.Section.Program)
+                    .Where(tcs => tcs.TeacherId == teacherId)
+                    .ToList();
+
+                if (!teacherCourseSections.Any())
+                {
+                    return Json(new { success = true, notifications = new object[0] }, JsonRequestBehavior.AllowGet);
+                }
+
+                var tcsIds = teacherCourseSections.Select(tcs => tcs.Id).ToList();
+                var notifications = new List<object>();
+
+                // 1. Recent submissions (last 7 days)
+                var recentSubmissions = db.ClassworkSubmissions
+                    .Include(s => s.Classwork)
+                    .Include(s => s.Student)
+                    .Where(s => s.SubmittedAt.HasValue && 
+                               s.SubmittedAt.Value >= past7Days &&
+                               tcsIds.Contains(s.Classwork.TeacherCourseSectionId))
+                    .OrderByDescending(s => s.SubmittedAt)
+                    .Take(50)
+                    .ToList();
+
+                foreach (var submission in recentSubmissions)
+                {
+                    var courseName = teacherCourseSections
+                        .FirstOrDefault(tcs => tcs.Id == submission.Classwork.TeacherCourseSectionId)?.Course?.CourseTitle ?? "Course";
+
+                    notifications.Add(new
+                    {
+                        id = $"sub_{submission.Id}",
+                        type = "submission",
+                        title = "New Submission",
+                        message = $"{submission.Student.FirstName} {submission.Student.LastName} submitted {submission.Classwork.Title} in {courseName}",
+                        date = submission.SubmittedAt.Value,
+                        unread = (now - submission.SubmittedAt.Value).TotalHours <= 24,
+                        url = Url.Action("ViewSubmission", "Teacher", new { 
+                            courseId = teacherCourseSections.FirstOrDefault(tcs => tcs.Id == submission.Classwork.TeacherCourseSectionId)?.CourseId,
+                            submissionId = submission.Id 
+                        })
+                    });
+                }
+
+                var next7Days = now.AddDays(7);
+
+                var upcomingDeadlines = db.Classworks
+                    .Where(c => tcsIds.Contains(c.TeacherCourseSectionId) &&
+                                c.IsActive &&
+                                c.Deadline.HasValue &&
+                                c.Deadline.Value > now &&
+                                c.Deadline.Value <= next7Days);
+
+
+                foreach (var classwork in upcomingDeadlines)
+                {
+                    var courseName = teacherCourseSections
+                        .FirstOrDefault(tcs => tcs.Id == classwork.TeacherCourseSectionId)?.Course?.CourseTitle ?? "Course";
+                    
+                    var daysLeft = Math.Ceiling((classwork.Deadline.Value - now).TotalDays);
+
+                    notifications.Add(new
+                    {
+                        id = $"deadline_{classwork.Id}",
+                        type = "reminder",
+                        title = "Upcoming Deadline",
+                        message = $"{classwork.Title} in {courseName} is due in {daysLeft} day(s)",
+                        date = classwork.Deadline.Value,
+                        unread = false,
+                        isDeadline = true,
+                        url = Url.Action("Gradebook", "Teacher", new { 
+                            id = teacherCourseSections.FirstOrDefault(tcs => tcs.Id == classwork.TeacherCourseSectionId)?.CourseId 
+                        })
+                    });
+                }
+
+                // 3. Recent announcements/comments in teacher's courses (last 7 days)
+                var recentComments = db.AnnouncementComments
+                    .Include(c => c.Announcement)
+                    .Include(c => c.User)
+                    .Where(c => c.CreatedAt >= past7Days &&
+                               tcsIds.Contains(c.Announcement.TeacherCourseSectionId) &&
+                               c.UserId != teacherId) // Exclude teacher's own comments
+                    .OrderByDescending(c => c.CreatedAt)
+                    .Take(30)
+                    .ToList();
+
+                foreach (var comment in recentComments)
+                {
+                    var courseName = teacherCourseSections
+                        .FirstOrDefault(tcs => tcs.Id == comment.Announcement.TeacherCourseSectionId)?.Course?.CourseTitle ?? "Course";
+
+                    notifications.Add(new
+                    {
+                        id = $"comment_{comment.Id}",
+                        type = "announcement",
+                        title = "New Comment",
+                        message = $"{comment.User.FirstName} {comment.User.LastName} commented on an announcement in {courseName}",
+                        date = comment.CreatedAt,
+                        unread = (now - comment.CreatedAt).TotalHours <= 24,
+                        url = Url.Action("ViewAnnouncement", "Teacher", new { 
+                            id = teacherCourseSections.FirstOrDefault(tcs => tcs.Id == comment.Announcement.TeacherCourseSectionId)?.CourseId,
+                            announcementId = comment.AnnouncementId 
+                        })
+                    });
+                }
+
+                // 4. Overdue submissions that need attention
+                var overdueSubmissions = db.Classworks
+                    .Where(c => tcsIds.Contains(c.TeacherCourseSectionId) && 
+                               c.IsActive && 
+                               c.Deadline.HasValue &&
+                               c.Deadline.Value < now &&
+                               c.Deadline.Value >= past7Days) // Only recent overdue items
+                    .SelectMany(c => db.ClassworkSubmissions
+                        .Where(s => s.ClassworkId == c.Id && s.Status == "Not Submitted")
+                        .Select(s => new { Classwork = c, Submission = s }))
+                    .GroupBy(cs => cs.Classwork)
+                    .Where(g => g.Count() > 0)
+                    .Take(10)
+                    .ToList();
+
+                foreach (var group in overdueSubmissions)
+                {
+                    var classwork = group.Key;
+                    var overdueCount = group.Count();
+                    var courseName = teacherCourseSections
+                        .FirstOrDefault(tcs => tcs.Id == classwork.TeacherCourseSectionId)?.Course?.CourseTitle ?? "Course";
+
+                    notifications.Add(new
+                    {
+                        id = $"overdue_{classwork.Id}",
+                        type = "reminder",
+                        title = "Overdue Submissions",
+                        message = $"{overdueCount} student(s) have overdue submissions for {classwork.Title} in {courseName}",
+                        date = classwork.Deadline.Value,
+                        unread = false,
+                        url = Url.Action("Gradebook", "Teacher", new { 
+                            id = teacherCourseSections.FirstOrDefault(tcs => tcs.Id == classwork.TeacherCourseSectionId)?.CourseId 
+                        })
+                    });
+                }
+
+                // Sort all notifications by date (most recent first)
+                var sortedNotifications = notifications
+                    .OrderByDescending(n => ((DateTime)n.GetType().GetProperty("date").GetValue(n, null)))
+                    .Take(100) // Limit to 100 most recent
+                    .ToList();
+
+                return Json(new { success = true, notifications = sortedNotifications }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Teacher GetNotifications Error: {ex.Message}");
+                return Json(new { success = false, message = "Error loading notifications: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
         }
     }
 }

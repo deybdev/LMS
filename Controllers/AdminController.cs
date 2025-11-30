@@ -98,8 +98,38 @@ namespace LMS.Controllers
         //GET: Admin/Logs
         public ActionResult Logs()
         {
-            var logs = db.AuditLogs.OrderByDescending(l => l.Timestamp).ToList();
-            return View(logs);
+            return View();
+        }
+
+        // GET: Email Notifications Test Page
+        public ActionResult EmailNotifications()
+        {
+            return View();
+        }
+
+        // Manual notification trigger for testing/admin purposes
+        [HttpPost]
+        public JsonResult TriggerEmailNotifications()
+        {
+            try
+            {
+                // Manual trigger for testing
+                LMS.Helpers.EmailNotificationScheduler.RunNotificationTasks();
+                
+                return Json(new { 
+                    success = true, 
+                    message = "Email notification tasks executed successfully.",
+                    timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Manual notification trigger error: {ex.Message}");
+                return Json(new { 
+                    success = false, 
+                    message = "Error executing notification tasks: " + ex.Message 
+                });
+            }
         }
 
         // POST: Admin/DeleteLogs

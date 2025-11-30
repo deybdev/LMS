@@ -6,6 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using LMS.Helpers;
 
 namespace LMS
 {
@@ -21,6 +22,15 @@ namespace LMS
             DotEnv.Load();
             string conn = Environment.GetEnvironmentVariable("DB_CONNECTION");
             System.Diagnostics.Debug.WriteLine("Loaded Connection: " + conn);
+
+            // Start the email notification background service
+            EmailNotificationManager.Start();
+        }
+
+        protected void Application_End()
+        {
+            // Stop the email notification background service
+            EmailNotificationManager.Stop();
         }
     }
 }

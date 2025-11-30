@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -200,9 +201,11 @@ namespace LMS.Controllers
                         var now = DateTime.Now;
                         
                         // Get classwork for this section - filter out scheduled classwork that hasn't been published yet
+                        // AND filter out manual entries (IsManualEntry = false)
                         var classworks = db.Classworks
                             .Where(c => c.TeacherCourseSectionId == teacherCourseSectionId && c.IsActive)
                             .Where(c => !c.IsScheduled || (c.ScheduledPublishDate.HasValue && c.ScheduledPublishDate.Value <= now))
+                            .Where(c => !c.IsManualEntry) // Exclude manual entries from notifications
                             .OrderByDescending(c => c.DateCreated)
                             .ToList()
                             .Select(c =>
@@ -223,6 +226,7 @@ namespace LMS.Controllers
                                 item.SubmittedAt = submission?.SubmittedAt;
                                 item.Grade = submission?.Grade;
                                 item.Feedback = submission?.Feedback;
+                                item.GradedAt = submission?.GradedAt;
                                 return item;
                             })
                             .ToList();
@@ -470,6 +474,9 @@ namespace LMS.Controllers
                 db.Announcements.Add(announcement);
                 db.SaveChanges();
 
+                // Send email notifications to other students and teacher in the course
+                LMS.Helpers.StudentNotificationService.NotifyAnnouncementPosted(TeacherCourseSectionId, announcement.Id);
+
                 return Json(new { success = true, message = "Announcement posted successfully!" });
             }
             catch (Exception ex)
@@ -586,6 +593,149 @@ namespace LMS.Controllers
             }
         }
 
+        // NEW: Get Notifications for Student
+        [HttpGet]
+        public JsonResult GetNotifications()
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Student")
+                {
+                    return Json(new { success = false, message = "Unauthorized" }, JsonRequestBehavior.AllowGet);
+                }
+
+                int studentId = Convert.ToInt32(Session["Id"]);
+                var now = DateTime.Now;
+                var next24 = now.AddHours(24);
+
+                var enrollments = db.StudentCourses
+                    .Include(sc => sc.Section)
+                    .Include(sc => sc.Section.Program)
+                    .Where(sc => sc.StudentId == studentId)
+                    .ToList();
+
+                if (!enrollments.Any())
+                {
+                    return Json(new { success = true, notifications = new object[0] }, JsonRequestBehavior.AllowGet);
+                }
+
+                var tcsIds = new List<int>();
+                foreach (var sc in enrollments)
+                {
+                    var semester = GetSemesterFromCurriculum(sc.Section.ProgramId, sc.CourseId, sc.Section.YearLevel);
+                    var tcsId = db.TeacherCourseSections
+                        .Where(tcs => tcs.CourseId == sc.CourseId && tcs.SectionId == sc.SectionId && tcs.Semester == semester)
+                        .Select(tcs => tcs.Id)
+                        .FirstOrDefault();
+                    if (tcsId > 0) tcsIds.Add(tcsId);
+                }
+
+                if (!tcsIds.Any())
+                {
+                    return Json(new { success = true, notifications = new object[0] }, JsonRequestBehavior.AllowGet);
+                }
+
+                var materials = db.Materials
+                    .Include(m => m.TeacherCourseSection.Course)
+                    .Include(m => m.TeacherCourseSection.Teacher)
+                    .Where(m => tcsIds.Contains(m.TeacherCourseSectionId))
+                    .OrderByDescending(m => m.UploadedAt)
+                    .Take(50)
+                    .ToList();
+
+                var classworks = db.Classworks
+                    .Include(c => c.TeacherCourseSection.Course)
+                    .Where(c => tcsIds.Contains(c.TeacherCourseSectionId) && c.IsActive)
+                    .Where(c => !c.IsScheduled || (c.ScheduledPublishDate.HasValue && c.ScheduledPublishDate.Value <= now))
+                    .Where(c => !c.IsManualEntry)
+                    .OrderByDescending(c => c.DateCreated)
+                    .Take(100)
+                    .ToList();
+
+                var dueSoonCandidates = classworks
+                    .Where(c => c.Deadline.HasValue && c.Deadline.Value > now && c.Deadline.Value <= next24)
+                    .Select(c => c.Id)
+                    .ToList();
+
+                var myDueSubs = db.ClassworkSubmissions
+                    .Where(s => dueSoonCandidates.Contains(s.ClassworkId) && s.StudentId == studentId)
+                    .ToList();
+
+                var notifications = new List<object>();
+
+                foreach (var m in materials)
+                {
+                    var courseId = m.TeacherCourseSection?.CourseId ?? 0;
+                    var courseName = m.TeacherCourseSection?.Course?.CourseTitle ?? "Course";
+                    var teacherName = m.TeacherCourseSection?.Teacher != null
+                        ? m.TeacherCourseSection.Teacher.FirstName + " " + m.TeacherCourseSection.Teacher.LastName
+                        : "Teacher";
+
+                    notifications.Add(new
+                    {
+                        id = $"mat_{m.Id}",
+                        type = "material",
+                        title = "New Material Posted",
+                        message = $"{m.Title} in {courseName} by {teacherName}",
+                        date = m.UploadedAt,
+                        unread = (now - m.UploadedAt).TotalHours <= 24,
+                        url = Url.Action("ViewMaterial", "Student", new { id = courseId, materialId = m.Id })
+                    });
+                }
+
+                foreach (var c in classworks)
+                {
+                    var courseId = c.TeacherCourseSection?.CourseId ?? 0;
+                    var courseName = c.TeacherCourseSection?.Course?.CourseTitle ?? "Course";
+
+                    notifications.Add(new
+                    {
+                        id = $"cw_{c.Id}",
+                        type = "assignment",
+                        title = "New Classwork Posted",
+                        message = $"{c.Title} in {courseName}",
+                        date = c.DateCreated,
+                        unread = (now - c.DateCreated).TotalHours <= 24,
+                        url = Url.Action("ViewClasswork", "Student", new { id = courseId, classworkId = c.Id })
+                    });
+                }
+
+                foreach (var c in classworks.Where(x => x.Deadline.HasValue && x.Deadline.Value > now && x.Deadline.Value <= next24))
+                {
+                    var sub = myDueSubs.FirstOrDefault(s => s.ClassworkId == c.Id);
+                    var notSubmitted = sub == null || string.IsNullOrEmpty(sub.Status) || sub.Status == "Not Submitted";
+                    if (!notSubmitted) continue;
+
+                    var hoursLeft = Math.Ceiling((c.Deadline.Value - now).TotalHours);
+                    var courseId = c.TeacherCourseSection?.CourseId ?? 0;
+                    var courseName = c.TeacherCourseSection?.Course?.CourseTitle ?? "Course";
+
+                    notifications.Add(new
+                    {
+                        id = $"due_{c.Id}",
+                        type = "assignment",
+                        title = "Due Soon",
+                        message = $"{c.Title} in {courseName} is due in {hoursLeft}h",
+                        date = c.Deadline.Value,
+                        unread = true,
+                        isDeadline = true,
+                        url = Url.Action("ViewClasswork", "Student", new { id = courseId, classworkId = c.Id })
+                    });
+                }
+
+                var finalList = notifications
+                    .OrderByDescending(n => ((DateTime)n.GetType().GetProperty("date").GetValue(n, null)))
+                    .ToList();
+
+                return Json(new { success = true, notifications = finalList }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetNotifications Error: {ex.Message}");
+                return Json(new { success = false, message = "Error loading notifications" }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
         // GET: Edit Announcement
         public ActionResult EditAnnouncement(int? id, int? announcementId)
         {
@@ -678,7 +828,7 @@ namespace LMS.Controllers
 
                 // Get the existing announcement
                 var announcement = db.Announcements
-                    .FirstOrDefault(a => a.Id == AnnouncementId && 
+                    .FirstOrDefault(a => a.Id == AnnouncementId &&
                                        a.TeacherCourseSectionId == TeacherCourseSectionId &&
                                        a.IsActive);
 
@@ -757,7 +907,39 @@ namespace LMS.Controllers
 
         public ActionResult TodoList()
         {
-            return View();
+            try
+            {
+                // Validate session
+                if (Session["Id"] == null || (string)Session["Role"] != "Student")
+                {
+                    TempData["ErrorMessage"] = "Session expired. Please log in again.";
+                    return RedirectToAction("Login", "Home");
+                }
+
+                int studentId = Convert.ToInt32(Session["Id"]);
+
+                // Check if student has any enrolled courses
+                var hasEnrollments = db.StudentCourses
+                    .Any(sc => sc.StudentId == studentId);
+
+                if (hasEnrollments)
+                {
+                    // Redirect to the Assigned tab showing all courses
+                    return RedirectToAction("Assigned", "Student");
+                }
+                else
+                {
+                    // If no courses found, show empty todo list view
+                    TempData["InfoMessage"] = "You are not enrolled in any courses yet.";
+                    return View();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"TodoList Error: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred while loading your todo list.";
+                return View();
+            }
         }
 
         public ActionResult Notification()
@@ -860,6 +1042,740 @@ namespace LMS.Controllers
 
             // Return the specific tab view
             return View($"~/Views/Student/Course/{viewName}.cshtml", course);
+        }
+
+        // GET: Submit/Take Classwork
+        public ActionResult SubmitClasswork(int? id, int? classworkId)
+        {
+            try
+            {
+                // Validate session
+                if (Session["Id"] == null || (string)Session["Role"] != "Student")
+                {
+                    TempData["ErrorMessage"] = "Session expired. Please log in again.";
+                    return RedirectToAction("Login", "Home");
+                }
+
+                if (!id.HasValue || !classworkId.HasValue)
+                {
+                    TempData["ErrorMessage"] = "Invalid parameters.";
+                    return RedirectToAction("Classwork", "Student", new { id = id });
+                }
+
+                int studentId = Convert.ToInt32(Session["Id"]);
+
+                // Get student's enrollment
+                var studentCourse = db.StudentCourses
+                    .Include(sc => sc.Course)
+                    .Include(sc => sc.Section)
+                    .Include(sc => sc.Section.Program)
+                    .FirstOrDefault(sc => sc.StudentId == studentId && sc.CourseId == id.Value);
+
+                if (studentCourse == null)
+                {
+                    TempData["ErrorMessage"] = "You are not enrolled in this course.";
+                    return RedirectToAction("Classwork", "Student", new { id = id });
+                }
+
+                var semester = GetSemesterFromCurriculum(studentCourse.Section.ProgramId, id.Value, studentCourse.Section.YearLevel);
+
+                var teacherCourseSectionId = db.TeacherCourseSections
+                    .Where(tcs => tcs.CourseId == id.Value &&
+                                 tcs.SectionId == studentCourse.SectionId &&
+                                 tcs.Semester == semester)
+                    .Select(tcs => tcs.Id)
+                    .FirstOrDefault();
+
+                // Get classwork
+                var classwork = db.Classworks
+                    .FirstOrDefault(c => c.Id == classworkId.Value && 
+                                       c.TeacherCourseSectionId == teacherCourseSectionId &&
+                                       c.IsActive &&
+                                       !c.IsManualEntry); // Prevent access to manual entries
+
+                if (classwork == null)
+                {
+                    TempData["ErrorMessage"] = "Classwork not found or not available.";
+                    return RedirectToAction("Classwork", "Student", new { id = id });
+                }
+
+                // Check if already submitted
+                var existingSubmission = db.ClassworkSubmissions
+                    .FirstOrDefault(s => s.ClassworkId == classworkId.Value && s.StudentId == studentId);
+
+                if (existingSubmission != null && existingSubmission.Status != "Not Submitted")
+                {
+                    TempData["ErrorMessage"] = "You have already submitted this classwork.";
+                    return RedirectToAction("ViewClasswork", "Student", new { id = id, classworkId = classworkId });
+                }
+
+                // Check if it's a quiz/exam with questions
+                if (!string.IsNullOrEmpty(classwork.QuestionsJson))
+                {
+                    // Parse questions
+                    var questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(classwork.QuestionsJson);
+
+                    dynamic classworkData = new ExpandoObject();
+                    classworkData.Id = classwork.Id;
+                    classworkData.Title = classwork.Title;
+                    classworkData.Description = classwork.Description;
+                    classworkData.Points = classwork.Points;
+                    classworkData.Deadline = classwork.Deadline;
+
+                    ViewBag.Classwork = classworkData;
+                    ViewBag.Questions = questions;
+                    ViewBag.CourseId = id.Value;
+
+                    return View("~/Views/Student/Course/TakeQuiz.cshtml", studentCourse.Course);
+                }
+                else
+                {
+                    // File submission type - redirect to file upload view
+                    return RedirectToAction("SubmitClassworkFile", "Student", new { id = id, classworkId = classworkId });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SubmitClasswork Error: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
+                return RedirectToAction("Classwork", "Student", new { id = id });
+            }
+        }
+
+        // POST: Submit Quiz Answers
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult SubmitQuizAnswers(int classworkId, int courseId, string answersJson)
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Student")
+                {
+                    return Json(new { success = false, message = "Session expired." });
+                }
+
+                int studentId = Convert.ToInt32(Session["Id"]);
+
+                // Get or create submission
+                var submission = db.ClassworkSubmissions
+                    .FirstOrDefault(s => s.ClassworkId == classworkId && s.StudentId == studentId);
+
+                if (submission == null)
+                {
+                    submission = new ClassworkSubmission
+                    {
+                        ClassworkId = classworkId,
+                        StudentId = studentId,
+                        Status = "Not Submitted"
+                    };
+                    db.ClassworkSubmissions.Add(submission);
+                }
+
+                // Check if already graded
+                if (submission.Status == "Graded")
+                {
+                    return Json(new { success = false, message = "This submission has already been graded." });
+                }
+
+                // Update submission
+                submission.AnswersJson = answersJson;
+                submission.SubmittedAt = DateTime.Now;
+                submission.Status = "Submitted";
+
+                // Save to get submission ID
+                db.SaveChanges();
+
+                // Handle file uploads from file upload questions
+                if (Request.Files.Count > 0)
+                {
+                    var uploadPath = Server.MapPath("~/Uploads/Submissions");
+                    if (!System.IO.Directory.Exists(uploadPath))
+                    {
+                        System.IO.Directory.CreateDirectory(uploadPath);
+                    }
+
+                    for (int i = 0; i < Request.Files.Count; i++)
+                    {
+                        var file = Request.Files[i];
+                        if (file != null && file.ContentLength > 0)
+                        {
+                            var fileName = Path.GetFileName(file.FileName);
+                            var uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
+                            var filePath = Path.Combine(uploadPath, uniqueFileName);
+                            file.SaveAs(filePath);
+
+                            // Save file info to database
+                            var submissionFile = new SubmissionFile
+                            {
+                                SubmissionId = submission.Id,
+                                FileName = fileName,
+                                FilePath = $"/Uploads/Submissions/{uniqueFileName}",
+                                SizeInMB = (decimal)file.ContentLength / (1024 * 1024),
+                                UploadedAt = DateTime.Now
+                            };
+                            db.SubmissionFiles.Add(submissionFile);
+                        }
+                    }
+                    db.SaveChanges();
+                }
+
+                // Auto-grade if possible
+                var classwork = db.Classworks.Find(classworkId);
+                if (classwork != null && !string.IsNullOrEmpty(classwork.QuestionsJson))
+                {
+                    var questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(classwork.QuestionsJson);
+                    var answers = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(answersJson);
+                    
+                    decimal totalScore = 0;
+                    bool canAutoGrade = true;
+
+                    for (int i = 0; i < questions.Count && i < answers.Count; i++)
+                    {
+                        var question = questions[i];
+                        var answer = answers[i];
+                        string questionType = question.type;
+
+                        // Only auto-grade objective questions (skip file upload and essay)
+                        if (questionType == "multipleChoice" || questionType == "trueFalse" || 
+                            questionType == "identification" || questionType == "multipleAnswer")
+                        {
+                            bool isCorrect = false;
+
+                            if (questionType == "multipleChoice")
+                            {
+                                var correctIndex = -1;
+                                for (int j = 0; j < question.options.Count; j++)
+                                {
+                                    if ((bool)question.options[j].isCorrect)
+                                    {
+                                        correctIndex = j;
+                                        break;
+                                    }
+                                }
+                                isCorrect = answer.answer != null && answer.answer.ToString() == correctIndex.ToString();
+                            }
+                            else if (questionType == "trueFalse")
+                            {
+                                bool correctAnswer = (bool)question.correctAnswer;
+                                isCorrect = answer.answer != null && answer.answer.ToString().ToLower() == correctAnswer.ToString().ToLower();
+                            }
+                            else if (questionType == "identification")
+                            {
+                                string correctAnswer = question.correctAnswer.ToString();
+                                string studentAnswer = answer.answer?.ToString() ?? "";
+                                bool caseSensitive = question.caseSensitive ?? false;
+
+                                if (caseSensitive)
+                                {
+                                    isCorrect = studentAnswer.Trim() == correctAnswer.Trim();
+                                }
+                                else
+                                {
+                                    isCorrect = studentAnswer.Trim().Equals(correctAnswer.Trim(), StringComparison.OrdinalIgnoreCase);
+                                }
+                            }
+                            else if (questionType == "multipleAnswer")
+                            {
+                                var correctIndices = new List<int>();
+                                for (int j = 0; j < question.options.Count; j++)
+                                {
+                                    if ((bool)question.options[j].isCorrect)
+                                    {
+                                        correctIndices.Add(j);
+                                    }
+                                }
+
+                                var studentAnswers = new List<int>();
+                                if (answer.answer != null)
+                                {
+                                    var answerArray = answer.answer as Newtonsoft.Json.Linq.JArray;
+                                    if (answerArray != null)
+                                    {
+                                        studentAnswers = answerArray.Select(a => (int)a).ToList();
+                                    }
+                                }
+
+                                isCorrect = correctIndices.Count == studentAnswers.Count &&
+                                           correctIndices.All(studentAnswers.Contains);
+                            }
+
+                            if (isCorrect)
+                            {
+                                totalScore += (decimal)question.points;
+                            }
+                        }
+                        else
+                        {
+                            // Essay or file upload - needs manual grading
+                            canAutoGrade = false;
+                        }
+                    }
+
+                    if (canAutoGrade)
+                    {
+                        submission.Grade = totalScore;
+                        submission.GradedAt = DateTime.Now;
+                        submission.Status = "Graded";
+                        db.SaveChanges();
+                    }
+                }
+
+                return Json(new { success = true, message = "Quiz submitted successfully!" });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SubmitQuizAnswers Error: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred: " + ex.Message });
+            }
+        }
+
+        // GET: View Classwork/Submission Results
+        public ActionResult ViewClasswork(int? id, int? classworkId)
+        {
+            try
+            {
+                if (Session["Id"] == null || (string)Session["Role"] != "Student")
+                {
+                    TempData["ErrorMessage"] = "Session expired. Please log in again.";
+                    return RedirectToAction("Login", "Home");
+                }
+
+                if (!id.HasValue || !classworkId.HasValue)
+                {
+                    TempData["ErrorMessage"] = "Invalid parameters.";
+                    return RedirectToAction("Classwork", "Student", new { id = id });
+                }
+
+                int studentId = Convert.ToInt32(Session["Id"]);
+
+                var studentCourse = db.StudentCourses
+                    .Include(sc => sc.Course)
+                    .Include(sc => sc.Section)
+                    .Include(sc => sc.Section.Program)
+                    .FirstOrDefault(sc => sc.StudentId == studentId && sc.CourseId == id.Value);
+
+                if (studentCourse == null)
+                {
+                    TempData["ErrorMessage"] = "You are not enrolled in this course.";
+                    return RedirectToAction("Classwork", "Student", new { id = id });
+                }
+
+                var semester = GetSemesterFromCurriculum(studentCourse.Section.ProgramId, id.Value, studentCourse.Section.YearLevel);
+
+                var teacherCourseSectionId = db.TeacherCourseSections
+                    .Where(tcs => tcs.CourseId == id.Value &&
+                                 tcs.SectionId == studentCourse.SectionId &&
+                                 tcs.Semester == semester)
+                    .Select(tcs => tcs.Id)
+                    .FirstOrDefault();
+
+                var classwork = db.Classworks
+                    .Include(c => c.ClassworkFiles)
+                    .FirstOrDefault(c => c.Id == classworkId.Value &&
+                                       c.TeacherCourseSectionId == teacherCourseSectionId &&
+                                       c.IsActive &&
+                                       !c.IsManualEntry); // Prevent access to manual entries
+
+                if (classwork == null)
+                {
+                    TempData["ErrorMessage"] = "Classwork not found or not available.";
+                    return RedirectToAction("Classwork", "Student", new { id = id });
+                }
+
+                var submission = db.ClassworkSubmissions
+                    .FirstOrDefault(s => s.ClassworkId == classworkId.Value && s.StudentId == studentId);
+
+                dynamic classworkData = new ExpandoObject();
+                classworkData.Id = classwork.Id;
+                classworkData.Title = classwork.Title;
+                classworkData.Description = classwork.Description;
+                classworkData.ClassworkType = classwork.ClassworkType;
+                classworkData.Points = classwork.Points;
+                classworkData.Deadline = classwork.Deadline;
+                classworkData.QuestionsJson = classwork.QuestionsJson;
+
+                ViewBag.Classwork = classworkData;
+                ViewBag.Submission = submission;
+                ViewBag.CourseId = id.Value;
+
+                return View("~/Views/Student/Course/ViewClasswork.cshtml", studentCourse.Course);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ViewClasswork Error: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
+                return RedirectToAction("Classwork", "Student", new { id = id });
+            }
+        }
+
+        // GET: Student/Todo/Finished - Show finished tasks from ALL courses
+        public ActionResult Finished(int? id = null)
+        {
+            try
+            {
+                // Validate session
+                if (Session["Id"] == null || (string)Session["Role"] != "Student")
+                {
+                    TempData["ErrorMessage"] = "Session expired. Please log in again.";
+                    return RedirectToAction("Login", "Home");
+                }
+
+                int studentId = Convert.ToInt32(Session["Id"]);
+
+                // Get all student's enrollments
+                var allEnrollments = db.StudentCourses
+                    .Include(sc => sc.Course)
+                    .Include(sc => sc.Section)
+                    .Include(sc => sc.Section.Program)
+                    .Where(sc => sc.StudentId == studentId)
+                    .ToList();
+
+                if (!allEnrollments.Any())
+                {
+                    TempData["ErrorMessage"] = "You are not enrolled in any courses.";
+                    return RedirectToAction("Course", "Student");
+                }
+
+                // Get all teacher course section IDs for all enrolled courses
+                var allTeacherCourseSectionIds = new List<int>();
+                foreach (var enrollment in allEnrollments)
+                {
+                    var semester = GetSemesterFromCurriculum(enrollment.Section.ProgramId, enrollment.CourseId, enrollment.Section.YearLevel);
+                    var teacherCourseSectionId = db.TeacherCourseSections
+                        .Where(tcs => tcs.CourseId == enrollment.CourseId &&
+                                     tcs.SectionId == enrollment.SectionId &&
+                                     tcs.Semester == semester)
+                        .Select(tcs => tcs.Id)
+                        .FirstOrDefault();
+
+                    if (teacherCourseSectionId > 0)
+                    {
+                        allTeacherCourseSectionIds.Add(teacherCourseSectionId);
+                    }
+                }
+
+                if (!allTeacherCourseSectionIds.Any())
+                {
+                    TempData["ErrorMessage"] = "No teachers assigned to your courses.";
+                    return RedirectToAction("Course", "Student");
+                }
+
+                // Get finished tasks from ALL courses
+                var finishedTasks = db.ClassworkSubmissions
+                    .Where(s => s.StudentId == studentId && s.Status == "Graded")
+                    .Join(db.Classworks, s => s.ClassworkId, c => c.Id, (s, c) => new { Submission = s, Classwork = c })
+                    .Join(db.TeacherCourseSections, sc => sc.Classwork.TeacherCourseSectionId, tcs => tcs.Id, (sc, tcs) => new { sc.Submission, sc.Classwork, TeacherCourseSection = tcs })
+                    .Join(db.Courses, sct => sct.TeacherCourseSection.CourseId, course => course.Id, (sct, course) => new { sct.Submission, sct.Classwork, sct.TeacherCourseSection, Course = course })
+                    .Where(result => allTeacherCourseSectionIds.Contains(result.Classwork.TeacherCourseSectionId) && result.Classwork.IsActive)
+                    .OrderByDescending(result => result.Submission.GradedAt ?? result.Submission.SubmittedAt)
+                    .ToList()
+                    .Select(result =>
+                    {
+                        dynamic item = new ExpandoObject();
+                        item.Id = result.Classwork.Id;
+                        item.Title = result.Classwork.Title;
+                        item.ClassworkType = result.Classwork.ClassworkType;
+                        item.Points = result.Classwork.Points;
+                        item.Grade = result.Submission.Grade;
+                        item.Feedback = result.Submission.Feedback;
+                        item.Deadline = result.Classwork.Deadline;
+                        item.DateCreated = result.Classwork.DateCreated;
+                        item.SubmittedAt = result.Submission.SubmittedAt;
+                        item.GradedAt = result.Submission.GradedAt;
+                        item.SubmissionStatus = result.Submission.Status;
+                        item.CourseId = result.Course.Id;
+                        item.CourseTitle = result.Course.CourseTitle;
+                        item.CourseCode = result.Course.CourseCode;
+                        
+                        // Calculate percentage
+                        if (result.Classwork.Points > 0 && result.Submission.Grade.HasValue)
+                        {
+                            item.Percentage = Math.Round((result.Submission.Grade.Value / result.Classwork.Points) * 100, 1);
+                        }
+                        else
+                        {
+                            item.Percentage = 0;
+                        }
+                        
+                        return item;
+                    })
+                    .ToList();
+
+                // Set ViewBag properties
+                ViewBag.FinishedTasks = finishedTasks;
+                ViewBag.CourseId = id ?? (allEnrollments.FirstOrDefault()?.CourseId ?? 0);
+                ViewBag.ActiveTab = "Finished";
+                ViewBag.ShowingAllCourses = true; // Flag to indicate we're showing all courses
+
+                // Use the first course for header display, but we'll modify the view to show it's all courses
+                var firstCourse = allEnrollments.FirstOrDefault()?.Course;
+                if (firstCourse == null)
+                {
+                    TempData["ErrorMessage"] = "No course data found.";
+                    return RedirectToAction("Course", "Student");
+                }
+
+                // Set section name to indicate all courses
+                ViewBag.SectionName = "All Enrolled Courses";
+
+                return View("~/Views/Student/Todo/Finished.cshtml", firstCourse);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Finished Error: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred while loading finished tasks: " + ex.Message;
+                return RedirectToAction("Course", "Student");
+            }
+        }
+
+        // GET: Student/Todo/Assigned - Show assigned tasks from ALL courses
+        public ActionResult Assigned(int? id = null)
+        {
+            try
+            {
+                // Validate session
+                if (Session["Id"] == null || (string)Session["Role"] != "Student")
+                {
+                    TempData["ErrorMessage"] = "Session expired. Please log in again.";
+                    return RedirectToAction("Login", "Home");
+                }
+
+                int studentId = Convert.ToInt32(Session["Id"]);
+
+                // Get all student's enrollments
+                var allEnrollments = db.StudentCourses
+                    .Include(sc => sc.Course)
+                    .Include(sc => sc.Section)
+                    .Include(sc => sc.Section.Program)
+                    .Where(sc => sc.StudentId == studentId)
+                    .ToList();
+
+                if (!allEnrollments.Any())
+                {
+                    TempData["ErrorMessage"] = "You are not enrolled in any courses.";
+                    return RedirectToAction("Course", "Student");
+                }
+
+                // Get all teacher course section IDs for all enrolled courses
+                var allTeacherCourseSectionIds = new List<int>();
+                foreach (var enrollment in allEnrollments)
+                {
+                    var semester = GetSemesterFromCurriculum(enrollment.Section.ProgramId, enrollment.CourseId, enrollment.Section.YearLevel);
+                    var teacherCourseSectionId = db.TeacherCourseSections
+                        .Where(tcs => tcs.CourseId == enrollment.CourseId &&
+                                     tcs.SectionId == enrollment.SectionId &&
+                                     tcs.Semester == semester)
+                        .Select(tcs => tcs.Id)
+                        .FirstOrDefault();
+
+                    if (teacherCourseSectionId > 0)
+                    {
+                        allTeacherCourseSectionIds.Add(teacherCourseSectionId);
+                    }
+                }
+
+                if (!allTeacherCourseSectionIds.Any())
+                {
+                    TempData["ErrorMessage"] = "No teachers assigned to your courses.";
+                    return RedirectToAction("Course", "Student");
+                }
+
+                var now = DateTime.Now;
+                
+                // Get assigned tasks from ALL courses
+                var assignedTasks = db.Classworks
+                    .Where(c => allTeacherCourseSectionIds.Contains(c.TeacherCourseSectionId) && c.IsActive)
+                    .Where(c => !c.IsScheduled || (c.ScheduledPublishDate.HasValue && c.ScheduledPublishDate.Value <= now))
+                    .Where(c => !c.IsManualEntry) // Exclude manual entries from student todo lists
+                    .Join(db.TeacherCourseSections, c => c.TeacherCourseSectionId, tcs => tcs.Id, (c, tcs) => new { Classwork = c, TeacherCourseSection = tcs })
+                    .Join(db.Courses, ct => ct.TeacherCourseSection.CourseId, course => course.Id, (ct, course) => new { ct.Classwork, ct.TeacherCourseSection, Course = course })
+                    .OrderByDescending(result => result.Classwork.DateCreated)
+                    .ToList()
+                    .Select(result =>
+                    {
+                        // Get student's submission for this classwork
+                        var submission = db.ClassworkSubmissions
+                            .FirstOrDefault(s => s.ClassworkId == result.Classwork.Id && s.StudentId == studentId);
+
+                        dynamic item = new ExpandoObject();
+                        item.Id = result.Classwork.Id;
+                        item.Title = result.Classwork.Title;
+                        item.ClassworkType = result.Classwork.ClassworkType;
+                        item.Points = result.Classwork.Points;
+                        item.Deadline = result.Classwork.Deadline;
+                        item.DateCreated = result.Classwork.DateCreated;
+                        item.Description = result.Classwork.Description;
+                        item.SubmissionStatus = submission?.Status ?? "Not Submitted";
+                        item.SubmittedAt = submission?.SubmittedAt;
+                        item.Grade = submission?.Grade;
+                        item.Feedback = submission?.Feedback;
+                        item.GradedAt = submission?.GradedAt;
+                        item.CourseId = result.Course.Id;
+                        item.CourseTitle = result.Course.CourseTitle;
+                        item.CourseCode = result.Course.CourseCode;
+                        
+                        return item;
+                    })
+                    .Where(item =>
+                    {
+                        // Filter for assigned tasks: not submitted and not overdue
+                        var notSubmitted = item.SubmissionStatus == "Not Submitted";
+                        var notOverdue = item.Deadline == null || (DateTime)item.Deadline >= now;
+                        
+                        return notSubmitted && notOverdue;
+                    })
+                    .ToList();
+
+                // Set ViewBag properties
+                ViewBag.AssignedTasks = assignedTasks;
+                ViewBag.CourseId = id ?? (allEnrollments.FirstOrDefault()?.CourseId ?? 0);
+                ViewBag.ActiveTab = "Assigned";
+                ViewBag.ShowingAllCourses = true; // Flag to indicate we're showing all courses
+
+                // Use the first course for header display, but we'll modify the view to show it's all courses
+                var firstCourse = allEnrollments.FirstOrDefault()?.Course;
+                if (firstCourse == null)
+                {
+                    TempData["ErrorMessage"] = "No course data found.";
+                    return RedirectToAction("Course", "Student");
+                }
+
+                // Set section name to indicate all courses
+                ViewBag.SectionName = "All Enrolled Courses";
+
+                return View("~/Views/Student/Todo/Assigned.cshtml", firstCourse);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Assigned Error: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred while loading assigned tasks: " + ex.Message;
+                return RedirectToAction("Course", "Student");
+            }
+        }
+
+        // GET: Student/Todo/Missing - Show missing tasks from ALL courses
+        public ActionResult Missing(int? id = null)
+        {
+            try
+            {
+                // Validate session
+                if (Session["Id"] == null || (string)Session["Role"] != "Student")
+                {
+                    TempData["ErrorMessage"] = "Session expired. Please log in again.";
+                    return RedirectToAction("Login", "Home");
+                }
+
+                int studentId = Convert.ToInt32(Session["Id"]);
+
+                // Get all student's enrollments
+                var allEnrollments = db.StudentCourses
+                    .Include(sc => sc.Course)
+                    .Include(sc => sc.Section)
+                    .Include(sc => sc.Section.Program)
+                    .Where(sc => sc.StudentId == studentId)
+                    .ToList();
+
+                if (!allEnrollments.Any())
+                {
+                    TempData["ErrorMessage"] = "You are not enrolled in any courses.";
+                    return RedirectToAction("Course", "Student");
+                }
+
+                // Get all teacher course section IDs for all enrolled courses
+                var allTeacherCourseSectionIds = new List<int>();
+                foreach (var enrollment in allEnrollments)
+                {
+                    var semester = GetSemesterFromCurriculum(enrollment.Section.ProgramId, enrollment.CourseId, enrollment.Section.YearLevel);
+                    var teacherCourseSectionId = db.TeacherCourseSections
+                        .Where(tcs => tcs.CourseId == enrollment.CourseId &&
+                                     tcs.SectionId == enrollment.SectionId &&
+                                     tcs.Semester == semester)
+                        .Select(tcs => tcs.Id)
+                        .FirstOrDefault();
+
+                    if (teacherCourseSectionId > 0)
+                    {
+                        allTeacherCourseSectionIds.Add(teacherCourseSectionId);
+                    }
+                }
+
+                if (!allTeacherCourseSectionIds.Any())
+                {
+                    TempData["ErrorMessage"] = "No teachers assigned to your courses.";
+                    return RedirectToAction("Course", "Student");
+                }
+
+                var now = DateTime.Now;
+                
+                // Get missing tasks from ALL courses
+                var missingTasks = db.Classworks
+                    .Where(c => allTeacherCourseSectionIds.Contains(c.TeacherCourseSectionId) && c.IsActive)
+                    .Where(c => !c.IsScheduled || (c.ScheduledPublishDate.HasValue && c.ScheduledPublishDate.Value <= now))
+                    .Where(c => !c.IsManualEntry) // Exclude manual entries from student todo lists
+                    .Join(db.TeacherCourseSections, c => c.TeacherCourseSectionId, tcs => tcs.Id, (c, tcs) => new { Classwork = c, TeacherCourseSection = tcs })
+                    .Join(db.Courses, ct => ct.TeacherCourseSection.CourseId, course => course.Id, (ct, course) => new { ct.Classwork, ct.TeacherCourseSection, Course = course })
+                    .OrderBy(result => result.Classwork.Deadline)
+                    .ToList()
+                    .Select(result =>
+                    {
+                        // Get student's submission for this classwork
+                        var submission = db.ClassworkSubmissions
+                            .FirstOrDefault(s => s.ClassworkId == result.Classwork.Id && s.StudentId == studentId);
+
+                        dynamic item = new ExpandoObject();
+                        item.Id = result.Classwork.Id;
+                        item.Title = result.Classwork.Title;
+                        item.ClassworkType = result.Classwork.ClassworkType;
+                        item.Points = result.Classwork.Points;
+                        item.Deadline = result.Classwork.Deadline;
+                        item.DateCreated = result.Classwork.DateCreated;
+                        item.Description = result.Classwork.Description;
+                        item.SubmissionStatus = submission?.Status ?? "Not Submitted";
+                        item.SubmittedAt = submission?.SubmittedAt;
+                        item.Grade = submission?.Grade;
+                        item.Feedback = submission?.Feedback;
+                        item.GradedAt = submission?.GradedAt;
+                        item.CourseId = result.Course.Id;
+                        item.CourseTitle = result.Course.CourseTitle;
+                        item.CourseCode = result.Course.CourseCode;
+                        
+                        return item;
+                    })
+                    .Where(item =>
+                    {
+                        // Filter for missing tasks: not submitted and overdue
+                        var notSubmitted = item.SubmissionStatus == "Not Submitted";
+                        var isOverdue = item.Deadline != null && (DateTime)item.Deadline < now;
+                        
+                        return notSubmitted && isOverdue;
+                    })
+                    .ToList();
+
+                // Set ViewBag properties
+                ViewBag.MissingTasks = missingTasks;
+                ViewBag.CourseId = id ?? (allEnrollments.FirstOrDefault()?.CourseId ?? 0);
+                ViewBag.ActiveTab = "Missing";
+                ViewBag.ShowingAllCourses = true; // Flag to indicate we're showing all courses
+
+                // Use the first course for header display, but we'll modify the view to show it's all courses
+                var firstCourse = allEnrollments.FirstOrDefault()?.Course;
+                if (firstCourse == null)
+                {
+                    TempData["ErrorMessage"] = "No course data found.";
+                    return RedirectToAction("Course", "Student");
+                }
+
+                // Set section name to indicate all courses
+                ViewBag.SectionName = "All Enrolled Courses";
+
+                return View("~/Views/Student/Todo/Missing.cshtml", firstCourse);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Missing Error: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred while loading missing tasks: " + ex.Message;
+                return RedirectToAction("Course", "Student");
+            }
         }
     }
 }

@@ -35,6 +35,9 @@ namespace LMS.Models
         public bool IsScheduled { get; set; } = false;
         public DateTime? ScheduledPublishDate { get; set; }
 
+        // Manual entry flag - manual entries are for grading purposes only and not visible to students
+        public bool IsManualEntry { get; set; } = false;
+
         // JSON field to store questions (for Quiz, Exam, Activity)
         public string QuestionsJson { get; set; }
 

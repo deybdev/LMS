@@ -9,6 +9,24 @@
     @Styles.Render("~/Content/css")
     @Styles.Render("~/Content/Site.css")
     @Scripts.Render("~/bundles/modernizr")
+
+    <style>
+        /* hide burger when mobile menu is open */
+        .mobile-menu-open .navbar-toggler {
+            display: none !important;
+        }
+
+        /* show close button inside menu */
+        .mobile-menu-close {
+            display: block !important;
+        }
+
+        .mobile-menu-close {
+            display: none;
+        }
+
+    </style>
+
 </head>
 <body>
     <header>
@@ -17,94 +35,101 @@
                 <!-- Logo + Brand -->
                 <a href="@Url.Action("Index", "Home")" class="d-flex align-items-center text-decoration-none">
                     <img src="~/images/logo.png" alt="G2 Academy Logo" class="navbar-logo me-2" style="height: 50px;" />
-                    <div class="navbar-brand">
+                    <div class="navbar-brand mb-0">
                         <div class="school-name">G2 Academy University</div>
                         <span>Learning Management System</span>
                     </div>
                 </a>
-                <div class="nav-actions d-flex ms-auto">
 
-                    <!-- Mobile toggle button -->
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
+                <!-- Mobile toggle button -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-                    <!-- Navbar links -->
-                    <div class="collapse navbar-collapse" id="navbarResponsive">
-                        <div class="navbar-nav gap-4">
-                            @{
-                                var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
-                                var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+                <!-- Mobile Menu Overlay -->
+                <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
 
-                                Func<string, string[], string> isActive = (controller, actions) =>
-                                {
-                                    if (currentController != controller) return "";
-                                    if (actions == null || actions.Length == 0) return "active";
-                                    return actions.Contains(currentAction) ? "active" : "";
-                                };
-                            }
+                <!-- Collapsible navbar content -->
+                <div class="collapse navbar-collapse mobile-menu" id="navbarResponsive">
+                    <!-- Close button for mobile menu -->
+                    <div class="mobile-menu-close d-lg-none">
+                        <button type="button" class="btn-close mobile-close-btn" aria-label="Close mobile menu">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
 
-                            @if (Session["Role"] == null)
+                    <div class="navbar-nav ms-auto d-flex gap-4">
+
+                        @{
+                            var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+                            var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+                            Func<string, string[], string> isActive = (controller, actions) =>
                             {
-                                <!-- Guest -->
-                                <a href="@Url.Action("Login", "Home")" class="login-btn py-2 px-5">Login</a>
+                                if (currentController != controller) return "";
+                                if (actions == null || actions.Length == 0) return "active";
+                                return actions.Contains(currentAction) ? "active" : "";
+                            };
+                        }
 
-                            }
-                            else if (Session["Role"].ToString() == "Admin")
-                            {
-                                <a href="@Url.Action("Index", "Admin")" class="nav-link @(isActive("Admin", new string[] { "Index" }))">Home</a>
-                                <a href="@Url.Action("ManageUsers", "Admin")" class="nav-link @(isActive("Admin", new string[] { "ManageUsers"}))">Users</a>
-                                <a href="@Url.Action("Calendar", "Admin")" class="nav-link @(isActive("Admin", new string[] { "Calendar" }))">Calendar</a>
-                                <a href="@Url.Action("Departments", "Admin")" class="nav-link  @(isActive("Admin", new string[] { "Programs", "Departments", "Sections"}))">Academics</a>
-                                <a href="@Url.Action("Logs", "Admin")" class="nav-link @(isActive("Admin", new string[] { "Logs" }))">Logs</a>
-                            }
-                            else if (Session["Role"].ToString() == "Teacher")
-                            {
-                                <a href="@Url.Action("Index", "Teacher")" class="nav-link @(isActive("Teacher", new string[] { "Index" }))">Home</a>
-                                <a href="@Url.Action("Course", "Teacher")" class="nav-link @(isActive("Teacher", new string[] { "Course", "CreateCourse", "ViewCourse", "ViewMaterial", "Material", "Gradebook", "ClassList", "Classwork", "CreateClasswork", "EditClasswork", "Announcement" }))">Course</a>
-                                <a href="@Url.Action("Notification", "Teacher")" class="nav-link @(isActive("Teacher", new string[] { "Notification" }))">Notification</a>
-                                <a href="@Url.Action("Profile", "Teacher")" class="nav-link @(isActive("Teacher", new string[] { "Profile" }))">Profile</a>
+                        @if (Session["Role"] == null)
+                        {
+                            <!-- Guest -->
+                            <button class="py-2 px-5 login-btn" onclick="location.href='@Url.Action("Login", "Home")'">
+                                Login
+                            </button>
+                        }
+                        else if (Session["Role"].ToString() == "Admin")
+                        {
+                            <a href="@Url.Action("Index", "Admin")" class="nav-link @(isActive("Admin", new string[] { "Index" }))">Home</a>
+                            <a href="@Url.Action("ManageUsers", "Admin")" class="nav-link @(isActive("Admin", new string[] { "ManageUsers"}))">Users</a>
+                            <a href="@Url.Action("Calendar", "Admin")" class="nav-link @(isActive("Admin", new string[] { "Calendar" }))">Calendar</a>
+                            <a href="@Url.Action("Departments", "Admin")" class="nav-link  @(isActive("Admin", new string[] { "Programs", "Departments", "Sections"}))">Academics</a>
+                            <a href="@Url.Action("Logs", "Admin")" class="nav-link @(isActive("Admin", new string[] { "Logs" }))">Logs</a>
+                        }
+                        else if (Session["Role"].ToString() == "Teacher")
+                        {
+                            <a href="@Url.Action("Index", "Teacher")" class="nav-link @(isActive("Teacher", new string[] { "Index" }))">Home</a>
+                            <a href="@Url.Action("Course", "Teacher")" class="nav-link @(isActive("Teacher", new string[] { "Course", "CreateCourse", "ViewCourse", "ViewMaterial", "Material", "Gradebook", "ClassList", "Classwork", "CreateClasswork", "EditClasswork", "Announcement" }))">Course</a>
+                            <a href="@Url.Action("Notification", "Teacher")" class="nav-link @(isActive("Teacher", new string[] { "Notification" }))">Notification</a>
+                            <a href="@Url.Action("Profile", "Teacher")" class="nav-link @(isActive("Teacher", new string[] { "Profile" }))">Profile</a>
+                        }
+                        else if (Session["Role"].ToString() == "Student")
+                        {
+                            <a href="@Url.Action("Index", "Student")" class="nav-link @(isActive("Student", new string[] { "Index" }))">Home</a>
+                            <a href="@Url.Action("Course", "Student")" class="nav-link @(isActive("Student", new string[] { "Course", "Material", "Announcement", "Classwork"}))">Course</a>
+                            <a href="@Url.Action("TodoList", "Student")" class="nav-link @(isActive("Student", new string[] { "Assigned", "Finished", "Missing" }))">To-Do List</a>
+                            <a href="@Url.Action("Notification", "Student")" class="nav-link @(isActive("Student", new string[] { "Notification" }))">Notification</a>
+                            <a href="@Url.Action("Profile", "Student")" class="nav-link @(isActive("Student", new string[] { "Profile" }))">Profile</a>
+                        }
+                        else if (Session["Role"].ToString() == "IT")
+                        {
+                            <a href="@Url.Action("Index", "IT")" class="nav-link @(isActive("IT", new string[] { "Index" }))">Home</a>
+                            <a href="@Url.Action("AssignedCourses", "IT")" class="nav-link @(isActive("IT", new string[] { "AssignedCourses", "AssignCourse" }))">Curriculum</a>
+                            <div class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle @(isActive("IT", new string[] { "Course", "CreateCourse", "EditCourse", "AssignTeacher", "ManageStudentCourses" }))"
+                                   href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Courses
+                                </a>
 
-                            }
-                            else if (Session["Role"].ToString() == "Student")
-                            {
-                                <a href="@Url.Action("Index", "Student")" class="nav-link @(isActive("Student", new string[] { "Index" }))">Home</a>
-                                <a href="@Url.Action("Course", "Student")" class="nav-link @(isActive("Student", new string[] { "Course"}))">Course</a>
-                                <a href="@Url.Action("TodoList", "Student")" class="nav-link @(isActive("Student", new string[] { "TodoList" }))">To-Do List</a>
-                                <a href="@Url.Action("Notification", "Student")" class="nav-link @(isActive("Student", new string[] { "Notification" }))">Notification</a>
-                                <a href="@Url.Action("Profile", "Student")" class="nav-link @(isActive("Student", new string[] { "Profile" }))">Profile</a>
-                            }
-                            else if (Session["Role"].ToString() == "IT")
-                            {
-                                <a href="@Url.Action("Index", "IT")" class="nav-link @(isActive("IT", new string[] { "Index" }))">Home</a>
-                                <a href="@Url.Action("AssignedCourses", "IT")" class="nav-link @(isActive("IT", new string[] { "AssignedCourses", "AssignCourse" }))">Curriculum</a>
-                                <div class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle @(isActive("IT", new string[] { "Course", "CreateCourse", "EditCourse", "AssignTeacher", "ManageStudentCourses" }))"
-                                       href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Courses
-                                    </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item @(isActive("IT", new string[] { "Course" }))"
+                                           href="@Url.Action("Course", "IT")">All Courses</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item @(isActive("IT", new string[] { "ManageStudentCourses" }))"
+                                           href="@Url.Action("ManageStudentCourses", "IT")"> Student Courses</a>
+                                    </li>
 
-                                    <ul class="dropdown-menu">
-                                        <li>
-                                            <a class="dropdown-item @(isActive("IT", new string[] { "Course" }))"
-                                               href="@Url.Action("Course", "IT")">All Courses</a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item @(isActive("IT", new string[] { "ManageStudentCourses" }))"
-                                               href="@Url.Action("ManageStudentCourses", "IT")"> Student Courses</a>
-                                        </li>
-
-                                        <li>
-                                            <a class="dropdown-item @(isActive("IT", new string[] { "AssignTeacher" }))"
-                                               href="@Url.Action("AssignTeacher", "IT")">Assign Teacher</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <a href="@Url.Action("Profile", "IT")" class="nav-link @(isActive("IT", new string[] { "Profile" }))">Profile</a>
-                            }
-
-
-                        </div>
+                                    <li>
+                                        <a class="dropdown-item @(isActive("IT", new string[] { "AssignTeacher" }))"
+                                           href="@Url.Action("AssignTeacher", "IT")">Assign Teacher</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <a href="@Url.Action("Profile", "IT")" class="nav-link @(isActive("IT", new string[] { "Profile" }))">Profile</a>
+                        }
                     </div>
                 </div>
             </div>
@@ -189,65 +214,6 @@
         </div>
 
     </header>
-
-    <!--
-        <div id="loadingOverlay" style="
-        position: absolute;
-        top: 65px;
-        left:0;
-        width:100%;
-        height:calc(100vh - 65px);
-        background: rgba(255,255,255,1);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 99;
-        flex-direction: column;
-    ">
-            <img src="~/Images/logo.png" alt="Logo" class="loading-logo" style="width:120px;">
-        </div>
-
-
-        <style>
-            @@keyframes slowPulse {
-                0% {
-                    opacity: 0;
-                }
-
-                50% {
-                    opacity: 1;
-                }
-
-                100% {
-                    opacity: 0;
-                }
-            }
-
-            .loading-logo {
-                animation: slowPulse 2s ease-in-out infinite;
-            }
-
-            #loadingOverlay.fade-out {
-                opacity: 0;
-                transition: opacity 1s ease-out;
-            }
-        </style>
-
-        <script>
-            window.onload = function () {
-                const overlay = document.getElementById('loadingOverlay');
-                const content = document.getElementById('pageContent');
-
-                setTimeout(() => {
-                    overlay.classList.add('fade-out');
-                    overlay.style.display = 'none';
-                    content.style.display = 'block';
-                }, 2000);
-            };
-        </script>
-
-
-        <!-- <div id="pageContent" style="display:none;"> -->
     <div>
         @RenderBody()
 
@@ -262,12 +228,17 @@
     @RenderSection("scripts", required: false)
 
     <script>
+    function showAlert(type, message) {
+        // Replace this with your actual alert/toast implementation
+        alert(type + ": " + message);
+    }
+
     $(function () {
         @* First alert *@
         @if (TempData["AlertMessage"] != null)
         {
             <text>
-            showAlert('@(TempData["AlertType"] ?? "success")', '@TempData["AlertMessage"]');
+            showAlert('@(TempData["AlertType"] ?? "success")', '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["AlertMessage"]?.ToString() ?? ""))');
             </text>
         }
 
@@ -276,10 +247,78 @@
         {
             <text>
             setTimeout(function() {
-                showAlert('@(TempData["AlertType2"] ?? "info")', '@TempData["AlertMessage2"]');
+                showAlert('@(TempData["AlertType2"] ?? "info")', '@Html.Raw(HttpUtility.JavaScriptStringEncode(TempData["AlertMessage2"]?.ToString() ?? ""))');
             }, 300);
             </text>
         }
+    });
+
+    // Custom mobile menu functionality
+    $(document).ready(function() {
+        const $navbarToggler = $('.navbar-toggler');
+        const $mobileMenu = $('#navbarResponsive');
+        const $overlay = $('#mobileMenuOverlay');
+        
+        // Open mobile menu
+        $navbarToggler.on('click', function(e) {
+            e.preventDefault();
+            $('body').addClass('mobile-menu-open');
+            $mobileMenu.addClass('show');
+            $overlay.addClass('show');
+        });
+        
+        // Close mobile menu function
+        function closeMobileMenu() {
+            $('body').removeClass('mobile-menu-open');
+            $mobileMenu.removeClass('show');
+            $overlay.removeClass('show');
+        }
+        
+        // Event delegation for close buttons (multiple selectors for robustness)
+        $(document).on('click', '.mobile-menu-close .btn-close, .mobile-close-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeMobileMenu();
+        });
+        
+        // Close when clicking overlay
+        $overlay.on('click', function(e) {
+            e.preventDefault();
+            closeMobileMenu();
+        });
+        
+        // Close menu when clicking nav links (except dropdowns)
+        $(document).on('click', '.mobile-menu .nav-link:not(.dropdown-toggle)', function() {
+            if ($(window).width() < 992) {
+                setTimeout(closeMobileMenu, 100); // Small delay to allow navigation
+            }
+        });
+        
+        // Handle dropdown on mobile
+        $(document).on('click', '.mobile-menu .dropdown-toggle', function(e) {
+            if ($(window).width() < 992) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).parent().find('.dropdown-menu').slideToggle(200);
+            }
+        });
+        
+        // Close mobile menu when window is resized to desktop
+        $(window).on('resize', function() {
+            if ($(window).width() >= 992) {
+                closeMobileMenu();
+            }
+        });
+        
+        // Escape key to close mobile menu
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && $mobileMenu.hasClass('show')) {
+                closeMobileMenu();
+            }
+        });
+        
+        // Prevent menu from staying open on page refresh
+        closeMobileMenu();
     });
     </script>
 

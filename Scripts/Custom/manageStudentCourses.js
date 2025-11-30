@@ -1,4 +1,4 @@
-let selectedStudent = null;
+﻿let selectedStudent = null;
 let enrolledCourses = [];
 let selectedCoursesToAdd = [];
 
@@ -107,9 +107,9 @@ function searchStudents() {
     
 
     $.ajax({
-        url: '/Student/SearchStudents',
+        url: '/IT/SearchStudents', // 🔥 FIXED: Use ITController since this is IT functionality
         type: 'GET',
-        data: { searchTerm: searchTerm },
+        data: { query: searchTerm },
         success: function(response) {
             $('#studentSearchLoading').hide();
 
@@ -124,6 +124,12 @@ function searchStudents() {
         },
         error: function(xhr, status, error) {
             $('#studentSearchLoading').hide();
+            console.error('Student search error details:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText,
+                error: error
+            });
             showAlert('danger', 'Error searching for students. Please try again.');
             $('#studentNoResults').show();
             $('#studentResultsCount').text('0 students found');
@@ -136,6 +142,7 @@ function displayStudentResults(students) {
     $list.empty();
 
     students.forEach(student => {
+        // 🔥 FIXED: Now works with ITController.SearchStudents response format
         const initials = `${student.firstName.charAt(0)}${student.lastName.charAt(0)}`;
         const $item = $(`
             <div class="student-result-item" data-student-id="${student.id}">
@@ -147,7 +154,7 @@ function displayStudentResults(students) {
                         <i class="fas fa-envelope"></i> ${student.email}
                     </p>
                     <p>
-                        <i class="fas fa-graduation-cap"></i> ${student.program} - 
+                        <i class="fas fa-graduation-cap"></i> ${student.programCode} - 
                         ${student.yearLevel}${getYearSuffix(student.yearLevel)} Year, Section ${student.section}
                     </p>
                 </div>
@@ -157,6 +164,16 @@ function displayStudentResults(students) {
         $item.on('click', () => selectStudent(student));
         $list.append($item);
     });
+}
+
+// Helper function to get initials from full name
+function getInitials(name) {
+    if (!name) return '??';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
 }
 
 // Select a student

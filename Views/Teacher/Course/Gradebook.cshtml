@@ -6,25 +6,647 @@
     ViewBag.ActiveTab = "Gradebook";
 }
 
-<link rel="stylesheet" href="~/Content/Site.css" />
+<link rel="stylesheet" href="~/Content/teacherCourse.css" />
 <link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
 
+<style>
+
+    .btn-export {
+        padding: 10px 20px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+
+        .btn-export:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+    .filters-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 15px;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        align-items: end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .filter-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .filter-group select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+    .btn-reset-filters {
+        align-self: flex-end;
+        padding: 10px 20px;
+        background: #f0f0f0;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+
+        .btn-reset-filters:hover {
+            background: #e0e0e0;
+        }
+
+    .submissions-overview {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+        padding: 0 20px;
+    }
+
+    .overview-card {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        text-align: center;
+    }
+
+    .overview-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 10px;
+    }
+
+    .overview-label {
+        color: #666;
+        font-weight: 600;
+    }
+
+    #gradingHeader{
+        display: flex;
+    }
+
+    .submissions-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        padding: 20px;
+    }
+
+    .submissions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .submission-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        transition: all 0.3s;
+    }
+
+        .submission-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+    .submission-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .student-info {
+        display: flex;
+        gap: 15px;
+        flex: 1;
+    }
+
+    .student-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .student-info h4 {
+        margin: 0 0 5px 0;
+        color: #333;
+        font-size: 1.1rem;
+    }
+
+    .submission-subject,
+    .submission-date,
+    .submission-files {
+        margin: 3px 0;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .submission-actions {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-graded {
+        background: #4CAF50;
+        color: white;
+    }
+
+    .status-submitted {
+        background: #2196F3;
+        color: white;
+    }
+
+    .status-handed-in {
+        background: #4CAF50;
+        color: white;
+    }
+
+    .status-late {
+        background: #FF9800;
+        color: white;
+    }
+
+    .status-missing {
+        background: #f44336;
+        color: white;
+    }
+
+    .status-not-submitted {
+        background: #f0f0f0;
+        color: #666;
+    }
+
+    .btn-view-submission {
+        padding: 8px 16px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.3s;
+        text-decoration: none;
+    }
+
+        .btn-view-submission:hover {
+            background: var(--dark-primary-color);
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-view-submission:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+    .loading-spinner {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+    }
+
+        .loading-spinner i {
+            font-size: 2rem;
+            animation: spin 1s linear infinite;
+        }
+
+    @@keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
 
 <div class="admin-container">
     @Html.Partial("_BackButton")
-
     @Html.Partial("_CourseHeader", Model)
-
     @Html.Partial("_CourseNavigation", Model)
 
-    <div class="tab-content">
-        <div class="tab-pane active">
-            <div class="gradebook-container text-center p-6 border-dashed border-2 border-gray-300 rounded-lg bg-gray-50">
-                <i class="fas fa-graduation-cap fa-3x text-gray-400 mb-3"></i>
-                <h3 class="text-xl font-semibold text-gray-700 mb-2">No Gradebook Data Yet</h3>
-                <p class="text-gray-500 mb-4">It looks like there aren't any grade entries for this course yet.</p>
+    <div class="tab-pane active">
+        <div class="gradebook-container">
+            <!-- Header Section -->
+            <div class="gradebook-header">
+                <div class="header-actions">
+                    <h2><i class="fa-solid fa-book"></i>Classwork and Activities</h2>
+                    <button type="button" class="material-upload-btn" onclick="exportGradebook()">
+                        <i class="fas fa-file-excel"></i> Export to Excel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="filters-section">
+
+                <div class="filter-group">
+                    <label>Classwork</label>
+                    <select id="filterClasswork" onchange="loadSubmissions()">
+                        <option value="">Select Classwork</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Status</label>
+                    <select id="filterStatus" onchange="applyFilters()">
+                        <option value="">All Status</option>
+                        <option value="Submitted">Submitted</option>
+                        <option value="Graded">Graded</option>
+                        <option value="Not Submitted">Not Submitted</option>
+                        <option value="Late">Late</option>
+                    </select>
+                </div>
+
+
+                <button type="button" class="btn-reset-filters" onclick="resetFilters()">
+                    <i class="fas fa-rotate-right"></i> Reset
+                </button>
+            </div>
+
+            <!-- Submissions Overview -->
+            <div class="submissions-overview" id="submissionsOverview" style="display: none;">
+                <div class="overview-card">
+                    <div class="overview-number" id="totalHandedIn">0</div>
+                    <div class="overview-label">Handed In</div>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-number" id="totalAssigned">0</div>
+                    <div class="overview-label">Assigned</div>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-number" id="avgScore">0%</div>
+                    <div class="overview-label">Average Score</div>
+                </div>
+            </div>
+
+            <!-- Submissions Container -->
+            <div class="submissions-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; display: none; " id="gradingHeader">
+                    <h3 style="margin: 0; color: #333; font-size: 1.3rem;">Grading</h3>
+                    <button type="button" class="btn-export" style="background: #2196F3;" onclick="releaseAllMarks()" id="releaseAllBtn" disabled>
+                        <i class="fas fa-check"></i> Release All Marks
+                    </button>
+                </div>
+                
+                <div class="submissions-list" id="submissionsList">
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>Select a classwork to view submissions</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
 </div>
+
+@section scripts {
+    <script>
+        let allClassworks = [];
+        let allSubmissions = [];
+        let selectedClasswork = null;
+
+        $(document).ready(function() {
+            loadClassworks();
+        });
+
+        function loadClassworks() {
+            $.ajax({
+                url: '@Url.Action("GetGradebookClassworks", "Teacher")',
+                type: 'GET',
+                data: { courseId: @courseId },
+                success: function(response) {
+                    if (response.success) {
+                        allClassworks = response.classworks;
+                        populateClassworkDropdown(allClassworks);
+                    } else {
+                        showError('Error loading classworks: ' + response.message);
+                    }
+                },
+                error: function() {
+                    showError('Error loading classworks');
+                }
+            });
+        }
+
+        function populateClassworkDropdown(classworks) {
+            const dropdown = $('#filterClasswork');
+            dropdown.find('option:not(:first)').remove();
+            
+            classworks.forEach(function(cw) {
+                dropdown.append(
+                    `<option value="${cw.Id}" data-points="${cw.Points}">
+                        ${cw.Title} (${cw.ClassworkType}) - ${cw.Points} pts
+                    </option>`
+                );
+            });
+        }
+
+        function applyFilters() {
+            const statusFilter = $('#filterStatus').val();
+            
+            // Filter submissions by status if classwork is selected
+            if (selectedClasswork && allSubmissions.length > 0) {
+                filterSubmissions(statusFilter);
+            }
+        }
+
+        function filterSubmissions(statusFilter) {
+            let filtered = allSubmissions;
+            
+            if (statusFilter) {
+                filtered = allSubmissions.filter(s => s.Status === statusFilter);
+            }
+            
+            renderSubmissions(filtered);
+        }
+
+        function resetFilters() {
+            $('#filterStatus').val('');
+            $('#filterClasswork').val('');
+            selectedClasswork = null;
+            allSubmissions = [];
+            
+            $('#submissionsOverview').hide();
+            $('#gradingHeader').hide();
+            $('#submissionsList').html(`
+                <div class="empty-state">
+                    <i class="fas fa-clipboard-list"></i>
+                    <p>Select a classwork to view submissions</p>
+                </div>
+            `);
+            populateClassworkDropdown(allClassworks);
+        }
+
+        function loadSubmissions() {
+            const classworkId = $('#filterClasswork').val();
+            
+            if (!classworkId) {
+                resetFilters();
+                return;
+            }
+
+            selectedClasswork = allClassworks.find(cw => cw.Id == classworkId);
+            
+            // Show loading state
+            $('#submissionsList').html(`
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner"></i>
+                    <p>Loading submissions...</p>
+                </div>
+            `);
+
+            $.ajax({
+                url: '@Url.Action("GetClassworkSubmissions", "Teacher")',
+                type: 'GET',
+                data: { classworkId: classworkId },
+                success: function(response) {
+                    if (response.success) {
+                        allSubmissions = response.submissions;
+                        updateOverview(response.submissions);
+                        renderSubmissions(response.submissions);
+                        $('#submissionsOverview').show();
+                        $('#gradingHeader').show();
+                        updateReleaseAllButton();
+                    } else {
+                        showError('Error loading submissions: ' + response.message);
+                    }
+                },
+                error: function() {
+                    showError('Error loading submissions');
+                }
+            });
+        }
+
+        function updateOverview(submissions) {
+            const handedIn = submissions.filter(s => s.Status === 'Submitted' || s.Status === 'Graded').length;
+            const total = submissions.length;
+            const graded = submissions.filter(s => s.Grade !== null && s.Grade !== undefined);
+            
+            let avgScore = 0;
+            if (graded.length > 0 && selectedClasswork) {
+                const totalPercentage = graded.reduce((sum, s) => sum + (s.Grade / selectedClasswork.Points * 100), 0);
+                avgScore = (totalPercentage / graded.length).toFixed(1);
+            }
+
+            $('#totalHandedIn').text(handedIn);
+            $('#totalAssigned').text(total);
+            $('#avgScore').text(avgScore + '%');
+        }
+
+        function renderSubmissions(submissions) {
+            const container = $('#submissionsList');
+            container.empty();
+
+            if (submissions.length === 0) {
+                container.html(`
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No submissions found for this classwork</p>
+                    </div>
+                `);
+                return;
+            }
+
+            submissions.forEach(function(submission) {
+                const statusClass = getStatusClass(submission.Status);
+                const submittedDate = submission.SubmittedAt 
+                    ? new Date(submission.SubmittedAt).toLocaleDateString() 
+                    : 'Not submitted';
+                
+                const files = submission.Files && submission.Files.length > 0
+                    ? submission.Files.map(f => `${f.FileName} (${f.SizeInMB.toFixed(2)} MB)`).join(', ')
+                    : 'No files';
+
+                const scoreDisplay = submission.Grade !== null && submission.Grade !== undefined
+                    ? `<div style="color: var(--primary-color); font-weight: 600; margin-top: 5px;">${submission.Grade}/${selectedClasswork.Points} pts</div>`
+                    : '';
+
+                const canView = submission.Status !== 'Pending';
+                const viewButton = canView ? 
+                    `<a href="@Url.Action("ViewSubmission", "Teacher")?courseId=@courseId&submissionId=${submission.Id}" 
+                       class="btn-view-submission">
+                        <i class="fas fa-eye"></i> View Submission
+                    </a>` :
+                    `<button class="btn-view-submission" disabled>
+                        <i class="fas fa-eye"></i> View Submission
+                    </button>`;
+
+                const card = $(`
+                    <div class="submission-card">
+                        <div class="submission-header">
+                            <div class="student-info">
+                                <div class="student-avatar">
+                                    ${submission.StudentName.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <h4>${submission.StudentName}</h4>
+                                    <p class="submission-date">Submitted: ${submittedDate}</p>
+                                    ${scoreDisplay}
+                                </div>
+                            </div>
+                            <div class="submission-actions">
+                                <span class="status-badge ${statusClass}">${getDisplayStatus(submission.Status)}</span>
+                                ${viewButton}
+                            </div>
+                        </div>
+                    </div>
+                `);
+
+                container.append(card);
+            });
+        }
+
+        function getStatusClass(status) {
+            switch(status) {
+                case 'Graded': return 'status-graded';
+                case 'Submitted': return 'status-handed-in';
+                case 'Late': return 'status-late';
+                case 'Not Submitted': return 'status-missing';
+                default: return 'status-not-submitted';
+            }
+        }
+
+        function getDisplayStatus(status) {
+            switch(status) {
+                case 'Graded': return 'Graded';
+                case 'Submitted': return 'Handed In';
+                case 'Late': return 'Late';
+                case 'Not Submitted': return 'Missing';
+                default: return status;
+            }
+        }
+
+        function updateReleaseAllButton() {
+            const gradedCount = allSubmissions.filter(s => s.Grade !== null && s.Grade !== undefined).length;
+            const submittedCount = allSubmissions.filter(s => s.Status === 'Submitted' || s.Status === 'Graded').length;
+            
+            $('#releaseAllBtn').prop('disabled', gradedCount === 0);
+        }
+
+        function releaseAllMarks() {
+            if (!selectedClasswork) {
+                alert('No classwork selected');
+                return;
+            }
+
+            const gradedSubmissions = allSubmissions.filter(s => s.Grade !== null && s.Grade !== undefined);
+            
+            if (gradedSubmissions.length === 0) {
+                alert('No graded submissions to release');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to release marks for ${gradedSubmissions.length} student(s)?`)) {
+                // Add CSRF token
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                if (!token) {
+                    // Get token from hidden field or generate
+                    token = $('form input[name="__RequestVerificationToken"]').val() || '';
+                }
+
+                $.ajax({
+                    url: '@Url.Action("ReleaseAllMarks", "Teacher")',
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: token,
+                        classworkId: selectedClasswork.Id
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            loadSubmissions(); // Reload to show updated status
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Error releasing marks');
+                    }
+                });
+            }
+        }
+
+        function exportGradebook() {
+            if (!selectedClasswork) {
+                alert('Please select a classwork first');
+                return;
+            }
+
+            window.location.href = '@Url.Action("ExportGradebook", "Teacher")?classworkId=' + selectedClasswork.Id;
+        }
+
+        function showError(message) {
+            $('#submissionsList').html(`
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle" style="color: #f44336;"></i>
+                    <p style="color: #f44336;">${message}</p>
+                </div>
+            `);
+        }
+    </script>
+    @Html.AntiForgeryToken()
+}
