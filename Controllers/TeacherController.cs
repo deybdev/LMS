@@ -2109,11 +2109,12 @@ namespace LMS.Controllers
                     .Where(cs => cs.ClassworkId == classworkId)
                     .Include(s => s.Student)
                     .Include(s => s.SubmissionFiles)
+                    .ToList() // Execute query first
                     .Select(s => new
                     {
                         Id = s.Id,
                         StudentName = s.Student.FirstName + " " + s.Student.LastName,
-                        Status = s.Status,
+                        Status = DetermineSubmissionStatus(s, classwork.Deadline),
                         SubmittedAt = s.SubmittedAt,
                         Grade = s.Grade,
                         Feedback = s.Feedback,
@@ -3080,6 +3081,50 @@ namespace LMS.Controllers
                 System.Diagnostics.Debug.WriteLine($"UpdateCourseSchedule Error: {ex.Message}");
                 return Json(new { success = false, message = "Error updating schedule: " + ex.Message });
             }
+        }
+
+        // Add this helper method to determine submission status
+        private string DetermineSubmissionStatus(ClassworkSubmission submission, DateTime? deadline)
+        {
+            // If already graded, return graded
+            if (submission.Grade.HasValue)
+            {
+                return "Graded";
+            }
+
+            // If submitted
+            if (submission.SubmittedAt.HasValue)
+            {
+                // If no due date, just mark as submitted
+                if (!deadline.HasValue)
+                {
+                    return "Submitted";
+                }
+
+                // If submitted after deadline, mark as late
+                if (submission.SubmittedAt.Value > deadline.Value)
+                {
+                    return "Late";
+                }
+
+                return "Submitted";
+            }
+
+            // Not submitted
+            // If there's NO due date, just mark as "Not Submitted" (not missing)
+            if (!deadline.HasValue)
+            {
+                return "Not Submitted";
+            }
+
+            // If there's a due date and it has passed, it's overdue/missing
+            if (DateTime.Now > deadline.Value)
+            {
+                return "Not Submitted"; // This will show as "Missing" in the UI
+            }
+
+            // If no due date or due date hasn't passed yet
+            return "Not Submitted";
         }
     }
 }

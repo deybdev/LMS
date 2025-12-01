@@ -222,7 +222,46 @@ namespace LMS.Controllers
                                 item.Deadline = c.Deadline;
                                 item.DateCreated = c.DateCreated;
                                 item.Description = c.Description;
-                                item.SubmissionStatus = submission?.Status ?? "Not Submitted";
+                                
+                                // FIXED: Improved status determination logic
+                                string status = "Not Submitted";
+                                if (submission != null)
+                                {
+                                    if (submission.Status == "Graded")
+                                    {
+                                        status = "Graded";
+                                    }
+                                    else if (submission.Status == "Submitted")
+                                    {
+                                        status = "Submitted";
+                                    }
+                                    else if (submission.Status == "Not Submitted")
+                                    {
+                                        // Check if it's overdue only if not submitted
+                                        if (c.Deadline.HasValue && c.Deadline.Value < DateTime.Now)
+                                        {
+                                            status = "Missing"; // Only mark as missing if past deadline
+                                        }
+                                        else
+                                        {
+                                            status = "Not Submitted"; // Keep as not submitted if not past deadline
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    // No submission record exists
+                                    if (c.Deadline.HasValue && c.Deadline.Value < DateTime.Now)
+                                    {
+                                        status = "Missing"; // Past deadline without submission
+                                    }
+                                    else
+                                    {
+                                        status = "Not Submitted"; // Not past deadline yet
+                                    }
+                                }
+                                
+                                item.SubmissionStatus = status;
                                 item.SubmittedAt = submission?.SubmittedAt;
                                 item.Grade = submission?.Grade;
                                 item.Feedback = submission?.Feedback;
@@ -2009,7 +2048,7 @@ namespace LMS.Controllers
                 }
 
                 var now = DateTime.Now;
-                
+
                 // Get assigned tasks from ALL courses
                 var assignedTasks = db.Classworks
                     .Where(c => allTeacherCourseSectionIds.Contains(c.TeacherCourseSectionId) && c.IsActive)
@@ -2041,8 +2080,15 @@ namespace LMS.Controllers
                         item.CourseId = result.Course.Id;
                         item.CourseTitle = result.Course.CourseTitle;
                         item.CourseCode = result.Course.CourseCode;
-                        
+
                         return item;
+                    })
+                    // 🔥 FIX: Filter out tasks that are already submitted or graded
+                    .Where(task =>
+                    {
+                        string status = task.SubmissionStatus;
+                        // Only show tasks that are NOT submitted and NOT graded
+                        return status == "Not Submitted";
                     })
                     .ToList();
 

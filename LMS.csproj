@@ -417,10 +417,6 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
-    <Content Include="ADMIN_PROFILE_CHANGES.md" />
-    <Content Include="ADMIN_PROFILE_UI_FIXES.md" />
-    <Content Include="ADMIN_LOGS_FIXES.md" />
-    <Content Include="LOGS_SYSTEM_COMPLETE.md" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\Custom\deleteCurriculumHandler.js" />
     <Content Include="Scripts\Custom\deleteHandler.js" />
