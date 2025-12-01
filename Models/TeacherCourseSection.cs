@@ -21,5 +21,4 @@ namespace LMS.Models
         public virtual Course Course { get; set; }
         public virtual Section Section { get; set; }
     }
-
 }

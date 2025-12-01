@@ -26,30 +26,14 @@
         <!-- Filter and Search Section -->
         <div class="course-filter-section">
             <div class="filter-controls">
-                <input type="text" id="searchInput" class="search-input" placeholder="Search courses by title, teacher, or department..." />
+                <input type="text" id="searchInput" class="search-input" placeholder="Search courses by code, title, or units..." />
 
                 <div class="filter-dropdowns">
-                    <select class="filter-select" id="statusFilter">
-                        <option value="">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="archived">Archived</option>
-                    </select>
-
-                    <select class="filter-select" id="departmentFilter">
-                        <option value="">All Departments</option>
-                        <option value="ComputerStudies">Computer Studies</option>
-                        <option value="InformationTechnology">Information Technology</option>
-                        <option value="BusinessAdministration">Business Administration</option>
-                        <option value="Engineering">Engineering</option>
-                    </select>
-
                     <select class="filter-select" id="sortBy">
                         <option value="newest">Newest First</option>
                         <option value="oldest">Oldest First</option>
                         <option value="name">Course Name</option>
-                        <option value="enrollments">Most Enrolled</option>
-                        <option value="teacher">Teacher Name</option>
+                        <option value="code">Course Code</option>
                     </select>
                 </div>
             </div>
@@ -104,7 +88,7 @@
                     else
                     {
                         <tr id="noDataRow">
-                            <td colspan="6" class="text-center border-bottom-0">No courses found.</td>
+                            <td colspan="5" class="text-center border-bottom-0">No courses found.</td>
                         </tr>
                     }
                 </tbody>
@@ -139,6 +123,85 @@
 @section scripts {
     <script src="~/Scripts/Custom/deleteHandler.js"></script>
     <script src="~/Scripts/Custom/index.js"></script>
+
+    <script>
+        // Course-specific filtering and sorting
+        document.addEventListener("DOMContentLoaded", function() {
+            const searchInput = document.getElementById("searchInput");
+            const sortBySelect = document.getElementById("sortBy");
+            const tableBody = document.getElementById("userTableBody");
+            
+            // Override the search functionality for courses
+            if (searchInput) {
+                // Remove existing event listener by cloning
+                const newSearchInput = searchInput.cloneNode(true);
+                searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+                
+                // Add course-specific search
+                newSearchInput.addEventListener("input", function() {
+                    filterAndSortCourses();
+                });
+            }
+            
+            // Add sort functionality
+            if (sortBySelect) {
+                sortBySelect.addEventListener("change", function() {
+                    filterAndSortCourses();
+                });
+            }
+            
+            function filterAndSortCourses() {
+                const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+                const sortBy = document.getElementById("sortBy").value;
+                const rows = Array.from(tableBody.querySelectorAll("tr.default-row"));
+                
+                // Filter rows
+                const filteredRows = rows.filter(row => {
+                    const courseCode = row.cells[0].textContent.toLowerCase();
+                    const units = row.cells[1].textContent.toLowerCase();
+                    const title = row.cells[2].textContent.toLowerCase();
+                    
+                    return courseCode.includes(searchTerm) || 
+                           units.includes(searchTerm) || 
+                           title.includes(searchTerm);
+                });
+                
+                // Sort rows
+                filteredRows.sort((a, b) => {
+                    switch(sortBy) {
+                        case 'newest':
+                            return new Date(b.cells[3].textContent) - new Date(a.cells[3].textContent);
+                        case 'oldest':
+                            return new Date(a.cells[3].textContent) - new Date(b.cells[3].textContent);
+                        case 'name':
+                            return a.cells[2].textContent.localeCompare(b.cells[2].textContent);
+                        case 'code':
+                            return a.cells[0].textContent.localeCompare(b.cells[0].textContent);
+                        default:
+                            return 0;
+                    }
+                });
+                
+                // Hide all rows first
+                rows.forEach(row => row.style.display = "none");
+                
+                // Show filtered and sorted rows
+                filteredRows.forEach(row => row.style.display = "");
+                
+                // Update no data row
+                const noDataRow = document.getElementById("noDataRow");
+                if (noDataRow) {
+                    noDataRow.style.display = filteredRows.length === 0 ? "" : "none";
+                }
+                
+                // Trigger pagination update
+                if (typeof renderPage === 'function') {
+                    // Update the allRows and filteredRows in index.js context
+                    window.dispatchEvent(new Event('courseFilterUpdate'));
+                }
+            }
+        });
+    </script>
 
     @* Server-side alert handling *@
     @if (TempData["SuccessMessage"] != null)

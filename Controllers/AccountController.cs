@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
+using System.Data.Entity;
 
 namespace LMS.Controllers
 {
@@ -330,7 +331,7 @@ namespace LMS.Controllers
             return View("ForgotPassword");
         }
 
-        // POST: Account/UploadAccounts
+        // POST: Account/UploadAccounts - Enhanced with Program/Section validation
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult UploadAccounts(HttpPostedFileBase file, string role)
@@ -339,14 +340,14 @@ namespace LMS.Controllers
             {
                 TempData["AlertMessage"] = "Please select an Excel file.";
                 TempData["AlertType"] = "warning";
-                return RedirectToAction("ManageUsers");
+                return RedirectToAction("ManageUsers", "Admin");
             }
 
             if (string.IsNullOrEmpty(role))
             {
                 TempData["AlertMessage"] = "Please select a valid role.";
                 TempData["AlertType"] = "warning";
-                return RedirectToAction("ManageUsers");
+                return RedirectToAction("ManageUsers", "Admin");
             }
 
             try
@@ -357,109 +358,294 @@ namespace LMS.Controllers
                     using (var workbook = new XLWorkbook(stream))
                     {
                         var worksheet = workbook.Worksheet(1);
-                        var rows = worksheet.RangeUsed()?.RowsUsed().Skip(1);
-
-                        if (rows == null || !rows.Any())
+                        var rangeUsed = worksheet.RangeUsed();
+                        
+                        if (rangeUsed == null)
                         {
                             TempData["AlertMessage"] = "Excel file appears to be empty or has no data rows.";
                             TempData["AlertType"] = "warning";
-                            return RedirectToAction("ManageUsers");
+                            return RedirectToAction("ManageUsers", "Admin");
+                        }
+
+                        var rows = rangeUsed.RowsUsed().Skip(1).ToList();
+
+                        if (!rows.Any())
+                        {
+                            TempData["AlertMessage"] = "Excel file appears to be empty or has no data rows.";
+                            TempData["AlertType"] = "warning";
+                            return RedirectToAction("ManageUsers", "Admin");
                         }
 
                         int successCount = 0;
                         int errorCount = 0;
-                        int totalRows = rows.Count();
+                        int totalRows = rows.Count;
                         var errorDetails = new List<string>();
+                        var successDetails = new List<string>();
+                        var emailSentCount = 0;
+                        var emailFailedCount = 0;
 
-                        foreach (var row in rows)
+                        // Pre-load data for validation to improve performance
+                        var allPrograms = db.Programs.Include(p => p.Department).ToList();
+                        var allSections = db.Sections.Include(s => s.Program).ToList();
+
+                        foreach (var rangeRow in rows)
                         {
+                            int rowNumber = rangeRow.RowNumber();
+                            string password = string.Empty; // Store password for email
+                            
                             try
                             {
-                                string userId = row.Cell(1).GetString().Trim();
-                                string lastName = row.Cell(2).GetString().Trim();
-                                string firstName = row.Cell(3).GetString().Trim();
-                                string email = row.Cell(4).GetString().Trim();
-                                string phone = row.Cell(5).GetString().Trim();
+                                // Basic fields (same for both Teacher and Student)
+                                string userId = GetCellValue(rangeRow, 1);
+                                string lastName = GetCellValue(rangeRow, 2);
+                                string firstName = GetCellValue(rangeRow, 3);
+                                string email = GetCellValue(rangeRow, 4);
 
+                                // Validate basic required fields
                                 if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(firstName) ||
                                     string.IsNullOrEmpty(lastName) || string.IsNullOrEmpty(email))
                                 {
                                     errorCount++;
-                                    errorDetails.Add($"Missing required fields (ID, Name, or Email)");
+                                    errorDetails.Add($"Row {rowNumber}: Missing required fields (ID, Name, or Email)");
                                     continue;
                                 }
 
                                 if (!IsValidEmail(email))
                                 {
                                     errorCount++;
-                                    errorDetails.Add($"Invalid email format - {email}");
+                                    errorDetails.Add($"Row {rowNumber}: Invalid email format - {email}");
                                     continue;
                                 }
 
                                 if (db.Users.Any(u => u.Email == email))
                                 {
                                     errorCount++;
-                                    errorDetails.Add($"Email already exists - {email}");
+                                    errorDetails.Add($"Row {rowNumber}: Email already exists - {email}");
                                     continue;
                                 }
+
                                 if (db.Users.Any(u => u.UserID == userId))
                                 {
                                     errorCount++;
-                                    errorDetails.Add($"User ID already exists - {userId}");
+                                    errorDetails.Add($"Row {rowNumber}: User ID already exists - {userId}");
                                     continue;
                                 }
 
-                                string password = GeneratePassword();
-
-                                var newUser = new User
+                                // Student-specific validation
+                                if (role == "Student")
                                 {
-                                    UserID = userId,
-                                    LastName = lastName,
-                                    FirstName = firstName,
-                                    Email = email,
-                                    Role = role,
-                                    Password = HashPassword(password),
-                                    DateCreated = DateTime.Now
-                                };
+                                    // Get student-specific fields
+                                    string programCode = GetCellValue(rangeRow, 5); // Column 5: Program Code
+                                    string yearLevelStr = GetCellValue(rangeRow, 6); // Column 6: Year Level
+                                    string sectionName = GetCellValue(rangeRow, 7); // Column 7: Section Name
+                                    string semesterStr = GetCellValue(rangeRow, 8); // Column 8: Semester
 
-                                db.Users.Add(newUser);
-                                successCount++;
+                                    // Validate student-specific required fields
+                                    if (string.IsNullOrEmpty(programCode) || string.IsNullOrEmpty(yearLevelStr) || 
+                                        string.IsNullOrEmpty(sectionName) || string.IsNullOrEmpty(semesterStr))
+                                    {
+                                        errorCount++;
+                                        errorDetails.Add($"Row {rowNumber}: Students require Program Code, Year Level, Section Name, and Semester");
+                                        continue;
+                                    }
+
+                                    // Parse and validate year level
+                                    if (!int.TryParse(yearLevelStr, out int yearLevel) || yearLevel < 1 || yearLevel > 4)
+                                    {
+                                        errorCount++;
+                                        errorDetails.Add($"Row {rowNumber}: Invalid Year Level '{yearLevelStr}'. Must be 1, 2, 3, or 4");
+                                        continue;
+                                    }
+
+                                    // Parse and validate semester
+                                    if (!int.TryParse(semesterStr, out int semester) || semester < 1 || semester > 2)
+                                    {
+                                        errorCount++;
+                                        errorDetails.Add($"Row {rowNumber}: Invalid Semester '{semesterStr}'. Must be 1 or 2");
+                                        continue;
+                                    }
+
+                                    // Find program by code
+                                    var program = allPrograms.FirstOrDefault(p => p.ProgramCode.Equals(programCode, StringComparison.OrdinalIgnoreCase));
+                                    if (program == null)
+                                    {
+                                        errorCount++;
+                                        errorDetails.Add($"Row {rowNumber}: Program with code '{programCode}' not found");
+                                        continue;
+                                    }
+
+                                    // Find section
+                                    var section = allSections.FirstOrDefault(s => 
+                                        s.ProgramId == program.Id && 
+                                        s.YearLevel == yearLevel && 
+                                        s.SectionName.Equals(sectionName, StringComparison.OrdinalIgnoreCase));
+
+                                    if (section == null)
+                                    {
+                                        errorCount++;
+                                        errorDetails.Add($"Row {rowNumber}: Section '{sectionName}' not found for {programCode} Year {yearLevel}");
+                                        continue;
+                                    }
+
+                                    // Check if courses exist for this program/year/semester
+                                    var curriculumCourses = db.CurriculumCourses
+                                        .Where(cc => cc.ProgramId == program.Id
+                                                     && cc.YearLevel == yearLevel
+                                                     && cc.Semester == semester)
+                                        .ToList();
+
+                                    if (curriculumCourses == null || !curriculumCourses.Any())
+                                    {
+                                        errorCount++;
+                                        errorDetails.Add($"Row {rowNumber}: No courses found for {programCode} Year {yearLevel} Semester {semester}. Please add courses to the curriculum first.");
+                                        continue;
+                                    }
+
+                                    // Create student user with enrollment
+                                    password = GeneratePassword();
+                                    var newUser = new User
+                                    {
+                                        UserID = userId,
+                                        LastName = lastName,
+                                        FirstName = firstName,
+                                        Email = email,
+                                        Role = role,
+                                        Password = HashPassword(password),
+                                        DateCreated = DateTime.Now
+                                    };
+
+                                    db.Users.Add(newUser);
+                                    db.SaveChanges(); // Save to get user ID
+
+                                    // Auto-enroll student in courses for their program/year/semester
+                                    AutoAssignCoursesToStudent(newUser.Id, program.Id, section.Id, yearLevel, semester);
+
+                                    // Send welcome email with credentials
+                                    try
+                                    {
+                                        var htmlBody = EmailHelper.GenerateEmailTemplate(
+                                            EmailType.AccountCreated,
+                                            new
+                                            {
+                                                Name = $"{firstName} {lastName}",
+                                                Email = email,
+                                                Password = password
+                                            }
+                                        );
+
+                                        bool emailSent = EmailHelper.SendEmail(
+                                            toEmail: email,
+                                            subject: "Your G2 Academy LMS Account - Welcome Student!",
+                                            htmlBody: htmlBody
+                                        );
+
+                                        if (emailSent)
+                                        {
+                                            emailSentCount++;
+                                        }
+                                        else
+                                        {
+                                            emailFailedCount++;
+                                            System.Diagnostics.Debug.WriteLine($"Failed to send email to {email}");
+                                        }
+                                    }
+                                    catch (Exception emailEx)
+                                    {
+                                        emailFailedCount++;
+                                        System.Diagnostics.Debug.WriteLine($"Email error for {email}: {emailEx.Message}");
+                                    }
+
+                                    successCount++;
+                                    successDetails.Add($"Row {rowNumber}: {firstName} {lastName} ({userId}) - {programCode} Year {yearLevel} {sectionName}");
+                                }
+                                else
+                                {
+                                    // Teacher or other roles - no additional validation needed
+                                    password = GeneratePassword();
+                                    var newUser = new User
+                                    {
+                                        UserID = userId,
+                                        LastName = lastName,
+                                        FirstName = firstName,
+                                        Email = email,
+                                        Role = role,
+                                        Password = HashPassword(password),
+                                        DateCreated = DateTime.Now
+                                    };
+
+                                    db.Users.Add(newUser);
+                                    db.SaveChanges(); // Save immediately to ensure user is created before email
+
+                                    // Send welcome email with credentials to teacher
+                                    try
+                                    {
+                                        var htmlBody = EmailHelper.GenerateEmailTemplate(
+                                            EmailType.AccountCreated,
+                                            new
+                                            {
+                                                Name = $"{firstName} {lastName}",
+                                                Email = email,
+                                                Password = password
+                                            }
+                                        );
+
+                                        bool emailSent = EmailHelper.SendEmail(
+                                            toEmail: email,
+                                            subject: $"Your G2 Academy LMS Account - Welcome {role}!",
+                                            htmlBody: htmlBody
+                                        );
+
+                                        if (emailSent)
+                                        {
+                                            emailSentCount++;
+                                        }
+                                        else
+                                        {
+                                            emailFailedCount++;
+                                            System.Diagnostics.Debug.WriteLine($"Failed to send email to {email}");
+                                        }
+                                    }
+                                    catch (Exception emailEx)
+                                    {
+                                        emailFailedCount++;
+                                        System.Diagnostics.Debug.WriteLine($"Email error for {email}: {emailEx.Message}");
+                                    }
+
+                                    successCount++;
+                                    successDetails.Add($"Row {rowNumber}: {firstName} {lastName} ({userId}) - {email}");
+                                }
                             }
                             catch (Exception rowEx)
                             {
                                 errorCount++;
-                                errorDetails.Add($"Processing error - {rowEx.Message}");
+                                errorDetails.Add($"Row {rowNumber}: Processing error - {rowEx.Message}");
+                                System.Diagnostics.Debug.WriteLine($"Row {rowNumber} Error: {rowEx.Message}");
+                                System.Diagnostics.Debug.WriteLine($"Stack Trace: {rowEx.StackTrace}");
                             }
                         }
 
+                        // Save remaining changes (if any students were enrolled after last save)
                         db.SaveChanges();
 
-                        // Prepare messages
-                        if (successCount > 0)
+                        // Store upload summary in Session instead of TempData for better persistence
+                        var uploadSummary = new
                         {
-                            TempData["AlertMessage"] = $"Successfully uploaded {successCount} of {totalRows} accounts!";
-                            TempData["AlertType"] = "success";
-
-                            if (errorCount > 0)
-                            {
-                                string errorMsg = $"{errorCount} records had errors and were skipped.";
-                                if (errorDetails.Any())
-                                    errorMsg += " Issues: " + string.Join("; ", errorDetails.Take(3));
-                                TempData["AlertMessage2"] = errorMsg;
-                                TempData["AlertType2"] = "warning";
-                            }
-                        }
-                        else
-                        {
-                            string errorMsg = "No accounts were uploaded.";
-                            if (errorDetails.Any())
-                                errorMsg += " Issues found: " + string.Join("; ", errorDetails.Take(3));
-                            else
-                                errorMsg += " Please check your Excel file format.";
-
-                            TempData["AlertMessage"] = errorMsg;
-                            TempData["AlertType"] = "danger";
-                        }
+                            Role = role,
+                            TotalRows = totalRows,
+                            SuccessCount = successCount,
+                            ErrorCount = errorCount,
+                            SuccessDetails = successDetails,
+                            ErrorDetails = errorDetails,
+                            FileName = file.FileName,
+                            EmailSentCount = emailSentCount,
+                            EmailFailedCount = emailFailedCount
+                        };
+                        
+                        // Store in Session for persistence
+                        Session["UploadSummary"] = uploadSummary;
+                        
+                        System.Diagnostics.Debug.WriteLine($"Upload completed: Success={successCount}, Errors={errorCount}");
+                        System.Diagnostics.Debug.WriteLine($"UploadSummary stored in Session");
                     }
                 }
             }
@@ -470,9 +656,25 @@ namespace LMS.Controllers
                 System.Diagnostics.Debug.WriteLine($"Upload Error: {ex.Message}");
             }
 
-            return RedirectToAction("ManageUsers");
+            return RedirectToAction("ManageUsers", "Admin");
         }
 
+        // Helper method to safely get cell values - Updated to accept IXLRangeRow
+        private string GetCellValue(ClosedXML.Excel.IXLRangeRow row, int columnNumber)
+        {
+            try
+            {
+                var cell = row.Cell(columnNumber);
+                if (cell == null) return string.Empty;
+                
+                var cellValue = cell.GetString();
+                return cellValue?.Trim() ?? string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
 
         // GET: Account/GetUserData
         public ActionResult GetUserData(int id)
@@ -629,6 +831,31 @@ namespace LMS.Controllers
                     if (!programId.HasValue || !yearLevel.HasValue || !sectionId.HasValue)
                     {
                         return Json(new { success = false, message = "Please select Program, Year Level, and Section for student accounts." });
+                    }
+
+                    // Validate that section exists
+                    var section = db.Sections
+                        .Include(s => s.Program)
+                        .FirstOrDefault(s => s.Id == sectionId.Value);
+                    
+                    if (section == null)
+                    {
+                        return Json(new { success = false, message = "Selected section not found." });
+                    }
+
+                    // Check if courses exist for this program/year/semester
+                    int currentSemester = semester ?? (DateTime.Now.Month >= 6 && DateTime.Now.Month <= 10 ? 1 : 2);
+                    var curriculumCourses = db.CurriculumCourses
+                        .Where(cc => cc.ProgramId == programId.Value
+                                     && cc.YearLevel == yearLevel.Value
+                                     && cc.Semester == currentSemester)
+                        .ToList();
+
+                    if (curriculumCourses == null || !curriculumCourses.Any())
+                    {
+                        var program = db.Programs.Find(programId.Value);
+                        string programCode = program?.ProgramCode ?? "the program";
+                        return Json(new { success = false, message = $"No courses found for {programCode} Year {yearLevel.Value} Semester {currentSemester}. Please add courses to the curriculum first." });
                     }
                 }
 
@@ -898,14 +1125,11 @@ namespace LMS.Controllers
                     db.TeacherCourseSections.RemoveRange(teacherCourseSections);
                 }
 
-                // Save changes for related records deletion
                 db.SaveChanges();
 
-                // Now delete the user
                 db.Users.Remove(user);
                 db.SaveChanges();
 
-                // Log the deletion
                 LogAction(
                     category: "User Actions",
                     message: $"Deleted {userRole} account: {userFullName}",
@@ -1034,6 +1258,103 @@ namespace LMS.Controllers
                 }
 
                 db.SaveChanges();
+        }
+
+        // GET: Account/DownloadExcelTemplate
+        public ActionResult DownloadExcelTemplate(string role = "Student")
+        {
+            try
+            {
+                using (var workbook = new XLWorkbook())
+                {
+                    var worksheet = workbook.Worksheets.Add("Accounts");
+
+                    if (role == "Student")
+                    {
+                        // Student template headers
+                        worksheet.Cell(1, 1).Value = "Student ID";
+                        worksheet.Cell(1, 2).Value = "Last Name";
+                        worksheet.Cell(1, 3).Value = "First Name";
+                        worksheet.Cell(1, 4).Value = "Email";
+                        worksheet.Cell(1, 5).Value = "Program Code";
+                        worksheet.Cell(1, 6).Value = "Year Level";
+                        worksheet.Cell(1, 7).Value = "Section Name";
+                        worksheet.Cell(1, 8).Value = "Semester";
+
+                        // Add sample data row
+                        worksheet.Cell(2, 1).Value = "STU-2024-001";
+                        worksheet.Cell(2, 2).Value = "Doe";
+                        worksheet.Cell(2, 3).Value = "John";
+                        worksheet.Cell(2, 4).Value = "john.doe@example.com";
+                        worksheet.Cell(2, 5).Value = "BSIT"; // Example program code
+                        worksheet.Cell(2, 6).Value = "1";
+                        worksheet.Cell(2, 7).Value = "A";
+                        worksheet.Cell(2, 8).Value = "1";
+
+                        // Add another sample row
+                        worksheet.Cell(3, 1).Value = "STU-2024-002";
+                        worksheet.Cell(3, 2).Value = "Smith";
+                        worksheet.Cell(3, 3).Value = "Jane";
+                        worksheet.Cell(3, 4).Value = "jane.smith@example.com";
+                        worksheet.Cell(3, 5).Value = "BSIT";
+                        worksheet.Cell(3, 6).Value = "1";
+                        worksheet.Cell(3, 7).Value = "A";
+                        worksheet.Cell(3, 8).Value = "1";
+                    }
+                    else
+                    {
+                        // Teacher template headers
+                        worksheet.Cell(1, 1).Value = "Teacher ID";
+                        worksheet.Cell(1, 2).Value = "Last Name";
+                        worksheet.Cell(1, 3).Value = "First Name";
+                        worksheet.Cell(1, 4).Value = "Email";
+
+                        // Add sample data row
+                        worksheet.Cell(2, 1).Value = "TCH-2024-001";
+                        worksheet.Cell(2, 2).Value = "Johnson";
+                        worksheet.Cell(2, 3).Value = "Robert";
+                        worksheet.Cell(2, 4).Value = "robert.johnson@example.com";
+
+                        // Add another sample row
+                        worksheet.Cell(3, 1).Value = "TCH-2024-002";
+                        worksheet.Cell(3, 2).Value = "Williams";
+                        worksheet.Cell(3, 3).Value = "Mary";
+                        worksheet.Cell(3, 4).Value = "mary.williams@example.com";
+                    }
+
+                    // Style the header row
+                    var headerRange = worksheet.Range(1, 1, 1, role == "Student" ? 8 : 4);
+                    headerRange.Style.Font.Bold = true;
+                    headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+                    headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                    // Auto-fit columns
+                    worksheet.Columns().AdjustToContents();
+
+                    // Prepare response
+                    Response.Clear();
+                    Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                    string fileName = $"Account_Template_{role}_{DateTime.Now:yyyyMMdd}.xlsx";
+                    Response.AddHeader("content-disposition", $"attachment;filename=\"{fileName}\"");
+
+                    // Write to response
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        workbook.SaveAs(memoryStream);
+                        memoryStream.WriteTo(Response.OutputStream);
+                    }
+
+                    Response.End();
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"DownloadExcelTemplate Error: {ex.Message}");
+                TempData["AlertMessage"] = $"Error generating template: {ex.Message}";
+                TempData["AlertType"] = "danger";
+                return RedirectToAction("ManageUsers", "Admin");
+            }
         }
 
         public ActionResult Logout()

@@ -233,16 +233,38 @@
                             </div>
                         </div>
 
-                        <div class="alert alert-info mb-0 small" id="uploadInstructions">
+                        <div class="alert alert-info mb-3 small" id="uploadInstructions">
                             <h6 class="mb-1"><i class="fa-solid fa-circle-info"></i> Excel Format Guide</h6>
-                            <p>Excel columns (in order):</p>
-                            <ul>
-                                <li>Column 1 — ID</li>
-                                <li>Column 2 — Last Name</li>
-                                <li>Column 3 — First Name</li>
-                                <li>Column 4 — Email</li>
-                            </ul>
-                            <p><strong>Password:</strong> auto-generated for each user.</p>
+                            <div id="teacherInstructions" style="display: none;">
+                                <p><strong>For Teachers:</strong> Excel columns (in order):</p>
+                                <ul class="mb-2">
+                                    <li>Column 1 — ID</li>
+                                    <li>Column 2 — Last Name</li>
+                                    <li>Column 3 — First Name</li>
+                                    <li>Column 4 — Email</li>
+                                </ul>
+                            </div>
+                            <div id="studentInstructions" style="display: none;">
+                                <p><strong>For Students:</strong> Excel columns (in order):</p>
+                                <ul class="mb-2">
+                                    <li>Column 1 — Student ID</li>
+                                    <li>Column 2 — Last Name</li>
+                                    <li>Column 3 — First Name</li>
+                                    <li>Column 4 — Email</li>
+                                    <li>Column 5 — Program Code <span class="text-danger">*</span></li>
+                                    <li>Column 6 — Year Level (1-4) <span class="text-danger">*</span></li>
+                                    <li>Column 7 — Section Name <span class="text-danger">*</span></li>
+                                    <li>Column 8 — Semester (1 or 2) <span class="text-danger">*</span></li>
+                                </ul>
+                                <p class="text-danger small mb-0"><strong>Note:</strong> Students require Program Code, Year Level, Section Name, and Semester. The system will validate that the program, section, and courses exist before creating accounts.</p>
+                            </div>
+                            <p class="mt-2 mb-0"><strong>Password:</strong> Auto-generated for each user.</p>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <a href="@Url.Action("DownloadExcelTemplate", "Account", new { role = "Student" })" class="btn btn-outline-primary" id="downloadTemplateBtn" style="display: none;">
+                                <i class="fa-solid fa-download"></i> Download Excel Template
+                            </a>
                         </div>
                     </div>
 
@@ -253,6 +275,118 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Summary Modal -->
+    <div class="modal fade" id="uploadSummaryModal" tabindex="-1" aria-labelledby="uploadSummaryModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="uploadSummaryModalLabel">
+                        <i class="fa-solid fa-file-circle-check me-2"></i>Excel Upload Summary
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="upload-summary-header mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div>
+                                <h6 class="mb-1"><i class="fa-solid fa-file-excel text-success me-2"></i><span id="summary-filename"></span></h6>
+                                <small class="text-muted">Upload completed</small>
+                            </div>
+                            <div class="text-end">
+                                <h6 class="mb-1">Role: <span class="badge bg-info" id="summary-role"></span></h6>
+                            </div>
+                        </div>
+                        
+                        <!-- Summary Stats -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3">
+                                <div class="stat-card bg-light p-3 rounded text-center">
+                                    <div class="stat-value text-primary h4 mb-1" id="summary-total">0</div>
+                                    <div class="stat-label small text-muted">Total Rows</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card bg-success bg-opacity-10 p-3 rounded text-center">
+                                    <div class="stat-value text-success h4 mb-1" id="summary-success">0</div>
+                                    <div class="stat-label small text-muted">Successful</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card bg-danger bg-opacity-10 p-3 rounded text-center">
+                                    <div class="stat-value text-danger h4 mb-1" id="summary-errors">0</div>
+                                    <div class="stat-label small text-muted">Errors</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card bg-light p-3 rounded text-center">
+                                    <div class="stat-value h4 mb-1">
+                                        <span id="summary-percentage">0</span>%
+                                    </div>
+                                    <div class="stat-label small text-muted">Success Rate</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Email Statistics -->
+                        <div id="email-stats-section" class="alert alert-info mb-4" style="display: none;">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <h6 class="mb-1"><i class="fa-solid fa-envelope me-2"></i>Email Notifications</h6>
+                                    <p class="mb-0 small">Credentials have been sent to the following email addresses:</p>
+                                </div>
+                                <div class="text-end">
+                                    <div class="mb-1">
+                                        <i class="fa-solid fa-check-circle text-success me-1"></i>
+                                        <strong id="email-sent-count">0</strong> sent
+                                    </div>
+                                    <div id="email-failed-section" style="display: none;">
+                                        <i class="fa-solid fa-exclamation-circle text-warning me-1"></i>
+                                        <strong id="email-failed-count">0</strong> failed
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Success Details -->
+                    <div id="success-section" class="mb-4" style="display: none;">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h6 class="mb-0"><i class="fa-solid fa-circle-check text-success me-2"></i>Successfully Created (<span id="success-count">0</span>)</h6>
+                            <button class="btn btn-sm btn-outline-success" type="button" data-bs-toggle="collapse" data-bs-target="#successDetails" aria-expanded="false">
+                                <i class="fa-solid fa-chevron-down"></i> Show Details
+                            </button>
+                        </div>
+                        <div class="collapse" id="successDetails">
+                            <div class="list-group list-group-flush" id="success-list" style="max-height: 300px; overflow-y: auto;">
+                                <!-- Success items will be added here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Details -->
+                    <div id="error-section" style="display: none;">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h6 class="mb-0"><i class="fa-solid fa-circle-exclamation text-danger me-2"></i>Errors & Issues (<span id="error-count">0</span>)</h6>
+                            <button class="btn btn-sm btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#errorDetails" aria-expanded="true">
+                                <i class="fa-solid fa-chevron-down"></i> Show Details
+                            </button>
+                        </div>
+                        <div class="collapse show" id="errorDetails">
+                            <div class="list-group list-group-flush" id="error-list" style="max-height: 300px; overflow-y: auto;">
+                                <!-- Error items will be added here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        <i class="fa-solid fa-check me-1"></i>Close
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -327,7 +461,7 @@
                                     }
                                 </td>
                                 <td class="action-buttons">
-                                    @if (user.Role != "Admin")
+                                    @if (user.Role != "Admin" && user.Role != "IT")
                                     {
                                         <button class="action-btn edit-btn" data-id="@user.Id" title="Edit">
                                             <i class="fa-solid fa-pen"></i>
@@ -390,6 +524,229 @@
     <script src="~/Scripts/Custom/deleteHandler.js"></script>
     <script src="~/Scripts/Custom/excelProgress.js"></script>
     <script src="~/Scripts/Custom/studentAccountDropdown.js"></script>
+    
+    <script>
+        // Handle Excel upload modal role selection
+        $(document).ready(function() {
+            // Display TempData alerts if they exist
+            @if (TempData["AlertMessage"] != null)
+            {
+                <text>
+                showAlert('@TempData["AlertType"]', '@Html.Raw(TempData["AlertMessage"])');
+                </text>
+            }
+            
+            @if (TempData["AlertMessage2"] != null)
+            {
+                <text>
+                setTimeout(function() {
+                    showAlert('@TempData["AlertType2"]', '@Html.Raw(TempData["AlertMessage2"])');
+                }, 500);
+                </text>
+            }
+            
+            // Check if upload summary data exists and show modal
+            @if (ViewBag.UploadSummary != null)
+            {
+                <text>
+                try {
+                    var uploadSummaryData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.UploadSummary));
+                    console.log('Upload Summary Data found:', uploadSummaryData);
+                    
+                    if (uploadSummaryData) {
+                        // Wait for Bootstrap and DOM to be fully ready
+                        setTimeout(function() {
+                            console.log('Attempting to show upload summary modal...');
+                            showUploadSummary(uploadSummaryData);
+                        }, 500);
+                    } else {
+                        console.log('Upload summary data is null or undefined');
+                    }
+                } catch (parseError) {
+                    console.error('Error parsing upload summary data:', parseError);
+                }
+                </text>
+            } else {
+                <text>
+                console.log('No ViewBag.UploadSummary found');
+                </text>
+            }
+
+            $('#roleSelect').on('change', function() {
+                var selectedRole = $(this).val();
+                
+                if (selectedRole === 'Student') {
+                    $('#studentInstructions').show();
+                    $('#teacherInstructions').hide();
+                    $('#downloadTemplateBtn')
+                        .attr('href', '@Url.Action("DownloadExcelTemplate", "Account")?role=Student')
+                        .show();
+                } else if (selectedRole === 'Teacher') {
+                    $('#teacherInstructions').show();
+                    $('#studentInstructions').hide();
+                    $('#downloadTemplateBtn')
+                        .attr('href', '@Url.Action("DownloadExcelTemplate", "Account")?role=Teacher')
+                        .show();
+                } else {
+                    $('#studentInstructions').hide();
+                    $('#teacherInstructions').hide();
+                    $('#downloadTemplateBtn').hide();
+                }
+            });
+            
+            // Reset on modal close
+            $('#uploadExcelModal').on('hidden.bs.modal', function() {
+                $('#roleSelect').val('');
+                $('#studentInstructions').hide();
+                $('#teacherInstructions').hide();
+                $('#downloadTemplateBtn').hide();
+                $('#excelUploadForm')[0].reset();
+            });
+        });
+
+        function showUploadSummary(data) {
+            console.log('showUploadSummary called with data:', data);
+            
+            if (!data) {
+                console.error('No data provided to showUploadSummary');
+                return;
+            }
+            
+            // Set header information
+            $('#summary-filename').text(data.FileName || 'Excel File');
+            $('#summary-role').text(data.Role || 'Unknown');
+            
+            // Set statistics
+            $('#summary-total').text(data.TotalRows || 0);
+            $('#summary-success').text(data.SuccessCount || 0);
+            $('#summary-errors').text(data.ErrorCount || 0);
+            
+            // Calculate and set success percentage
+            var percentage = data.TotalRows > 0 ? Math.round((data.SuccessCount / data.TotalRows) * 100) : 0;
+            $('#summary-percentage').text(percentage);
+            
+            // Show email statistics if available
+            if (data.EmailSentCount !== undefined && data.EmailSentCount > 0) {
+                $('#email-stats-section').show();
+                $('#email-sent-count').text(data.EmailSentCount);
+                
+                if (data.EmailFailedCount && data.EmailFailedCount > 0) {
+                    $('#email-failed-section').show();
+                    $('#email-failed-count').text(data.EmailFailedCount);
+                } else {
+                    $('#email-failed-section').hide();
+                }
+            } else {
+                $('#email-stats-section').hide();
+            }
+            
+            // Show/hide success section
+            if (data.SuccessCount > 0) {
+                $('#success-section').show();
+                $('#success-count').text(data.SuccessCount);
+                
+                // Populate success list
+                var $successList = $('#success-list');
+                $successList.empty();
+                
+                if (data.SuccessDetails && data.SuccessDetails.length > 0) {
+                    data.SuccessDetails.forEach(function(item) {
+                        $successList.append(`
+                            <div class="list-group-item border-start border-success border-3 py-2 px-3">
+                                <i class="fa-solid fa-check-circle text-success me-2"></i>
+                                <small>${escapeHtml(item)}</small>
+                            </div>
+                        `);
+                    });
+                }
+            } else {
+                $('#success-section').hide();
+            }
+            
+            // Show/hide error section
+            if (data.ErrorCount > 0) {
+                $('#error-section').show();
+                $('#error-count').text(data.ErrorCount);
+                
+                // Populate error list
+                var $errorList = $('#error-list');
+                $errorList.empty();
+                
+                if (data.ErrorDetails && data.ErrorDetails.length > 0) {
+                    data.ErrorDetails.forEach(function(item) {
+                        $errorList.append(`
+                            <div class="list-group-item border-start border-danger border-3 py-2 px-3">
+                                <i class="fa-solid fa-exclamation-circle text-danger me-2"></i>
+                                <small>${escapeHtml(item)}</small>
+                            </div>
+                        `);
+                    });
+                }
+            } else {
+                $('#error-section').hide();
+            }
+            
+            // Show the modal
+            try {
+                var summaryModalElement = document.getElementById('uploadSummaryModal');
+                console.log('Summary modal element:', summaryModalElement);
+                
+                if (summaryModalElement) {
+                    // Use jQuery Bootstrap modal if available
+                    if (typeof $ !== 'undefined' && $.fn.modal) {
+                        console.log('Using jQuery Bootstrap modal');
+                        $('#uploadSummaryModal').modal({
+                            backdrop: 'static',
+                            keyboard: false
+                        });
+                        $('#uploadSummaryModal').modal('show');
+                        console.log('Summary modal shown using jQuery');
+                    } 
+                    // Try vanilla Bootstrap 5
+                    else if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                        console.log('Using vanilla Bootstrap 5 modal');
+                        var summaryModal = new bootstrap.Modal(summaryModalElement, {
+                            backdrop: 'static',
+                            keyboard: false
+                        });
+                        summaryModal.show();
+                        console.log('Summary modal shown using Bootstrap 5');
+                    } 
+                    else {
+                        console.error('Bootstrap modal not available');
+                        // Fallback: show as alert
+                        var msg = 'Upload completed!\n' + 
+                                  'Total: ' + (data.TotalRows || 0) + '\n' +
+                                  'Success: ' + (data.SuccessCount || 0) + '\n' +
+                                  'Errors: ' + (data.ErrorCount || 0);
+                        alert(msg);
+                    }
+                } else {
+                    console.error('Upload summary modal element not found');
+                }
+            } catch (e) {
+                console.error('Error showing upload summary modal:', e);
+                // Fallback: show as alert
+                var msg = 'Upload completed!\n' + 
+                          'Total: ' + (data.TotalRows || 0) + '\n' +
+                          'Success: ' + (data.SuccessCount || 0) + '\n' +
+                          'Errors: ' + (data.ErrorCount || 0);
+                alert(msg);
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            var map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+    </script>
 }
 
 <style>
@@ -446,6 +803,74 @@
     .modal-footer button:disabled {
         opacity: 0.6;
         cursor: not-allowed;
+    }
+
+    /* Upload Summary Modal Styles */
+    #uploadSummaryModal .modal-body {
+        background: #f8f9fa;
+    }
+
+    #uploadSummaryModal .stat-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 1px solid #dee2e6;
+    }
+
+    #uploadSummaryModal .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    #uploadSummaryModal .stat-value {
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    #uploadSummaryModal .stat-label {
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    #uploadSummaryModal .list-group-item {
+        background: white;
+        margin-bottom: 0.5rem;
+        border-radius: 0.375rem;
+        border: 1px solid #e9ecef;
+        transition: background 0.2s ease;
+    }
+
+    #uploadSummaryModal .list-group-item:hover {
+        background: #f8f9fa;
+    }
+
+    #uploadSummaryModal .upload-summary-header {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    #uploadSummaryModal #success-list,
+    #uploadSummaryModal #error-list {
+        background: white;
+        padding: 0.5rem;
+        border-radius: 0.375rem;
+        margin-top: 0.5rem;
+    }
+
+    #uploadSummaryModal .collapse.show {
+        animation: fadeIn 0.3s ease;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
 

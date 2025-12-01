@@ -42,7 +42,7 @@ function loadClassList() {
 
     $tableBody.html(`
         <tr>
-            <td colspan="6" class="loading-state">
+            <td colspan="5" class="loading-state">
                 <i class="fas fa-spinner fa-spin"></i>
                 <p style="margin-top: 1rem;">Loading students...</p>
             </td>
@@ -77,7 +77,6 @@ function displayStudents(students) {
                 <td><span class="student-id">${escapeHtml(student.studentId)}</span></td>
                 <td><span class="student-name">${escapeHtml(student.name)}</span></td>
                 <td><span class="student-email">${escapeHtml(student.email)}</span></td>
-                <td><span class="grade-badge">${student.grade || '-'}</span></td>
             </tr>
         `;
         $tableBody.append(row);
@@ -87,7 +86,7 @@ function displayStudents(students) {
 function showNoStudents() {
     $('#studentTableBody').html(`
         <tr>
-            <td colspan="6" class="no-students">
+            <td colspan="5" class="no-students">
                 <i class="fas fa-user-slash"></i>
                 <h5>No Students Enrolled</h5>
                 <p>There are no students currently enrolled in this course section.</p>
@@ -99,7 +98,7 @@ function showNoStudents() {
 function showError() {
     $('#studentTableBody').html(`
         <tr>
-            <td colspan="6" class="no-students">
+            <td colspan="5" class="no-students">
                 <i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i>
                 <h5>Error Loading Students</h5>
                 <p>An error occurred while loading the class list. Please refresh the page to try again.</p>

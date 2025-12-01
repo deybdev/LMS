@@ -17,6 +17,7 @@ namespace LMS.Models
         // Navigation properties
         public virtual TeacherCourseSection TeacherCourseSection { get; set; }
         public virtual ICollection<MaterialFile> MaterialFiles { get; set; } = new List<MaterialFile>();
+        public virtual ICollection<MaterialComment> MaterialComments { get; set; } = new List<MaterialComment>();
     }
 
 

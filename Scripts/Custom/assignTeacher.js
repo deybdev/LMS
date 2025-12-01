@@ -1,4 +1,4 @@
-// Assign Teacher JavaScript
+﻿// Assign Teacher JavaScript
 let allAssignments = [];
 let allCourseSections = [];
 let currentPage = 1;
@@ -142,6 +142,7 @@ function loadPrograms() {
 }
 
 // Setup dropdown cascade
+// Setup dropdown cascade
 function setupDropdownCascade() {
     // When program changes, load year levels
     $('#program').on('change', function () {
@@ -181,12 +182,17 @@ function setupDropdownCascade() {
         }
 
         // Also load courses if semester is selected
-        loadCourses();
+        const semester = $('#semester').val();
+        if (semester) {
+            loadCourses();
+        }
     });
 
     // When section changes, reload courses to update disabled state
     $('#section').on('change', function () {
         const sectionId = $(this).val();
+        const isReassignMode = $('#assignmentId').val() !== '';
+        const currentCourseId = isReassignMode ? parseInt($('#currentCourseId').val()) : null;
         
         if (sectionId) {
             // Check if there are already assigned courses for this section
@@ -203,7 +209,7 @@ function setupDropdownCascade() {
         }
         
         // Reload courses with updated disabled state
-        loadCourses();
+        loadCourses(isReassignMode, currentCourseId);
     });
 }
 
@@ -239,7 +245,7 @@ function loadSections(programId, yearLevel) {
 }
 
 // Load courses based on program, year level, and semester
-function loadCourses() {
+function loadCourses(allowCurrentCourse = false, currentCourseId = null) {
     const programId = $('#program').val();
     const yearLevel = $('#yearLevel').val();
     const semester = $('#semester').val();
@@ -264,26 +270,29 @@ function loadCourses() {
 
             if (response.success && response.courses.length > 0) {
                 $select.prop('disabled', false);
-                
+
                 response.courses.forEach(function (course) {
                     // Check if this course is already assigned to the selected section
-                    const isAssigned = sectionId && allCourseSections.some(cs => 
-                        cs.courseId === course.id && 
-                        cs.sectionId === parseInt(sectionId) && 
+                    const isAssigned = sectionId && allCourseSections.some(cs =>
+                        cs.courseId === course.id &&
+                        cs.sectionId === parseInt(sectionId) &&
                         cs.semester === parseInt(semester) &&
                         cs.isAssigned === true
                     );
 
+                    // FIXED: Allow current course to be selected during reassignment
+                    const shouldDisable = isAssigned && !(allowCurrentCourse && course.id === currentCourseId);
+
                     const option = $('<option></option>')
                         .val(course.id)
-                        .text(course.code + ' - ' + course.title + (isAssigned ? ' (Already Assigned)' : ''))
-                        .prop('disabled', isAssigned)
+                        .text(course.code + ' - ' + course.title + (shouldDisable ? ' (Already Assigned)' : ''))
+                        .prop('disabled', shouldDisable)
                         .data('assigned', isAssigned);
 
-                    // Add visual indicator for assigned courses
-                    if (isAssigned) {
+                    // Add visual indicator for assigned courses (but not the current one being reassigned)
+                    if (shouldDisable) {
                         option.css('color', '#999')
-                              .css('font-style', 'italic');
+                            .css('font-style', 'italic');
                     }
 
                     $select.append(option);
@@ -375,11 +384,110 @@ function displayAssignments() {
 
 // Create card for assigned course-section
 function createAssignedCard(item, initials) {
+    // Determine if teacher has a profile image
+    const hasProfileImage =
+        item.teacherProfileImage &&
+        item.teacherProfileImage.trim() !== '' &&
+        item.teacherProfileImage !== 'null' &&
+        item.teacherProfileImage !== 'undefined' &&
+        item.teacherProfileImage !== null &&
+        item.teacherProfileImage !== undefined &&
+        !item.teacherProfileImage.endsWith('/');
+
+    
+    console.log('Teacher Profile Image Debug:', {
+        teacherName: item.teacherName,
+        profileImagePath: item.teacherProfileImage,
+        hasProfileImage: hasProfileImage
+    });
+    
+    // Generate a consistent color based on teacher name for the avatar background
+    const getAvatarColor = (name) => {
+        const colors = [
+            'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+            'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+            'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+            'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+            'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+            'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+            'linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)'
+        ];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colors[Math.abs(hash) % colors.length];
+    };
+    
+    // Create avatar HTML based on whether profile image exists
+    // When profile image exists, show ONLY the image (no initials)
+    // Initials only appear as fallback when image fails to load
+    const avatarHtml = hasProfileImage
+        ? `
+        <div style="
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #e3f2fd;
+            flex-shrink: 0;
+            background-color: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        "
+        onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 6px 16px rgba(0,0,0,0.2)'"
+        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'">
+            
+            <img src="${item.teacherProfileImage}"
+                alt="${item.teacherName}"
+                style="width: 100%; height: 100%; object-fit: cover; object-position: center;"
+                onerror="
+                    this.onerror=null;
+                    this.remove();
+                    const parent = this.parentElement;
+                    parent.style.background='${getAvatarColor(item.teacherName)}';
+                    parent.style.color='white';
+                    parent.style.fontWeight='700';
+                    parent.style.fontSize='18px';
+                    parent.innerHTML='${initials}';
+                ">
+        </div>
+    `
+        : `
+        <div style="
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: ${getAvatarColor(item.teacherName)};
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: 3px solid #fff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        "
+        onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 6px 16px rgba(0,0,0,0.2)'"
+        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'">
+            ${initials}
+        </div>
+    `;
+
+    
     return `
         <div class="teacher-card assigned" data-program="${item.programId}" data-year="${item.yearLevel}" data-semester="${item.semester}">
             <div class="teacher-header">
                 <div class="teacher-info">
-                    <div class="teacher-avatar">${initials}</div>
+                    ${avatarHtml}
                     <div class="teacher-details">
                         <h4>${item.teacherName}</h4>
                         <p><i class="fa-solid fa-envelope"></i> ${item.teacherEmail}</p>
@@ -474,44 +582,58 @@ function createUnassignedCard(item) {
 }
 
 // Quick assign function to pre-fill modal
+// Quick assign function to pre-fill modal
 function quickAssign(courseId, sectionId, semester, courseTitle, sectionName) {
     // Reset form first
     resetForm();
-    
+
     // Clear any existing assignment ID (this is for new assignment)
     $('#assignmentId').val('');
     $('#assignTeacherModalLabel').html('<i class="fa-solid fa-user-plus"></i> Assign Teacher to Course');
     $('#submitAssignBtn').html('<i class="fa-solid fa-user-plus me-1"></i> Assign Teacher');
-    
+
     // Get section details to pre-populate form
-    const courseSection = allCourseSections.find(cs => 
-        cs.courseId === courseId && 
-        cs.sectionId === sectionId && 
+    const courseSection = allCourseSections.find(cs =>
+        cs.courseId === courseId &&
+        cs.sectionId === sectionId &&
         cs.semester === semester
     );
-    
+
     if (courseSection) {
         // Set program
         $('#program').val(courseSection.programId).trigger('change');
-        
+
         // Wait a bit for cascade to complete, then set other values
-        setTimeout(function() {
+        setTimeout(function () {
             $('#yearLevel').val(courseSection.yearLevel).trigger('change');
-            
-            setTimeout(function() {
+
+            setTimeout(function () {
                 $('#semester').val(semester).trigger('change');
-                
-                setTimeout(function() {
+
+                setTimeout(function () {
+                    // Wait for courses to load after semester change
+                    // The semester change should trigger loadCourses automatically
                     $('#section').val(sectionId).trigger('change');
-                    
-                    setTimeout(function() {
-                        $('#course').val(courseId);
-                    }, 100);
-                }, 100);
-            }, 100);
-        }, 100);
+
+                    // Increased timeout to ensure courses are loaded
+                    setTimeout(function () {
+                        // Ensure course dropdown is enabled and has options
+                        const $courseSelect = $('#course');
+                        if ($courseSelect.prop('disabled')) {
+                            // If still disabled, manually trigger course load
+                            loadCourses();
+                            setTimeout(function () {
+                                $('#course').val(courseId);
+                            }, 200);
+                        } else {
+                            $('#course').val(courseId);
+                        }
+                    }, 200); // Increased from 100 to 200
+                }, 200); // Increased from 100 to 200
+            }, 200); // Increased from 100 to 200
+        }, 200); // Increased from 100 to 200
     }
-    
+
     // Show modal
     $('#assignTeacherModal').modal('show');
 }
@@ -520,39 +642,47 @@ function quickAssign(courseId, sectionId, semester, courseTitle, sectionName) {
 function reassignTeacher(assignmentId, currentTeacherId, courseId, sectionId, semester, programId, yearLevel, teacherName, courseTitle, sectionName) {
     // Reset form first
     resetForm();
-    
+
     // Store the assignment ID for updating
     $('#assignmentId').val(assignmentId);
-    
+
+    // FIXED: Store the current course ID to allow it to be selected
+    $('#currentCourseId').val(courseId);
+
     // Change modal title and button text
     $('#assignTeacherModalLabel').html('<i class="fa-solid fa-user-pen"></i> Reassign Teacher');
     $('#submitAssignBtn').html('<i class="fa-solid fa-save me-1"></i> Update Assignment');
-    
+
     // Pre-fill the form with current values
     $('#program').val(programId).trigger('change');
-    
+
     // Wait for cascade to complete, then set other values
-    setTimeout(function() {
+    setTimeout(function () {
         $('#yearLevel').val(yearLevel).trigger('change');
-        
-        setTimeout(function() {
+
+        setTimeout(function () {
             $('#semester').val(semester).trigger('change');
-            
-            setTimeout(function() {
+
+            setTimeout(function () {
                 $('#section').val(sectionId).trigger('change');
-                
-                setTimeout(function() {
-                    $('#course').val(courseId);
-                    
-                    // Set the current teacher as selected
-                    setTimeout(function() {
-                        $('#teacher').val(currentTeacherId);
-                    }, 100);
+
+                setTimeout(function () {
+                    // FIXED: Call loadCourses with allowCurrentCourse flag
+                    loadCourses(true, courseId);
+
+                    setTimeout(function () {
+                        $('#course').val(courseId);
+
+                        // Set the current teacher as selected
+                        setTimeout(function () {
+                            $('#teacher').val(currentTeacherId);
+                        }, 100);
+                    }, 200); // Increased timeout to wait for courses to load
                 }, 100);
             }, 100);
         }, 100);
     }, 100);
-    
+
     // Show modal
     $('#assignTeacherModal').modal('show');
 }
@@ -629,7 +759,8 @@ function resetForm() {
     $('#formErrorContainer').addClass('d-none');
     $('#yearLevel, #section, #course').prop('disabled', true);
     $('#assignmentId').val(''); // Clear assignment ID
-    
+    $('#currentCourseId').val(''); // Clear current course ID
+
     // Reset modal title and button text to default
     $('#assignTeacherModalLabel').html('<i class="fa-solid fa-user-plus"></i> Assign Teacher to Course');
     $('#submitAssignBtn').html('<i class="fa-solid fa-user-plus me-1"></i> Assign Teacher');

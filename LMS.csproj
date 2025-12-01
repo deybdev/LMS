@@ -210,6 +210,7 @@
     <Compile Include="Controllers\DepartmentController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ITController.cs" />
+    <Compile Include="Controllers\ProfileController.cs" />
     <Compile Include="Controllers\ProgramController.cs" />
     <Compile Include="Controllers\SectionController.cs" />
     <Compile Include="Controllers\StudentController.cs" />
@@ -326,6 +327,18 @@
     <Compile Include="Migrations\202511300413129_asod.Designer.cs">
       <DependentUpon>202511300413129_asod.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202511301600000_AddProfilePictureToUser.cs" />
+    <Compile Include="Migrations\202511301600000_AddProfilePictureToUser.Designer.cs">
+      <DependentUpon>202511301600000_AddProfilePictureToUser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511301630000_AddProfileDetailsToUser.cs" />
+    <Compile Include="Migrations\202511301630000_AddProfileDetailsToUser.Designer.cs">
+      <DependentUpon>202511301630000_AddProfileDetailsToUser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202511302025318_ajksd.cs" />
+    <Compile Include="Migrations\202511302025318_ajksd.Designer.cs">
+      <DependentUpon>202511302025318_ajksd.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Announcement.cs" />
     <Compile Include="Models\AttendanceRecord.cs" />
@@ -338,6 +351,8 @@
     <Compile Include="Models\Event.cs" />
     <Compile Include="Models\LMSContext.cs" />
     <Compile Include="Models\Material.cs" />
+    <Compile Include="Models\MaterialComment.cs" />
+    <Compile Include="Models\ProfileUpdateViewModel.cs" />
     <Compile Include="Models\Program.cs" />
     <Compile Include="Models\Section.cs" />
     <Compile Include="Models\Student.cs" />
@@ -380,6 +395,7 @@
     <Content Include="Content\programManagement.css" />
     <Content Include="Content\Site.css" />
     <Content Include="Content\studentAssignment.css" />
+    <Content Include="Content\studentProfile.css" />
     <Content Include="Content\teacherClasslist.css" />
     <Content Include="Content\teacherCourse.css" />
     <Content Include="Content\teacherCreateCourse.css" />
@@ -401,6 +417,10 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="ADMIN_PROFILE_CHANGES.md" />
+    <Content Include="ADMIN_PROFILE_UI_FIXES.md" />
+    <Content Include="ADMIN_LOGS_FIXES.md" />
+    <Content Include="LOGS_SYSTEM_COMPLETE.md" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\Custom\deleteCurriculumHandler.js" />
     <Content Include="Scripts\Custom\deleteHandler.js" />
@@ -496,6 +516,7 @@
     <Content Include="Views\Account\ForgotPassword.cshtml" />
     <Content Include="Views\Account\ResetPassword.cshtml" />
     <Content Include="Views\Admin\EmailNotifications.cshtml" />
+    <Content Include="Views\Profile\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -605,6 +626,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202511300413129_asod.resx">
       <DependentUpon>202511300413129_asod.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511301600000_AddProfilePictureToUser.resx">
+      <DependentUpon>202511301600000_AddProfilePictureToUser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511301630000_AddProfileDetailsToUser.resx">
+      <DependentUpon>202511301630000_AddProfileDetailsToUser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202511302025318_ajksd.resx">
+      <DependentUpon>202511302025318_ajksd.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

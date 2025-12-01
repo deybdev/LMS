@@ -29,6 +29,9 @@
                     <div class="course-card ongoing">
                         <div class="course-header">
                             <span class="course-code">@item.CourseCode</span>
+                            <button class="btn-settings" onclick="openScheduleModal(@item.CourseId, @item.SectionId, '@item.Day', '@item.Time')" title="Update Schedule">
+                                <i class="fas fa-cog"></i>
+                            </button>
                         </div>
 
                         <div class="teacher-section">
@@ -37,7 +40,7 @@
                             </div>
                             <div class="course-info">
                                 <h4>@item.CourseName</h4>
-                                <p>
+                                <p id="schedule-@item.CourseId">
                                     <i class="fa-regular fa-calendar"></i>
                                     @item.Day - @item.Time
                                 </p>
@@ -73,6 +76,444 @@
     </div>
 </div>
 
+<!-- Schedule Update Modal -->
+<div id="scheduleModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 550px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-calendar-alt"></i> Update Course Schedule</h3>
+            <span class="close-modal" onclick="closeScheduleModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            @Html.AntiForgeryToken()
+            <form id="scheduleForm">
+                <input type="hidden" id="scheduleCourseId" />
+                <input type="hidden" id="scheduleSectionId" />
+                
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="scheduleDay" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">
+                        Day: <span style="color: red;">*</span>
+                    </label>
+                    <select id="scheduleDay" class="form-control" required
+                            style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">-- Select Day --</option>
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                        <option value="Saturday">Saturday</option>
+                        <option value="Sunday">Sunday</option>
+                        <option value="MWF">Monday, Wednesday, Friday</option>
+                        <option value="TTh">Tuesday, Thursday</option>
+                        <option value="Mon-Fri">Monday to Friday</option>
+                        <option value="Mon-Sat">Monday to Saturday</option>
+                    </select>
+                    <small style="color: #666; display: block; margin-top: 0.25rem;">
+                        Select the day(s) when this course meets
+                    </small>
+                </div>
+                
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group">
+                        <label for="scheduleTimeFrom" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">
+                            Time From: <span style="color: red;">*</span>
+                        </label>
+                        <input type="time" id="scheduleTimeFrom" class="form-control" required
+                               style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="scheduleTimeTo" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">
+                            Time To: <span style="color: red;">*</span>
+                        </label>
+                        <input type="time" id="scheduleTimeTo" class="form-control" required
+                               style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                </div>
+                
+                <div class="alert-info" style="background: #e3f2fd; border-left: 4px solid #2196F3; padding: 0.75rem; margin-top: 1rem; border-radius: 4px;">
+                    <i class="fas fa-info-circle" style="color: #2196F3; margin-right: 0.5rem;"></i>
+                    <small style="color: #1976d2;">
+                        This schedule will be applied to all students enrolled in this course section.
+                    </small>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeScheduleModal()">Cancel</button>
+            <button class="btn-confirm" onclick="saveSchedule()">
+                <i class="fas fa-save"></i> Save Schedule
+            </button>
+        </div>
+    </div>
+</div>
+
 @section scripts {
     <script src="~/Scripts/Custom/teacherCourse.js"></script>
+    <script>
+        function parseTimeRange(timeString) {
+            // Parse "8:00 AM - 10:00 AM" format to extract timeFrom and timeTo
+            if (!timeString || timeString === 'Not Set') {
+                return { timeFrom: '', timeTo: '' };
+            }
+            
+            const parts = timeString.split(' - ');
+            if (parts.length !== 2) {
+                return { timeFrom: '', timeTo: '' };
+            }
+            
+            // Convert 12-hour format to 24-hour format for input[type="time"]
+            function convertTo24Hour(time12h) {
+                const [time, modifier] = time12h.trim().split(' ');
+                let [hours, minutes] = time.split(':');
+                
+                if (hours === '12') {
+                    hours = '00';
+                }
+                
+                if (modifier === 'PM' || modifier === 'pm') {
+                    hours = parseInt(hours, 10) + 12;
+                }
+                
+                return hours.toString().padStart(2, '0') + ':' + minutes;
+            }
+            
+            return {
+                timeFrom: convertTo24Hour(parts[0]),
+                timeTo: convertTo24Hour(parts[1])
+            };
+        }
+        
+        function openScheduleModal(courseId, sectionId, day, time) {
+            $('#scheduleCourseId').val(courseId);
+            $('#scheduleSectionId').val(sectionId);
+            
+            // Set day in dropdown
+            if (day && day !== 'Not Set') {
+                $('#scheduleDay').val(day);
+            } else {
+                $('#scheduleDay').val('');
+            }
+            
+            // Parse and set times
+            const times = parseTimeRange(time);
+            $('#scheduleTimeFrom').val(times.timeFrom);
+            $('#scheduleTimeTo').val(times.timeTo);
+            
+            $('#scheduleModal').fadeIn();
+        }
+
+        function closeScheduleModal() {
+            $('#scheduleModal').fadeOut();
+            $('#scheduleForm')[0].reset();
+        }
+
+        function saveSchedule() {
+            var courseId = $('#scheduleCourseId').val();
+            var sectionId = $('#scheduleSectionId').val();
+            var day = $('#scheduleDay').val();
+            var timeFrom = $('#scheduleTimeFrom').val();
+            var timeTo = $('#scheduleTimeTo').val();
+
+            // Validation
+            if (!day) {
+                alert('Please select the day for this course.');
+                $('#scheduleDay').focus();
+                return;
+            }
+            
+            if (!timeFrom || !timeTo) {
+                alert('Please select both start and end times.');
+                return;
+            }
+            
+            // Validate that timeFrom is before timeTo
+            if (timeFrom >= timeTo) {
+                alert('Start time must be before end time.');
+                $('#scheduleTimeFrom').focus();
+                return;
+            }
+
+            var token = $('input[name="__RequestVerificationToken"]').val();
+
+            // Show loading state
+            $('.btn-confirm').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+
+            $.ajax({
+                url: '@Url.Action("UpdateCourseSchedule", "Teacher")',
+                type: 'POST',
+                data: {
+                    __RequestVerificationToken: token,
+                    courseId: courseId,
+                    sectionId: sectionId,
+                    day: day,
+                    timeFrom: timeFrom,
+                    timeTo: timeTo
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Format time for display (convert back to 12-hour format)
+                        var displayTime = response.schedule.timeFrom + ' - ' + response.schedule.timeTo;
+                        
+                        // Update the displayed schedule
+                        $('#schedule-' + courseId).html(
+                            '<i class="fa-regular fa-calendar"></i> ' + response.schedule.day + ' - ' + displayTime
+                        );
+                        
+                        closeScheduleModal();
+                        
+                        // Show success message
+                        showNotification(response.message, 'success');
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error updating schedule:', error);
+                    alert('An error occurred while updating the schedule. Please try again.');
+                },
+                complete: function() {
+                    $('.btn-confirm').prop('disabled', false).html('<i class="fas fa-save"></i> Save Schedule');
+                }
+            });
+        }
+        
+        function showNotification(message, type) {
+            const notification = $('<div class="notification-toast"></div>')
+                .addClass(type)
+                .html('<i class="fas fa-check-circle"></i> ' + message)
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: type === 'success' ? '#4CAF50' : '#f44336',
+                    color: 'white',
+                    padding: '1rem 1.5rem',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                    zIndex: 10000,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    animation: 'slideInRight 0.3s ease-out'
+                });
+            
+            $('body').append(notification);
+            
+            setTimeout(function() {
+                notification.fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
+
+        // Close modal when clicking outside
+        $(document).on('click', function(e) {
+            if ($(e.target).is('#scheduleModal')) {
+                closeScheduleModal();
+            }
+        });
+
+        // Close modal on Escape key
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && $('#scheduleModal').is(':visible')) {
+                closeScheduleModal();
+            }
+        });
+    </script>
+    
+    <style>
+        .btn-settings {
+            background: transparent;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.2s;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-settings:hover {
+            background: #f0f0f0;
+            color: var(--primary-color);
+            transform: rotate(90deg);
+        }
+        
+        .course-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border: 1px solid #888;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 550px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @@keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @@keyframes slideInRight {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            color: var(--dark-primary-color);
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .close-modal {
+            color: var(--dark-primary-color);
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            line-height: 1;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .close-modal:hover,
+        .close-modal:focus {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1);
+        }
+        
+        .modal-body {
+            padding: 2rem;
+        }
+        
+        .modal-footer {
+            padding: 1rem 2rem;
+            background: #f8f9fa;
+            border-radius: 0 0 12px 12px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+        
+        .btn-cancel, .btn-confirm {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+        
+        .btn-cancel {
+            background: #e0e0e0;
+            color: #666;
+        }
+        
+        .btn-cancel:hover {
+            background: #d0d0d0;
+        }
+        
+        .btn-confirm {
+            background: var(--dark-primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-confirm:hover:not(:disabled) {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(24, 82, 172, 0.3);
+        }
+        
+        .btn-confirm:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .form-control {
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(24, 82, 172, 0.1);
+        }
+        
+        .alert-info {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @@keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
 }

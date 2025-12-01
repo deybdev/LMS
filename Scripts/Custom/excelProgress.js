@@ -56,7 +56,7 @@ class SimpleExcelUploadProgress {
             });
 
             xhr.addEventListener('load', () => {
-                if (xhr.status === 200) {
+                if (xhr.status === 200 || xhr.status === 302) {
                     // Simulate processing stages
                     this.updateProgress(80, 'Processing records...');
                     
@@ -66,9 +66,13 @@ class SimpleExcelUploadProgress {
                         setTimeout(() => {
                             this.updateProgress(100, 'Upload completed successfully!');
                             
+                            // Close the upload modal
+                            $('#uploadExcelModal').modal('hide');
+                            
                             setTimeout(() => {
-                                window.location.reload(); // Refresh to show results and alerts
-                            }, 1000);
+                                // Reload to get TempData and show summary
+                                window.location.reload();
+                            }, 500);
                         }, 500);
                     }, 1000);
                     
@@ -183,8 +187,40 @@ function showAlert(type, message) {
     }, 5000);
 }
 
-// Initialize the upload progress handler when document is ready
+// Handle role selection change to show/hide instructions and template download
 $(document).ready(function() {
     const uploadProgress = new SimpleExcelUploadProgress();
     console.log('Simple Excel upload progress initialized');
+
+    // Handle role selection change
+    $('#roleSelect').on('change', function() {
+        const selectedRole = $(this).val();
+        const $templateBtn = $('#downloadTemplateBtn');
+        const $studentInstructions = $('#studentInstructions');
+        const $teacherInstructions = $('#teacherInstructions');
+
+        if (selectedRole === 'Student') {
+            $studentInstructions.show();
+            $teacherInstructions.hide();
+            $templateBtn.show();
+            $templateBtn.attr('href', '/Account/DownloadExcelTemplate?role=Student');
+        } else if (selectedRole === 'Teacher') {
+            $studentInstructions.hide();
+            $teacherInstructions.show();
+            $templateBtn.show();
+            $templateBtn.attr('href', '/Account/DownloadExcelTemplate?role=Teacher');
+        } else {
+            $studentInstructions.hide();
+            $teacherInstructions.hide();
+            $templateBtn.hide();
+        }
+    });
+
+    // Trigger change on modal show to set initial state
+    $('#uploadExcelModal').on('show.bs.modal', function() {
+        const selectedRole = $('#roleSelect').val();
+        if (selectedRole) {
+            $('#roleSelect').trigger('change');
+        }
+    });
 });

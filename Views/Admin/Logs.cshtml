@@ -4,21 +4,25 @@
 
 @model IEnumerable<LMS.Models.AuditLog>
 
-
 <link rel="stylesheet" href="~/Content/adminLogs.css" />
 
 <div class="admin-container">
+    @Html.Partial("_BackButton")
+    
     <div class="page-header">
         <h1>System Logs</h1>
         <p class="subtitle">Monitor system activities, errors, and user actions</p>
     </div>
+
+    <!-- Alert Container -->
+    <div id="alertContainer"></div>
 
     <!-- Main Content -->
     <div class="admin-content">
         <!-- Filter and Search Section -->
         <div class="logs-filter-section">
             <div class="filter-controls">
-                <input type="text" id="searchInput" class="search-input" placeholder="Search logs by message, user, or IP address..." disabled/>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search logs by message, user, or category..." />
 
                 <div class="filter-dropdowns">
                     <select class="filter-select" id="logCategoryFilter">
@@ -26,30 +30,26 @@
                         <option value="authentication">Authentication</option>
                         <option value="system">System</option>
                         <option value="user">User Actions</option>
+                        <option value="event">Event Management</option>
                         <option value="course">Course Management</option>
                         <option value="database">Database</option>
                     </select>
 
                     <select class="filter-select" id="timeRangeFilter">
+                        <option value="">All Time</option>
                         <option value="today">Today</option>
                         <option value="yesterday">Yesterday</option>
                         <option value="week">Last 7 Days</option>
                         <option value="month">Last 30 Days</option>
-                        <option value="custom">Custom Range</option>
                     </select>
 
-                    <div class="date-range" id="customDateRange" style="display: none;">
-                        <input type="date" id="startDate" class="date-input">
-                        <span>to</span>
-                        <input type="date" id="endDate" class="date-input">
-                    </div>
-
-                    @*<button class="btn-export" onclick="exportLogs()">
+                    <button class="btn-export" onclick="exportLogs()">
                         <i class="fas fa-download"></i> Export
                     </button>
-                    <button class="btn-clear" onclick="clearLogs()">
-                        <i class="fas fa-trash"></i> Clear All
-                    </button>*@
+                    
+                    <button class="btn-refresh" onclick="refreshLogs()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
                 </div>
             </div>
         </div>
@@ -67,62 +67,65 @@
                     </tr>
                 </thead>
                 <tbody id="userTableBody">
-                    @foreach (var log in Model)
+                    @if (Model != null && Model.Any())
                     {
-                        <tr class="default-row" data-log-id="@log.Id">
-                            <td class="timestamp">
-                                <div class="time-main">@log.Timestamp.ToString("yyyy-MM-dd")</div>
-                                <div class="time-relative">@log.Timestamp.ToString("HH:mm:ss")</div>
-                            </td>
-                            <td>
-                                <span class="category-tag @log.Category.ToLower()">
-                                    @System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(log.Category.Replace("-", " "))
-                                </span>
-                            </td>
-                            <td class="message">
-                                <div class="message-preview">@log.Message</div>
-                                <div class="message-full" style="display:none;">@log.Message</div>
-                            </td>
-                            <td class="user-info">
-                                @if (log.Role?.ToLower() == "admin")
-                                {
-                                    <div class="user-role">Admin</div>
-                                }
-                                else
-                                {
-                                    <div class="user-name">@log.UserName</div>
-                                    <div class="user-role">@log.Role</div>
-                                }
-                            </td>
-    
-
-                            <td class="actions">
-                                <button type="button" class="action-btn delete-btn"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#deleteModal"
-                                        data-item-id="@log.Id"
-                                        data-item-name="@log.Category"
-                                        data-target-remove=".default-row"
-                                        data-url="@Url.Action("DeleteLogs", "Admin")"
-                                        title="Delete">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
+                        foreach (var log in Model)
+                        {
+                            <tr class="default-row" data-log-id="@log.Id" data-category="@log.Category.ToLower()" data-timestamp="@log.Timestamp.ToString("yyyy-MM-dd")">
+                                <td class="timestamp">
+                                    <div class="time-main">@log.Timestamp.ToString("yyyy-MM-dd")</div>
+                                    <div class="time-relative">@log.Timestamp.ToString("HH:mm:ss")</div>
+                                </td>
+                                <td>
+                                    <span class="category-tag @log.Category.ToLower()">
+                                        @System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(log.Category.Replace("-", " "))
+                                    </span>
+                                </td>
+                                <td class="message">
+                                    <div class="message-preview">@log.Message</div>
+                                    <div class="message-full" style="display:none;">@log.Message</div>
+                                </td>
+                                <td class="user-info">
+                                    @if (!string.IsNullOrEmpty(log.UserName))
+                                    {
+                                        <div class="user-name">@log.UserName</div>
+                                        <div class="user-role">@(log.Role ?? "Unknown")</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="user-name">System</div>
+                                        <div class="user-role">Automated</div>
+                                    }
+                                </td>
+                                <td class="actions">
+                                    <button type="button" class="action-btn view-btn" 
+                                            onclick="viewLogDetails(@log.Id, '@Html.Raw(Html.Encode(log.Message))', '@log.Category', '@log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")', '@(log.UserName ?? "System")', '@(log.Role ?? "Automated")')"
+                                            title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button type="button" class="action-btn delete-btn"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteModal"
+                                            data-item-id="@log.Id"
+                                            data-item-name="@log.Category log entry"
+                                            data-target-remove=".default-row"
+                                            data-url="@Url.Action("DeleteLogs", "Admin")"
+                                            title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
                     }
                     <tr id="noDataRow" style="display:none">
-                        <td colspan="5">No Logs found.</td>
+                        <td colspan="5" class="text-center py-4">
+                            <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                            <div>No logs found matching your criteria.</div>
+                        </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-
-        <style>
-            .category-tag.event {
-                background: #ede9fe;
-                color: #7c3aed;
-            }
-        </style>
 
         <!-- Pagination Controls -->
         <div class="pagination-container">
@@ -132,21 +135,369 @@
             </div>
             <div class="pagination-controls">
                 <button class="pagination-btn" id="prevBtn">
-                    <i class="fa-solid fa-chevron-left"></i> Previous
+                    <i class="fas fa-chevron-left"></i> Previous
                 </button>
                 <div class="pagination-numbers" id="paginationNumbers">
                     <!-- Page numbers will be generated here -->
                 </div>
                 <button class="pagination-btn" id="nextBtn">
-                    Next <i class="fa-solid fa-chevron-right"></i>
+                    Next <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
         </div>
     </div>
-    </div>
+</div>
 
-    @section scripts {
-        <script src="~/Scripts/Custom/index.js"></script>
-        <script src="~/Scripts/Custom/deleteHandler.js"></script>
-    }
+<!-- Log Details Modal -->
+<div class="modal fade" id="logDetailModal" tabindex="-1" aria-labelledby="logDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logDetailModalLabel">
+                    <i class="fas fa-info-circle"></i> Log Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="log-detail-content">
+                    <div class="detail-section">
+                        <h6>Basic Information</h6>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Timestamp</label>
+                                <span id="detailTimestamp"></span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Category</label>
+                                <span id="detailCategory"></span>
+                            </div>
+                            <div class="detail-item">
+                                <label>User</label>
+                                <span id="detailUser"></span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Role</label>
+                                <span id="detailRole"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <h6>Message</h6>
+                        <div class="message-content" id="detailMessage"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/Scripts/Custom/deleteHandler.js"></script>
+    <script>
+        // Enhanced pagination and filtering for logs
+        document.addEventListener("DOMContentLoaded", () => {
+            const searchInput = document.getElementById("searchInput");
+            const categoryFilter = document.getElementById("logCategoryFilter");
+            const timeRangeFilter = document.getElementById("timeRangeFilter");
+            const tableBody = document.getElementById("userTableBody");
+            const noDataRow = document.getElementById("noDataRow");
+            const paginationNumbers = document.getElementById("paginationNumbers");
+            const prevBtn = document.getElementById("prevBtn");
+            const nextBtn = document.getElementById("nextBtn");
+            const paginationInfo = document.getElementById("paginationInfo");
+            const currentPageInfo = document.getElementById("currentPageInfo");
+
+            const itemsPerPage = 10;
+            let currentPage = 1;
+            let allRows = Array.from(tableBody.querySelectorAll("tr.default-row"));
+            let filteredRows = [...allRows];
+
+            function filterRows() {
+                const query = searchInput.value.toLowerCase();
+                const category = categoryFilter.value.toLowerCase();
+                const timeRange = timeRangeFilter.value;
+
+                filteredRows = allRows.filter(row => {
+                    // Text search
+                    const message = row.querySelector(".message-preview").textContent.toLowerCase();
+                    const user = row.querySelector(".user-name").textContent.toLowerCase();
+                    const categoryText = row.querySelector(".category-tag").textContent.toLowerCase();
+                    const textMatch = !query || message.includes(query) || user.includes(query) || categoryText.includes(query);
+
+                    // Category filter
+                    const rowCategory = row.dataset.category;
+                    const categoryMatch = !category || rowCategory === category;
+
+                    // Time range filter
+                    let timeMatch = true;
+                    if (timeRange) {
+                        const rowTimestamp = new Date(row.dataset.timestamp);
+                        const now = new Date();
+                        
+                        switch (timeRange) {
+                            case 'today':
+                                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                                timeMatch = rowTimestamp >= today;
+                                break;
+                            case 'yesterday':
+                                const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+                                const yesterdayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                                timeMatch = rowTimestamp >= yesterday && rowTimestamp < yesterdayEnd;
+                                break;
+                            case 'week':
+                                const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                                timeMatch = rowTimestamp >= weekAgo;
+                                break;
+                            case 'month':
+                                const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                                timeMatch = rowTimestamp >= monthAgo;
+                                break;
+                        }
+                    }
+
+                    return textMatch && categoryMatch && timeMatch;
+                });
+
+                currentPage = 1;
+                renderPage();
+            }
+
+            function renderPage() {
+                const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+                
+                if (currentPage > totalPages && totalPages > 0) {
+                    currentPage = totalPages;
+                }
+
+                const start = (currentPage - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+
+                // Hide all rows
+                allRows.forEach(row => row.style.display = "none");
+                
+                // Show filtered rows for current page
+                filteredRows.slice(start, end).forEach(row => row.style.display = "");
+
+                // Show/hide no data message
+                if (noDataRow) {
+                    noDataRow.style.display = filteredRows.length === 0 ? "" : "none";
+                }
+
+                // Update pagination info
+                if (filteredRows.length > 0) {
+                    paginationInfo.textContent = `Showing ${start + 1}-${Math.min(end, filteredRows.length)} of ${filteredRows.length} entries`;
+                } else {
+                    paginationInfo.textContent = "Showing 0-0 of 0 entries";
+                }
+                
+                currentPageInfo.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+
+                // Update pagination buttons
+                prevBtn.disabled = currentPage === 1;
+                nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+
+                // Render page numbers
+                renderPageNumbers(totalPages);
+            }
+
+            function renderPageNumbers(totalPages) {
+                paginationNumbers.innerHTML = "";
+                
+                if (totalPages <= 1) return;
+
+                const addButton = (page) => {
+                    const btn = document.createElement("button");
+                    btn.textContent = page;
+                    btn.className = `pagination-number ${page === currentPage ? "active" : ""}`;
+                    btn.onclick = () => {
+                        currentPage = page;
+                        renderPage();
+                    };
+                    paginationNumbers.appendChild(btn);
+                };
+
+                const addEllipsis = () => {
+                    const span = document.createElement("span");
+                    span.className = "pagination-ellipsis";
+                    span.textContent = "...";
+                    paginationNumbers.appendChild(span);
+                };
+
+                if (totalPages <= 7) {
+                    for (let i = 1; i <= totalPages; i++) {
+                        addButton(i);
+                    }
+                } else {
+                    addButton(1);
+                    if (currentPage > 4) addEllipsis();
+
+                    const start = Math.max(2, currentPage - 1);
+                    const end = Math.min(totalPages - 1, currentPage + 1);
+                    
+                    for (let i = start; i <= end; i++) {
+                        addButton(i);
+                    }
+
+                    if (currentPage < totalPages - 3) addEllipsis();
+                    if (totalPages > 1) addButton(totalPages);
+                }
+            }
+
+            // Event listeners
+            searchInput.addEventListener("input", filterRows);
+            categoryFilter.addEventListener("change", filterRows);
+            timeRangeFilter.addEventListener("change", filterRows);
+
+            prevBtn.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderPage();
+                }
+            };
+
+            nextBtn.onclick = () => {
+                const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderPage();
+                }
+            };
+
+            // Initial render
+            renderPage();
+        });
+
+        // View log details function
+        function viewLogDetails(id, message, category, timestamp, user, role) {
+            document.getElementById('detailTimestamp').textContent = timestamp;
+            document.getElementById('detailCategory').textContent = category.charAt(0).toUpperCase() + category.slice(1);
+            document.getElementById('detailUser').textContent = user;
+            document.getElementById('detailRole').textContent = role;
+            document.getElementById('detailMessage').textContent = message;
+            
+            const modal = new bootstrap.Modal(document.getElementById('logDetailModal'));
+            modal.show();
+        }
+
+        // Export logs function
+        function exportLogs() {
+            const searchValue = document.getElementById('searchInput').value;
+            const categoryValue = document.getElementById('logCategoryFilter').value;
+            const timeRangeValue = document.getElementById('timeRangeFilter').value;
+            
+            // Build query parameters
+            const params = new URLSearchParams();
+            if (searchValue) params.append('search', searchValue);
+            if (categoryValue) params.append('category', categoryValue);
+            if (timeRangeValue) params.append('timeRange', timeRangeValue);
+            
+            // Create download link
+            const url = '@Url.Action("ExportLogs", "Admin")' + (params.toString() ? '?' + params.toString() : '');
+            
+            // Create temporary link and click it
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'SystemLogs_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Show success message
+            showAlert('success', 'Logs export started. The file will download shortly.');
+        }
+
+        // Refresh logs function
+        function refreshLogs() {
+            // Show loading state
+            const refreshBtn = document.querySelector('.btn-refresh i');
+            const originalClass = refreshBtn.className;
+            refreshBtn.className = 'fas fa-spinner fa-spin';
+            
+            // Simulate refresh (in a real app, this might be an AJAX call)
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        }
+
+        // Enhanced showAlert function
+        window.showAlert = (type, message) => {
+            const alertContainer = document.getElementById('alertContainer');
+            const id = 'alert-' + Date.now();
+            const icons = {
+                success: 'check-circle',
+                danger: 'circle-exclamation',
+                warning: 'triangle-exclamation',
+                info: 'circle-info'
+            };
+
+            const html = `
+                <div id="${id}" class="alert alert-${type} alert-dismissible fade show mb-3" role="alert"
+                     style="box-shadow: 0 3px 10px rgba(0,0,0,0.2);">
+                    <i class="fas fa-${icons[type] || icons.info} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>`;
+
+            alertContainer.insertAdjacentHTML('beforeend', html);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.classList.remove('show');
+                    setTimeout(() => element.remove(), 300);
+                }
+            }, 5000);
+        };
+
+        // Listen for successful deletions to update the display
+        document.addEventListener('itemDeleted', (e) => {
+            // Re-filter and render after deletion
+            const searchInput = document.getElementById("searchInput");
+            const categoryFilter = document.getElementById("logCategoryFilter");
+            const timeRangeFilter = document.getElementById("timeRangeFilter");
+            
+            // Update the rows array
+            const allRows = Array.from(document.getElementById("userTableBody").querySelectorAll("tr.default-row"));
+            
+            // Trigger re-filtering if any filters are active
+            if (searchInput.value || categoryFilter.value || timeRangeFilter.value) {
+                searchInput.dispatchEvent(new Event('input'));
+            }
+            
+            // Update pagination info
+            setTimeout(() => {
+                const event = new Event('input');
+                searchInput.dispatchEvent(event);
+            }, 100);
+        });
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+E to export
+            if (e.ctrlKey && e.key === 'e') {
+                e.preventDefault();
+                exportLogs();
+            }
+            
+            // F5 or Ctrl+R to refresh (let default behavior happen, but show message)
+            if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+                showAlert('info', 'Refreshing logs...');
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput.value) {
+                    searchInput.value = '';
+                    searchInput.dispatchEvent(new Event('input'));
+                    searchInput.focus();
+                }
+            }
+        });
+    </script>
+}
 

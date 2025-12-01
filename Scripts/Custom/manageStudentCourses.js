@@ -141,12 +141,85 @@ function displayStudentResults(students) {
     const $list = $('#studentResultsList');
     $list.empty();
 
+    // Generate a consistent color based on student name for the avatar background
+    const getAvatarColor = (name) => {
+        const colors = [
+            'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+            'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+            'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+            'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+            'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+            'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+            'linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)'
+        ];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colors[Math.abs(hash) % colors.length];
+    };
+
     students.forEach(student => {
-        // 🔥 FIXED: Now works with ITController.SearchStudents response format
         const initials = `${student.firstName.charAt(0)}${student.lastName.charAt(0)}`;
+        const fullName = `${student.firstName} ${student.lastName}`;
+        const hasProfileImage = student.profileImage && student.profileImage.trim() !== '';
+        
+        console.log('Student Profile Image Debug:', {
+            studentName: fullName,
+            profileImagePath: student.profileImage,
+            hasProfileImage: hasProfileImage
+        });
+        
+        // Create avatar HTML based on whether profile image exists
+        const avatarHtml = hasProfileImage 
+            ? `<div class="student-result-avatar" style="
+                    width: 50px; 
+                    height: 50px; 
+                    border-radius: 50%; 
+                    overflow: hidden; 
+                    border: 3px solid #e3f2fd; 
+                    flex-shrink: 0; 
+                    background-color: #f5f5f5; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                    transition: all 0.3s ease;
+                " 
+                onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 6px 16px rgba(0, 0, 0, 0.2)';" 
+                onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.15)';">
+                   <img src="${student.profileImage}" 
+                        alt="${fullName}" 
+                        style="width: 100%; height: 100%; object-fit: cover; object-position: center;"
+                        onerror="console.error('Failed to load image:', this.src); this.onerror=null; this.parentElement.outerHTML='<div class=\\'student-result-avatar\\' style=\\'width: 50px; height: 50px; border-radius: 50%; background: ${getAvatarColor(fullName)}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); border: 3px solid #fff;\\'>${initials}</div>';" />
+               </div>`
+            : `<div class="student-result-avatar" style="
+                    width: 50px; 
+                    height: 50px; 
+                    border-radius: 50%; 
+                    background: ${getAvatarColor(fullName)}; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                    color: white; 
+                    font-weight: 700; 
+                    font-size: 18px; 
+                    flex-shrink: 0;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                    border: 3px solid #fff;
+                    transition: all 0.3s ease;
+                "
+                onmouseover="this.style.transform='scale(1) rotate(5deg)'; this.style.boxShadow='0 6px 16px rgba(0, 0, 0, 0.2)';" 
+                onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.15)';">
+                    ${initials}
+                </div>`;
+        
         const $item = $(`
             <div class="student-result-item" data-student-id="${student.id}">
-                <div class="student-result-avatar">${initials}</div>
+                ${avatarHtml}
                 <div class="student-result-info">
                     <h5>${student.firstName} ${student.lastName}</h5>
                     <p>
@@ -179,15 +252,108 @@ function getInitials(name) {
 // Select a student
 function selectStudent(student) {
     selectedStudent = student;
-
-    $('#selectedStudentName').text(`${student.firstName} ${student.lastName}`);
+    
+    // Generate avatar color
+    const getAvatarColor = (name) => {
+        const colors = [
+            'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+            'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+            'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+            'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+            'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+            'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+            'linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)'
+        ];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colors[Math.abs(hash) % colors.length];
+    };
+    
+    const fullName = `${student.firstName} ${student.lastName}`;
+    const initials = `${student.firstName.charAt(0)}${student.lastName.charAt(0)}`;
+    const hasProfileImage = student.profileImage && student.profileImage.trim() !== '';
+    
+    // Pre-compute the fallback avatar color for use in onerror handler
+    const avatarColor = getAvatarColor(fullName);
+    
+    console.log('Selected Student Profile Debug:', {
+        studentName: fullName,
+        profileImagePath: student.profileImage,
+        hasProfileImage: hasProfileImage
+    });
+    
+    // Update student info display
+    $('#selectedStudentName').text(fullName);
     $('#selectedStudentId').text(student.studentId);
     $('#selectedStudentEmail').text(student.email);
     $('#selectedStudentProgram').text(student.program);
     $('#selectedStudentYearSection').text(`${student.yearLevel}${getYearSuffix(student.yearLevel)} Year - Section ${student.section}`);
 
-    $('#modalStudentName').text(`${student.firstName} ${student.lastName}`);
+    // Update modal info
+    $('#modalStudentName').text(fullName);
     $('#modalStudentId').val(student.id);
+    
+    // Find and replace the student avatar in the card header
+    const $avatarElement = $('.student-avatar-large');
+    
+    if ($avatarElement.length > 0) {
+        // Create avatar HTML with profile image support
+        const avatarHtml = hasProfileImage
+            ? `
+        <div style="
+            width: 100px; 
+            height: 100px; 
+            border-radius: 50%; 
+            overflow: hidden; 
+            border: 4px solid white; 
+            background-color: #f5f5f5; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        "
+        onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.3)'"
+        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.2)'">
+            <img src="${student.profileImage}"
+                alt="${fullName}"
+                style="width: 100%; height: 100%; object-fit: cover; object-position: center; display: block;"
+                onerror="this.onerror=null; this.parentElement.innerHTML='${initials}'; this.parentElement.style.background='${avatarColor}'; this.parentElement.style.color='white'; this.parentElement.style.fontWeight='700'; this.parentElement.style.fontSize='3rem';">
+        </div>
+    `
+            : `
+        <div style="
+            width: 100px; 
+            height: 100px; 
+            border-radius: 50%; 
+            background: ${avatarColor}; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-weight: 700; 
+            font-size: 3rem; 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+            border: 4px solid white;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        "
+        onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.3)'"
+        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.2)'">
+            ${initials}
+        </div>
+    `;
+
+        
+        // Replace the existing avatar element
+        $avatarElement.replaceWith(avatarHtml);
+    }
 
     loadEnrolledCourses(student.id);
 
@@ -277,6 +443,8 @@ function displayEnrolledCourses(courses) {
         courses.forEach(course => {
             
             console.log('Processing course:', course.courseCode, 'Day value:', course.day); // Debug day value
+            console.log('Raw timeFrom:', course.timeFrom, 'Type:', typeof course.timeFrom); // Debug timeFrom
+            console.log('Raw timeTo:', course.timeTo, 'Type:', typeof course.timeTo); // Debug timeTo
             
             // Format teacher info
             let teacherDisplay = 'Not Assigned';
@@ -294,8 +462,22 @@ function displayEnrolledCourses(courses) {
             // Format time from
             let timeFromDisplay = 'Not Set';
             if (course.timeFrom) {
-                const timeFromDate = new Date(course.timeFrom);
-                timeFromDisplay = formatTime(timeFromDate);
+                try {
+                    // Handle if timeFrom is already formatted or needs parsing
+                    if (typeof course.timeFrom === 'string' && course.timeFrom.match(/^\d{1,2}:\d{2}\s?(AM|PM)$/i)) {
+                        timeFromDisplay = course.timeFrom;
+                    } else {
+                        const timeFromDate = new Date(course.timeFrom);
+                        if (!isNaN(timeFromDate.getTime())) {
+                            timeFromDisplay = formatTime(timeFromDate);
+                        } else {
+                            timeFromDisplay = '<span class="text-muted fst-italic">Not Set</span>';
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error parsing timeFrom:', e);
+                    timeFromDisplay = '<span class="text-muted fst-italic">Not Set</span>';
+                }
             } else {
                 timeFromDisplay = '<span class="text-muted fst-italic">Not Set</span>';
             }
@@ -303,8 +485,22 @@ function displayEnrolledCourses(courses) {
             // Format time to
             let timeToDisplay = 'Not Set';
             if (course.timeTo) {
-                const timeToDate = new Date(course.timeTo);
-                timeToDisplay = formatTime(timeToDate);
+                try {
+                    // Handle if timeTo is already formatted or needs parsing
+                    if (typeof course.timeTo === 'string' && course.timeTo.match(/^\d{1,2}:\d{2}\s?(AM|PM)$/i)) {
+                        timeToDisplay = course.timeTo;
+                    } else {
+                        const timeToDate = new Date(course.timeTo);
+                        if (!isNaN(timeToDate.getTime())) {
+                            timeToDisplay = formatTime(timeToDate);
+                        } else {
+                            timeToDisplay = '<span class="text-muted fst-italic">Not Set</span>';
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error parsing timeTo:', e);
+                    timeToDisplay = '<span class="text-muted fst-italic">Not Set</span>';
+                }
             } else {
                 timeToDisplay = '<span class="text-muted fst-italic">Not Set</span>';
             }
@@ -465,9 +661,32 @@ function displayModalCourseResults(courses) {
         // Format time display
         let timeDisplay = 'No Time Set';
         if (course.timeFrom && course.timeTo) {
-            const timeFrom = formatTime(new Date(course.timeFrom));
-            const timeTo = formatTime(new Date(course.timeTo));
-            timeDisplay = `${timeFrom} - ${timeTo}`;
+            try {
+                let timeFrom, timeTo;
+                
+                // Handle timeFrom
+                if (typeof course.timeFrom === 'string' && course.timeFrom.match(/^\d{1,2}:\d{2}\s?(AM|PM)$/i)) {
+                    timeFrom = course.timeFrom;
+                } else {
+                    const timeFromDate = new Date(course.timeFrom);
+                    timeFrom = !isNaN(timeFromDate.getTime()) ? formatTime(timeFromDate) : null;
+                }
+                
+                // Handle timeTo
+                if (typeof course.timeTo === 'string' && course.timeTo.match(/^\d{1,2}:\d{2}\s?(AM|PM)$/i)) {
+                    timeTo = course.timeTo;
+                } else {
+                    const timeToDate = new Date(course.timeTo);
+                    timeTo = !isNaN(timeToDate.getTime()) ? formatTime(timeToDate) : null;
+                }
+                
+                if (timeFrom && timeTo) {
+                    timeDisplay = `${timeFrom} - ${timeTo}`;
+                }
+            } catch (e) {
+                console.error('Error formatting time:', e);
+                timeDisplay = 'No Time Set';
+            }
         }
 
         let dayDisplay = course.day ?? 'No Day Set';
@@ -531,9 +750,32 @@ function updateModalSelectedCourses() {
         // Format time display
         let timeDisplay = 'Not set';
         if (course.timeFrom && course.timeTo) {
-            const timeFrom = formatTime(new Date(course.timeFrom));
-            const timeTo = formatTime(new Date(course.timeTo));
-            timeDisplay = `${timeFrom} - ${timeTo}`;
+            try {
+                let timeFrom, timeTo;
+                
+                // Handle timeFrom
+                if (typeof course.timeFrom === 'string' && course.timeFrom.match(/^\d{1,2}:\d{2}\s?(AM|PM)$/i)) {
+                    timeFrom = course.timeFrom;
+                } else {
+                    const timeFromDate = new Date(course.timeFrom);
+                    timeFrom = !isNaN(timeFromDate.getTime()) ? formatTime(timeFromDate) : null;
+                }
+                
+                // Handle timeTo
+                if (typeof course.timeTo === 'string' && course.timeTo.match(/^\d{1,2}:\d{2}\s?(AM|PM)$/i)) {
+                    timeTo = course.timeTo;
+                } else {
+                    const timeToDate = new Date(course.timeTo);
+                    timeTo = !isNaN(timeToDate.getTime()) ? formatTime(timeToDate) : null;
+                }
+                
+                if (timeFrom && timeTo) {
+                    timeDisplay = `${timeFrom} - ${timeTo}`;
+                }
+            } catch (e) {
+                console.error('Error formatting time:', e);
+                timeDisplay = 'Not set';
+            }
         }
 
         const $item = $(`
@@ -754,7 +996,42 @@ function formatDate(date) {
 function formatTime(date) {
     if (!date) return 'Not Set';
     
-    const d = new Date(date);
+    let d;
+    
+    // Handle different input types
+    if (typeof date === 'string') {
+        // If it's already a time string (e.g., "09:30 AM"), return as is
+        if (date.match(/^\d{1,2}:\d{2}\s?(AM|PM)$/i)) {
+            return date;
+        }
+        
+        // Handle database format like "01/12/2025 5:00:00 am"
+        const dbFormatMatch = date.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})\s*(am|pm)/i);
+        if (dbFormatMatch) {
+            const [_, month, day, year, hour, minute, second, ampm] = dbFormatMatch;
+            let hours = parseInt(hour);
+            if (ampm.toLowerCase() === 'pm' && hours !== 12) {
+                hours += 12;
+            } else if (ampm.toLowerCase() === 'am' && hours === 12) {
+                hours = 0;
+            }
+            d = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hours, parseInt(minute), parseInt(second));
+        } else {
+            // Parse the date string normally
+            d = new Date(date);
+        }
+    } else if (date instanceof Date) {
+        d = date;
+    } else {
+        return 'Not Set';
+    }
+    
+    // Check if the date is valid
+    if (!d || isNaN(d.getTime())) {
+        console.log('Invalid date detected:', date); // Debug log
+        return 'Not Set';
+    }
+    
     let hours = d.getHours();
     const minutes = d.getMinutes();
     const ampm = hours >= 12 ? 'PM' : 'AM';

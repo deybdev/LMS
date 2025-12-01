@@ -60,6 +60,140 @@
     display: block;
 }
 
+/* Classlist Table Styles */
+.classlist-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.classlist-table thead {
+    color: var(--dark-primary-color);
+}
+
+.classlist-table thead th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.classlist-table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.2s ease;
+}
+
+.classlist-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.classlist-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.classlist-table tbody td {
+    padding: 1rem;
+    font-size: 0.9rem;
+    color: var(--dark-primary-color);
+}
+
+.classlist-table .student-id {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.classlist-table .student-name {
+    font-weight: 600;
+    color: var(--dark-primary-color);
+}
+
+.classlist-table .student-email {
+    color: var(--gray-text);
+    font-size: 0.85rem;
+}
+
+.classlist-table .grade-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, var(--primary-color), var(--dark-primary-color));
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+    min-width: 45px;
+    text-align: center;
+}
+
+.classlist-table .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    background: #28a745;
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.classlist-table .status-badge::before {
+    content: '✓';
+    font-weight: 700;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    border-radius: 8px;
+}
+
+.loading-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--gray-text);
+}
+
+.loading-state i {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.loading-state p {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.no-students {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.no-students i {
+    font-size: 3.5rem;
+    color: #e0e0e0;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.no-students h5 {
+    color: var(--dark-primary-color);
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    font-family: var(--archivo-plain-font);
+    font-weight: 600;
+}
+
+.no-students p {
+    color: var(--gray-text);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
 /* Attendance View Styles */
 .attendance-controls {
     display: flex;
@@ -432,12 +566,11 @@
 .performance-table td:first-child,
 .performance-table th:first-child {
     text-align: left;
-    width: 250px;
+    width: 150px;
 }
 
 .classlist-table td:not(:first-child),
 .classlist-table th:not(:first-child) {
-    text-align: center;
     min-width: 80px;
     max-width: 120px;
 }

@@ -187,6 +187,7 @@ namespace LMS.Controllers
             //}
 
             var courses = db.Courses
+                // .OrderByDescending(c => c.DateCreated)
                 .OrderByDescending(c => c.CourseTitle)
                 .ToList();
 
@@ -382,6 +383,22 @@ namespace LMS.Controllers
                         .Where(sc => sc.StudentId == student.Id)
                         .FirstOrDefault();
 
+                    // Format profile picture path properly
+                    string profileImagePath = null;
+                    if (!string.IsNullOrEmpty(student.ProfilePicture))
+                    {
+                        // If path starts with ~/, remove the tilde
+                        profileImagePath = student.ProfilePicture.StartsWith("~/") 
+                            ? student.ProfilePicture.Substring(1) 
+                            : student.ProfilePicture;
+                        
+                        // Ensure path starts with /
+                        if (!profileImagePath.StartsWith("/"))
+                        {
+                            profileImagePath = "/" + profileImagePath;
+                        }
+                    }
+
                     return new
                     {
                         id = student.Id,
@@ -392,7 +409,8 @@ namespace LMS.Controllers
                         program = studentSection?.Section?.Program?.ProgramName ?? "N/A",
                         programCode = studentSection?.Section?.Program?.ProgramCode ?? "N/A",
                         yearLevel = studentSection?.Section?.YearLevel ?? 0,
-                        section = studentSection?.Section?.SectionName ?? "N/A"
+                        section = studentSection?.Section?.SectionName ?? "N/A",
+                        profileImage = profileImagePath
                     };
                 }).ToList();
 
@@ -412,7 +430,8 @@ namespace LMS.Controllers
             try
             {
                 var courses = db.CurriculumCourses
-                    .Where(cc => cc.ProgramId == programId && cc.YearLevel == yearLevel && cc.Semester == semester)
+                    // .Where(cc => cc.ProgramId == programId && cc.YearLevel == yearLevel && cc.Semester == semester)
+                    .Where(cc => cc.ProgramId == programId)
                     .Include(cc => cc.Course)
                     .Select(cc => new
                     {
@@ -810,6 +829,22 @@ namespace LMS.Controllers
 
                         if (assignment != null)
                         {
+                            // Format profile picture path properly
+                            string profileImagePath = null;
+                            if (!string.IsNullOrEmpty(assignment.Teacher.ProfilePicture))
+                            {
+                                // If path starts with ~/, remove the tilde
+                                profileImagePath = assignment.Teacher.ProfilePicture.StartsWith("~/") 
+                                    ? assignment.Teacher.ProfilePicture.Substring(1) 
+                                    : assignment.Teacher.ProfilePicture;
+                                
+                                // Ensure path starts with /
+                                if (!profileImagePath.StartsWith("/"))
+                                {
+                                    profileImagePath = "/" + profileImagePath;
+                                }
+                            }
+
                             allCourseSections.Add(new
                             {
                                 id = assignment.Id,
@@ -828,6 +863,7 @@ namespace LMS.Controllers
                                 teacherId = assignment.TeacherId,
                                 teacherName = $"{assignment.Teacher.FirstName} {assignment.Teacher.LastName}",
                                 teacherEmail = assignment.Teacher.Email,
+                                teacherProfileImage = profileImagePath,
                                 dateAssigned = assignment.DateAssigned.ToString("yyyy-MM-dd HH:mm:ss"),
                                 studentCount = studentCount
                             });
@@ -853,6 +889,7 @@ namespace LMS.Controllers
                                 teacherId = (int?)null,
                                 teacherName = (string)null,
                                 teacherEmail = (string)null,
+                                teacherProfileImage = (string)null,
                                 dateAssigned = (string)null,
                                 studentCount = studentCount
                             });

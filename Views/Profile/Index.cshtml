@@ -1,0 +1,859 @@
+@model LMS.Models.ProfileUpdateViewModel
+
+@{
+    ViewBag.Title = "Profile";
+    var user = ViewBag.User as LMS.Models.User;
+    var userRole = Session["Role"]?.ToString();
+}
+
+<link rel="stylesheet" href="~/Content/Site.css" />
+<link rel="stylesheet" href="~/Content/studentProfile.css" />
+
+<style>
+    .profile-header {
+        background: var(--dark-primary-color);
+        padding: 2rem;
+        border-radius: 12px;
+        color: white;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(198, 40, 40, 0.2);
+    }
+
+    .profile-picture-section {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-picture-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+    }
+
+    .profile-picture {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid white;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .profile-initials {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: white;
+        color: var(--dark-primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 700;
+        border: 4px solid white;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .upload-overlay {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: #28a745;
+        color: white;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: 3px solid white;
+        font-size: 0.9rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .upload-overlay:hover {
+        background: #218838;
+    }
+
+    .upload-text {
+        color: white;
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+        font-weight: 500;
+        opacity: 0.9;
+    }
+
+    .upload-text:hover {
+        text-decoration: none;
+        opacity: 1;
+    }
+
+    .profile-name {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .profile-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .admin-badge {
+        background: var(--dark-primary-color);
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .profile-section {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        border: 1px solid #e9ecef;
+    }
+
+    .section-header {
+        background: #f8f9fa;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--dark-primary-color);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title i {
+        color: var(--dark-primary-color);
+    }
+
+    .edit-btn, .save-btn, .cancel-btn {
+        background: var(--dark-primary-color);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .edit-btn:hover, .save-btn:hover {
+        background: var(--dark-primary-hover);
+        transform: translateY(-1px);
+    }
+
+    .cancel-btn {
+        background: #6c757d;
+        margin-right: 0.5rem;
+    }
+
+    .cancel-btn:hover {
+        background: #5a6268;
+        transform: translateY(-1px);
+    }
+
+    .section-content {
+        padding: 1.5rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #c62828;
+        box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.1);
+    }
+
+    .form-input:disabled {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        cursor: not-allowed;
+    }
+
+    .readonly-field {
+        background-color: #f8f9fa;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        color: #6c757d;
+        font-size: 0.9rem;
+        min-height: 20px;
+        display: flex;
+        align-items: center;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e9ecef;
+        margin-top: 1.5rem;
+    }
+
+    .change-password-btn {
+        background: var(--dark-primary-color);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .change-password-btn:hover {
+        background: var(--dark-primary-hover);
+        transform: translateY(-1px);
+    }
+
+    .alert {
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+        display: none;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        animation: fadeIn 0.2s ease;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background: white;
+        margin: 0;
+        padding: 0;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 450px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        animation: slideDown 0.3s ease;
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .modal-title i {
+        color: #c62828;
+    }
+
+    .close-modal {
+        font-size: 1.5rem;
+        color: #6c757d;
+        cursor: pointer;
+        transition: color 0.2s ease;
+        border: none;
+        background: none;
+        padding: 0;
+        line-height: 1;
+    }
+
+    .close-modal:hover {
+        color: #2c3e50;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+    }
+
+    .btn-modal-cancel {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 0.6rem 1.25rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-modal-cancel:hover {
+        background: #5a6268;
+    }
+
+    .btn-modal-confirm {
+        background: #c62828;
+        color: white;
+        border: none;
+        padding: 0.6rem 1.25rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-modal-confirm:hover {
+        background: #a91f23;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @@keyframes slideDown {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .profile-container {
+            margin: 1rem auto;
+            padding: 0 0.5rem;
+        }
+
+        .profile-picture-section {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .section-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .edit-btn, .save-btn, .cancel-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="admin-container">
+    @Html.Partial("_BackButton")
+
+    <!-- Profile Header -->
+    <div class="profile-header mt-3">
+        <div class="profile-picture-section">
+            <div class="profile-picture-container">
+                @if (!string.IsNullOrEmpty(user.ProfilePicture))
+                {
+                    <img src="@Url.Content(user.ProfilePicture)" alt="Profile Picture" class="profile-picture" id="profilePicture">
+                }
+                else
+                {
+                    <div class="profile-initials" id="profileInitials">
+                        @(user.FirstName.Substring(0, 1) + user.LastName.Substring(0, 1))
+                    </div>
+                }
+                <div class="upload-overlay" onclick="document.getElementById('profilePictureInput').click()">
+                    <i class="fas fa-camera"></i>
+                </div>
+            </div>
+            <div>
+                <h1 class="profile-name">@user.FirstName @user.LastName</h1>
+                <p class="profile-subtitle">
+                    <i class="fas fa-shield-alt"></i> 
+                    <span class="admin-badge">@user.Role</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file input for profile picture upload -->
+    <input type="file" id="profilePictureInput" accept="image/*" style="display: none;">
+
+    <!-- Alert Messages -->
+    <div id="alertContainer">
+        <div id="successAlert" class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <span id="successMessage"></span>
+        </div>
+        <div id="errorAlert" class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="errorMessage"></span>
+        </div>
+    </div>
+
+    <!-- Personal Information Section -->
+    <div class="profile-section">
+        <div class="section-header">
+            <h3 class="section-title">
+                <i class="fas fa-user"></i>
+                Basic Information
+            </h3>
+            <button type="button" class="edit-btn" id="editPersonalBtn" onclick="enablePersonalEdit()">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+        </div>
+        <div class="section-content">
+            <form id="personalInfoForm">
+                @Html.AntiForgeryToken()
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        <input type="text" class="form-input" id="firstName" name="firstName" value="@Model.FirstName" disabled required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" class="form-input" id="lastName" name="lastName" value="@Model.LastName" disabled required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-input" id="email" name="email" value="@Model.Email" disabled required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">User ID</label>
+                        <div class="readonly-field">@user.UserID</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Role</label>
+                        <div class="readonly-field">@user.Role</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Account Created</label>
+                        <div class="readonly-field">@user.DateCreated.ToString("MMMM dd, yyyy")</div>
+                    </div>
+                </div>
+                <div id="personalInfoActions" class="form-actions hidden">
+                    <button type="button" class="cancel-btn" onclick="cancelPersonalEdit()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="save-btn">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Information Section -->
+    <div class="profile-section">
+        <div class="section-header">
+            <h3 class="section-title">
+                <i class="fas fa-cogs"></i>
+                Administrator Information
+            </h3>
+        </div>
+        <div class="section-content">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Administrative Privileges</label>
+                    <div class="readonly-field">
+                        <i class="fas fa-check-circle" style="color: #28a745; margin-right: 0.5rem;"></i>
+                        Full System Access
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Last Login</label>
+                    <div class="readonly-field">@(user.LastLogin?.ToString("MMMM dd, yyyy 'at' h:mm tt") ?? "Never")</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Account Status</label>
+                    <div class="readonly-field">
+                        <i class="fas fa-shield-check" style="color: #28a745; margin-right: 0.5rem;"></i>
+                        Active Administrator
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">System Role</label>
+                    <div class="readonly-field">Learning Management System Administrator</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Settings Section -->
+    <div class="profile-section">
+        <div class="section-header">
+            <h3 class="section-title">
+                <i class="fas fa-lock"></i>
+                Security Settings
+            </h3>
+        </div>
+        <div class="section-content">
+            <div class="form-group">
+                <label class="form-label">Password Management</label>
+                <button type="button" class="change-password-btn" onclick="openPasswordModal()">
+                    <i class="fas fa-key"></i> Change Password
+                </button>
+                <small style="color: #6c757d; font-size: 0.8rem; margin-top: 0.5rem; display: block;">
+                    As an administrator, it's recommended to use a strong, unique password and change it regularly.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div id="passwordModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i class="fas fa-key"></i>
+                Change Administrator Password
+            </h3>
+            <button type="button" class="close-modal" onclick="closePasswordModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="changePasswordForm">
+                @Html.AntiForgeryToken()
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label">Current Password</label>
+                    <input type="password" class="form-input" id="currentPassword" name="currentPassword" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label">New Password</label>
+                    <input type="password" class="form-input" id="newPassword" name="newPassword" required>
+                    <small style="color: #6c757d; font-size: 0.8rem;">Password must be at least 6 characters long. Consider using a strong password with mixed characters.</small>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label">Confirm New Password</label>
+                    <input type="password" class="form-input" id="confirmPassword" name="confirmPassword" required>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-modal-cancel" onclick="closePasswordModal()">Cancel</button>
+            <button type="submit" class="btn-modal-confirm" form="changePasswordForm">
+                <i class="fas fa-save"></i> Update Password
+            </button>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        // Global variables
+        let originalPersonalData = {};
+
+        // Initialize page
+        $(document).ready(function() {
+            // Store original form data
+            originalPersonalData = {
+                firstName: $('#firstName').val(),
+                lastName: $('#lastName').val(),
+                email: $('#email').val()
+            };
+        });
+
+        // Personal Information Functions
+        function enablePersonalEdit() {
+            $('#firstName, #lastName, #email').prop('disabled', false);
+            $('#personalInfoActions').removeClass('hidden');
+            $('#editPersonalBtn').addClass('hidden');
+        }
+
+        function cancelPersonalEdit() {
+            $('#firstName').val(originalPersonalData.firstName);
+            $('#lastName').val(originalPersonalData.lastName);
+            $('#email').val(originalPersonalData.email);
+            $('#firstName, #lastName, #email').prop('disabled', true);
+            $('#personalInfoActions').addClass('hidden');
+            $('#editPersonalBtn').removeClass('hidden');
+        }
+
+        // Modal Functions
+        function openPasswordModal() {
+            $('#passwordModal').css('display', 'flex');
+            $('#currentPassword').focus();
+        }
+
+        function closePasswordModal() {
+            $('#passwordModal').hide();
+            $('#changePasswordForm')[0].reset();
+        }
+
+        // Alert Functions
+        function showAlert(type, message) {
+            hideAlerts();
+            if (type === 'success') {
+                $('#successMessage').text(message);
+                $('#successAlert').show();
+            } else {
+                $('#errorMessage').text(message);
+                $('#errorAlert').show();
+            }
+            
+            // Auto-hide after 5 seconds
+            setTimeout(hideAlerts, 5000);
+            
+            // Scroll to top to show alert
+            $('html, body').animate({ scrollTop: 0 }, 300);
+        }
+
+        function hideAlerts() {
+            $('#successAlert, #errorAlert').hide();
+        }
+
+        // Form Submissions
+        $('#personalInfoForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                firstName: $('#firstName').val().trim(),
+                lastName: $('#lastName').val().trim(),
+                email: $('#email').val().trim()
+            };
+
+            if (!formData.firstName || !formData.lastName || !formData.email) {
+                showAlert('error', 'Please fill in all required fields.');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("UpdateProfile", "Profile")',
+                type: 'POST',
+                data: Object.assign(formData, {
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val()
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        // Update stored data
+                        originalPersonalData.firstName = formData.firstName;
+                        originalPersonalData.lastName = formData.lastName;
+                        originalPersonalData.email = formData.email;
+                        
+                        // Update profile header
+                        $('.profile-name').text(formData.firstName + ' ' + formData.lastName);
+                        
+                        // Cancel edit mode
+                        cancelPersonalEdit();
+                        
+                        showAlert('success', response.message);
+                    } else {
+                        showAlert('error', response.message);
+                    }
+                },
+                error: function() {
+                    showAlert('error', 'An error occurred while updating your profile.');
+                }
+            });
+        });
+
+        $('#changePasswordForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            const currentPassword = $('#currentPassword').val();
+            const newPassword = $('#newPassword').val();
+            const confirmPassword = $('#confirmPassword').val();
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showAlert('error', 'Please fill in all password fields.');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showAlert('error', 'New passwords do not match.');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showAlert('error', 'Password must be at least 6 characters long.');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("ChangePassword", "Profile")',
+                type: 'POST',
+                data: {
+                    currentPassword: currentPassword,
+                    newPassword: newPassword,
+                    confirmPassword: confirmPassword,
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        closePasswordModal();
+                        showAlert('success', response.message);
+                    } else {
+                        showAlert('error', response.message);
+                    }
+                },
+                error: function() {
+                    showAlert('error', 'An error occurred while changing your password.');
+                }
+            });
+        });
+
+        // Profile Picture Upload
+        $('#profilePictureInput').on('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+
+            // Validate file type
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            if (!allowedTypes.includes(file.type)) {
+                showAlert('error', 'Only JPG, PNG, and GIF files are allowed.');
+                return;
+            }
+
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showAlert('error', 'File size must be less than 5MB.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('__RequestVerificationToken', $('[name="__RequestVerificationToken"]').val());
+
+            $.ajax({
+                url: '@Url.Action("UploadProfilePicture", "Profile")',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        // Update profile picture display
+                        if ($('#profilePicture').length) {
+                            $('#profilePicture').attr('src', response.profilePictureUrl);
+                        } else {
+                            // Replace initials with actual image
+                            $('#profileInitials').replaceWith(
+                                '<img src="' + response.profilePictureUrl + '" alt="Profile Picture" class="profile-picture" id="profilePicture">'
+                            );
+                        }
+                        showAlert('success', response.message);
+                    } else {
+                        showAlert('error', response.message);
+                    }
+                },
+                error: function() {
+                    showAlert('error', 'An error occurred while uploading the profile picture.');
+                }
+            });
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('passwordModal');
+            if (event.target === modal) {
+                closePasswordModal();
+            }
+        }
+    </script>
+}

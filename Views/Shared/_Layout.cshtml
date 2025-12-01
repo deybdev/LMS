@@ -6,6 +6,8 @@
     <title>@ViewBag.Title</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="~/Images/logo-no-text.png" />
+
     @Styles.Render("~/Content/css")
     @Styles.Render("~/Content/Site.css")
     @Scripts.Render("~/bundles/modernizr")
@@ -15,16 +17,6 @@
         .mobile-menu-open .navbar-toggler {
             display: none !important;
         }
-
-        /* show close button inside menu */
-        .mobile-menu-close {
-            display: block !important;
-        }
-
-        .mobile-menu-close {
-            display: none;
-        }
-
     </style>
 
 </head>
@@ -51,12 +43,6 @@
 
                 <!-- Collapsible navbar content -->
                 <div class="collapse navbar-collapse mobile-menu" id="navbarResponsive">
-                    <!-- Close button for mobile menu -->
-                    <div class="mobile-menu-close d-lg-none">
-                        <button type="button" class="btn-close mobile-close-btn" aria-label="Close mobile menu">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
 
                     <div class="navbar-nav ms-auto d-flex gap-4">
 
@@ -86,13 +72,14 @@
                             <a href="@Url.Action("Calendar", "Admin")" class="nav-link @(isActive("Admin", new string[] { "Calendar" }))">Calendar</a>
                             <a href="@Url.Action("Departments", "Admin")" class="nav-link  @(isActive("Admin", new string[] { "Programs", "Departments", "Sections"}))">Academics</a>
                             <a href="@Url.Action("Logs", "Admin")" class="nav-link @(isActive("Admin", new string[] { "Logs" }))">Logs</a>
+                            <a href="@Url.Action("Index", "Profile")" class="nav-link @(isActive("Profile", new string[] { "Index" }))">Profile</a>
                         }
                         else if (Session["Role"].ToString() == "Teacher")
                         {
                             <a href="@Url.Action("Index", "Teacher")" class="nav-link @(isActive("Teacher", new string[] { "Index" }))">Home</a>
                             <a href="@Url.Action("Course", "Teacher")" class="nav-link @(isActive("Teacher", new string[] { "Course", "CreateCourse", "ViewCourse", "ViewMaterial", "Material", "Gradebook", "ClassList", "Classwork", "CreateClasswork", "EditClasswork", "Announcement" }))">Course</a>
                             <a href="@Url.Action("Notification", "Teacher")" class="nav-link @(isActive("Teacher", new string[] { "Notification" }))">Notification</a>
-                            <a href="@Url.Action("Profile", "Teacher")" class="nav-link @(isActive("Teacher", new string[] { "Profile" }))">Profile</a>
+                            <a href="@Url.Action("Index", "Profile")" class="nav-link @(isActive("Profile", new string[] { "Index" }))">Profile</a>
                         }
                         else if (Session["Role"].ToString() == "Student")
                         {
@@ -128,7 +115,7 @@
                                     </li>
                                 </ul>
                             </div>
-                            <a href="@Url.Action("Profile", "IT")" class="nav-link @(isActive("IT", new string[] { "Profile" }))">Profile</a>
+                            <a href="@Url.Action("Index", "Profile")" class="nav-link @(isActive("Profile", new string[] { "Index" }))">Profile</a>
                         }
                     </div>
                 </div>
@@ -273,13 +260,6 @@
             $mobileMenu.removeClass('show');
             $overlay.removeClass('show');
         }
-        
-        // Event delegation for close buttons (multiple selectors for robustness)
-        $(document).on('click', '.mobile-menu-close .btn-close, .mobile-close-btn', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            closeMobileMenu();
-        });
         
         // Close when clicking overlay
         $overlay.on('click', function(e) {

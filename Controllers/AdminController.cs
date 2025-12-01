@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web.Mvc;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Text;
 
 namespace LMS.Controllers
 {
@@ -98,37 +99,117 @@ namespace LMS.Controllers
         //GET: Admin/Logs
         public ActionResult Logs()
         {
-            return View();
-        }
-
-        // GET: Email Notifications Test Page
-        public ActionResult EmailNotifications()
-        {
-            return View();
-        }
-
-        // Manual notification trigger for testing/admin purposes
-        [HttpPost]
-        public JsonResult TriggerEmailNotifications()
-        {
             try
             {
-                // Manual trigger for testing
-                LMS.Helpers.EmailNotificationScheduler.RunNotificationTasks();
-                
-                return Json(new { 
-                    success = true, 
-                    message = "Email notification tasks executed successfully.",
-                    timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-                });
+                var logs = db.AuditLogs
+                    .OrderByDescending(l => l.Timestamp)
+                    .ToList();
+
+                return View(logs);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Manual notification trigger error: {ex.Message}");
-                return Json(new { 
-                    success = false, 
-                    message = "Error executing notification tasks: " + ex.Message 
-                });
+                System.Diagnostics.Debug.WriteLine($"Logs Error: {ex.Message}");
+                ViewBag.Error = "Failed to load logs.";
+                return View(new List<AuditLog>());
+            }
+        }
+
+        // GET: Admin/GetLogsData - For AJAX filtering
+        [HttpGet]
+        public JsonResult GetLogsData(string category = "", string timeRange = "", string search = "")
+        {
+            try
+            {
+                var query = db.AuditLogs.AsQueryable();
+
+                // Apply category filter
+                if (!string.IsNullOrEmpty(category))
+                {
+                    query = query.Where(l => l.Category.ToLower() == category.ToLower());
+                }
+
+                // Apply time range filter
+                if (!string.IsNullOrEmpty(timeRange))
+                {
+                    DateTime filterDate;
+                    switch (timeRange.ToLower())
+                    {
+                        case "today":
+                            filterDate = DateTime.Today;
+                            query = query.Where(l => l.Timestamp >= filterDate);
+                            break;
+                        case "yesterday":
+                            var yesterday = DateTime.Today.AddDays(-1);
+                            query = query.Where(l => l.Timestamp >= yesterday && l.Timestamp < DateTime.Today);
+                            break;
+                        case "week":
+                            filterDate = DateTime.Today.AddDays(-7);
+                            query = query.Where(l => l.Timestamp >= filterDate);
+                            break;
+                        case "month":
+                            filterDate = DateTime.Today.AddDays(-30);
+                            query = query.Where(l => l.Timestamp >= filterDate);
+                            break;
+                    }
+                }
+
+                // Apply search filter
+                if (!string.IsNullOrEmpty(search))
+                {
+                    query = query.Where(l => 
+                        l.Message.Contains(search) || 
+                        l.UserName.Contains(search) || 
+                        l.Category.Contains(search));
+                }
+
+                var logs = query
+                    .OrderByDescending(l => l.Timestamp)
+                    .ToList()
+                    .Select(l => new
+                    {
+                        l.Id,
+                        l.Category,
+                        l.Message,
+                        l.UserName,
+                        l.Role,
+                        Timestamp = l.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")
+                    });
+
+                return Json(logs, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetLogsData Error: {ex.Message}");
+                return Json(new { error = "Failed to filter logs", message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // POST: Admin/ClearLogs - Clear all logs (optional feature)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult ClearLogs()
+        {
+            try
+            {
+                var userRole = Session["Role"]?.ToString();
+                if (userRole != "Admin")
+                {
+                    return Json(new { success = false, message = "Unauthorized access." });
+                }
+
+                db.AuditLogs.RemoveRange(db.AuditLogs);
+                db.SaveChanges();
+
+                // Log the action
+                LogAction("System", "All audit logs cleared", Session["FullName"]?.ToString(), "Admin");
+
+                return Json(new { success = true, message = "All logs cleared successfully." });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ClearLogs Error: {ex.Message}");
+                return Json(new { success = false, message = "Failed to clear logs: " + ex.Message });
             }
         }
 
@@ -137,18 +218,31 @@ namespace LMS.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteLogs(int id)
         {
-            var log = db.AuditLogs.Find(id);
-            if (log == null)
+            try
             {
-                return Json(new { success = false, message = "Log not found!" });
+                var log = db.AuditLogs.Find(id);
+                if (log == null)
+                {
+                    return Json(new { success = false, message = "Log entry not found!" });
+                }
+
+                var logDescription = $"{log.Category} - {log.Message.Substring(0, Math.Min(50, log.Message.Length))}...";
+                
+                db.AuditLogs.Remove(log);
+                db.SaveChanges();
+
+                // Log the deletion action
+                LogAction("System", $"Deleted log entry: {logDescription}", Session["FullName"]?.ToString(), Session["Role"]?.ToString());
+
+                return Json(new { success = true, message = "Log entry deleted successfully!" });
             }
-
-            db.AuditLogs.Remove(log);
-            db.SaveChanges();
-
-
-            return Json(new { success = true, message = "Log deleted successfully!" });
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"DeleteLogs Error: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred while deleting the log entry." });
+            }
         }
+
         // GET: Admin/GetEvents
         public JsonResult GetEvents()
         {
@@ -274,6 +368,14 @@ namespace LMS.Controllers
             ViewBag.Programs = db.Programs.ToList();
             ViewBag.Departments = db.Departments.ToList();
 
+            // Check if there's upload summary data in Session
+            if (Session["UploadSummary"] != null)
+            {
+                ViewBag.UploadSummary = Session["UploadSummary"];
+                // Clear it from Session after retrieving it
+                Session.Remove("UploadSummary");
+            }
+
             var users = db.Users
                 .OrderBy(u => u.LastName)
                 .ToList();
@@ -299,9 +401,82 @@ namespace LMS.Controllers
             db.SaveChanges();
         }
 
+        // GET: Admin/ExportLogs - Export logs as CSV
+        public ActionResult ExportLogs(string category = "", string timeRange = "", string search = "")
+        {
+            try
+            {
+                var query = db.AuditLogs.AsQueryable();
 
+                // Apply same filters as GetLogsData
+                if (!string.IsNullOrEmpty(category))
+                {
+                    query = query.Where(l => l.Category.ToLower() == category.ToLower());
+                }
 
+                if (!string.IsNullOrEmpty(timeRange))
+                {
+                    DateTime filterDate;
+                    switch (timeRange.ToLower())
+                    {
+                        case "today":
+                            filterDate = DateTime.Today;
+                            query = query.Where(l => l.Timestamp >= filterDate);
+                            break;
+                        case "yesterday":
+                            var yesterday = DateTime.Today.AddDays(-1);
+                            query = query.Where(l => l.Timestamp >= yesterday && l.Timestamp < DateTime.Today);
+                            break;
+                        case "week":
+                            filterDate = DateTime.Today.AddDays(-7);
+                            query = query.Where(l => l.Timestamp >= filterDate);
+                            break;
+                        case "month":
+                            filterDate = DateTime.Today.AddDays(-30);
+                            query = query.Where(l => l.Timestamp >= filterDate);
+                            break;
+                    }
+                }
 
+                if (!string.IsNullOrEmpty(search))
+                {
+                    query = query.Where(l => 
+                        l.Message.Contains(search) || 
+                        l.UserName.Contains(search) || 
+                        l.Category.Contains(search));
+                }
+
+                var logs = query.OrderByDescending(l => l.Timestamp).ToList();
+
+                // Generate CSV content
+                var csv = new StringBuilder();
+                csv.AppendLine("Timestamp,Category,Message,User,Role");
+
+                foreach (var log in logs)
+                {
+                    var message = log.Message?.Replace("\"", "\"\"").Replace("\r\n", " ").Replace("\n", " ");
+                    var user = log.UserName ?? "System";
+                    var role = log.Role ?? "Automated";
+                    
+                    csv.AppendLine($"\"{log.Timestamp:yyyy-MM-dd HH:mm:ss}\",\"{log.Category}\",\"{message}\",\"{user}\",\"{role}\"");
+                }
+
+                var fileName = $"SystemLogs_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+                var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+
+                // Log the export action
+                LogAction("System", $"Exported {logs.Count} log entries to CSV", Session["FullName"]?.ToString(), Session["Role"]?.ToString());
+
+                return File(bytes, "text/csv", fileName);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ExportLogs Error: {ex.Message}");
+                TempData["AlertType"] = "error";
+                TempData["AlertMessage"] = "Failed to export logs: " + ex.Message;
+                return RedirectToAction("Logs");
+            }
+        }
 
     }
 }

@@ -35,26 +35,81 @@
         gap: 12px;
     }
 
+    /* Teacher Avatar with Initials (Fallback) - Base styles only, inline styles will override */
     .teacher-avatar {
-        width: 45px;
-        height: 45px;
+        /* Base styles - most styling is now inline for dynamic colors */
+        cursor: pointer;
+        user-select: none;
+    }
+
+    /* Teacher Avatar with Profile Image - Base styles only, inline styles will override */
+    .teacher-avatar-img {
+        /* Base styles - most styling is now inline */
+        cursor: pointer;
+    }
+
+    .teacher-avatar-img img {
+        /* Image specific styles that can't be inline in onerror */
+        display: block;
+    }
+
+    /* Empty avatar for unassigned */
+    .teacher-avatar.empty-avatar {
+        width: 50px;
+        height: 50px;
         border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary-color), #6366f1);
+        background: linear-gradient(135deg, #ffc107, #ff9800);
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
         font-weight: 600;
-        font-size: 18px;
+        font-size: 20px;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+        border: 3px solid #fff;
+        transition: all 0.3s ease;
     }
 
-    /* Empty avatar for unassigned */
-    .teacher-avatar.empty-avatar {
-        background: linear-gradient(135deg, #ffc107, #ff9800);
+    .teacher-avatar.empty-avatar:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(255, 152, 0, 0.4);
     }
 
     .teacher-avatar.empty-avatar i {
         font-size: 20px;
+    }
+
+    /* Add animation for avatar appearance */
+    @keyframes avatarFadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .teacher-avatar,
+    .teacher-avatar-img {
+        animation: avatarFadeIn 0.3s ease-out;
+    }
+
+    /* Add a subtle pulse animation on hover for avatars */
+    @keyframes avatarPulse {
+        0%, 100% {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        50% {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+    }
+
+    .teacher-avatar:hover,
+    .teacher-avatar-img:hover {
+        animation: avatarPulse 1.5s ease-in-out infinite;
     }
 
     .teacher-details h4 {

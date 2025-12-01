@@ -218,7 +218,7 @@
 
 <div class="admin-container">
     @Html.Partial("_BackButton")
-
+    @Html.AntiForgeryToken()
 
     @if (material != null)
     {
@@ -272,7 +272,7 @@
                     <h3>Class Comment</h3>
                 </div>
 
-                <div class="comments-list">
+                <div class="comments-list" id="commentsList">
                     @{
                         int currentUserId = 1;
 
@@ -356,22 +356,128 @@
 
 @section scripts {
     <script>
-        document.getElementById('sendCommentBtn')?.addEventListener('click', function() {
-            const input = document.getElementById('commentInput');
-            const text = input.value.trim();
-            if (!text) return;
+        var materialId = @material.Id;
+        var currentUserId = @Session["Id"];
+        
+        $(document).ready(function() {
+            // Load comments when page loads
+            loadComments();
             
-            console.log('New comment:', text);
-            alert(`Comment submitted: ${text}`);
-            input.value = '';
+            // Handle send comment button
+            $('#sendCommentBtn').on('click', function() {
+                sendComment();
+            });
+            
+            // Handle enter key in comment input
+            $('#commentInput').on('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendComment();
+                }
+            });
         });
-
-        // Enter key to submit
-        document.getElementById('commentInput')?.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                document.getElementById('sendCommentBtn').click();
+        
+        function loadComments() {
+            $.ajax({
+                url: '@Url.Action("GetMaterialComments", "Teacher")',
+                type: 'GET',
+                data: { materialId: materialId },
+                success: function(response) {
+                    if (response.success) {
+                        displayComments(response.comments);
+                    } else {
+                        console.error('Failed to load comments:', response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading comments:', error);
+                }
+            });
+        }
+        
+        function displayComments(comments) {
+            var $commentsList = $('#commentsList');
+            $commentsList.empty();
+            
+            if (comments.length === 0) {
+                $commentsList.html(`
+                    <div class="no-comments-message" style="text-align: center; padding: 2rem; color: #999;">
+                        <i class="fas fa-comments" style="font-size: 2.5rem; color: #ddd; margin-bottom: 1rem; display: block;"></i>
+                        <p>No comments yet. Be the first to comment!</p>
+                    </div>
+                `);
+                return;
             }
-        });
+            
+            comments.forEach(function(c) {
+                var commentHtml = `
+                    <div class="comment-item-wrapper">
+                        <div class="comment-bubble ${c.isMine ? 'my-comment-bubble' : 'other-comment-bubble'}">
+                            <div class="comment-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div class="comment-avatar">
+                                        ${c.userInitials}
+                                    </div>
+                                    <div class="comment-author">${escapeHtml(c.userName)}</div>
+                                </div>
+                                <div class="comment-date">${c.createdAt}</div>
+                            </div>
+                            <div class="comment-text">${escapeHtml(c.comment)}</div>
+                        </div>
+                    </div>
+                `;
+                $commentsList.append(commentHtml);
+            });
+            
+            // Scroll to bottom
+            $commentsList.scrollTop($commentsList[0].scrollHeight);
+        }
+        
+        function sendComment() {
+            var $input = $('#commentInput');
+            var text = $input.val().trim();
+            
+            if (!text) {
+                return;
+            }
+            
+            // Get anti-forgery token
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            
+            $.ajax({
+                url: '@Url.Action("AddMaterialComment", "Teacher")',
+                type: 'POST',
+                data: {
+                    __RequestVerificationToken: token,
+                    materialId: materialId,
+                    comment: text
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $input.val('');
+                        // Reload comments to show the new one
+                        loadComments();
+                    } else {
+                        alert(response.message || 'Failed to add comment');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error adding comment:', error);
+                    alert('An error occurred while adding your comment');
+                }
+            });
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            var map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
     </script>
 }

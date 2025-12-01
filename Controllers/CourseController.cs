@@ -351,8 +351,12 @@ namespace LMS.Controllers
                             sectionName = section.SectionName,
                             programCode = programCode,
                             day = existingCourseTime?.Day,
-                            timeFrom = existingCourseTime?.TimeFrom,
-                            timeTo = existingCourseTime?.TimeTo
+                            timeFrom = existingCourseTime?.TimeFrom.HasValue == true 
+                                ? existingCourseTime.TimeFrom.Value.ToString("MM/dd/yyyy h:mm:ss tt") 
+                                : null,
+                            timeTo = existingCourseTime?.TimeTo.HasValue == true 
+                                ? existingCourseTime.TimeTo.Value.ToString("MM/dd/yyyy h:mm:ss tt") 
+                                : null
                         });
                     }
                 }
@@ -399,8 +403,8 @@ namespace LMS.Controllers
                             yearLevel = sc.Section.YearLevel,
                             semester = semester,
                             day = sc.Day,
-                            timeFrom = sc.TimeFrom,
-                            timeTo = sc.TimeTo,
+                            timeFrom = sc.TimeFrom.HasValue ? sc.TimeFrom.Value.ToString("MM/dd/yyyy h:mm:ss tt") : null,
+                            timeTo = sc.TimeTo.HasValue ? sc.TimeTo.Value.ToString("MM/dd/yyyy h:mm:ss tt") : null,
                             teacherName = teacherAssignment != null ? $"{teacherAssignment.Teacher.FirstName} {teacherAssignment.Teacher.LastName}" : null,
                             teacherEmail = teacherAssignment != null ? teacherAssignment.Teacher.Email : null,
                             dateEnrolled = sc.DateEnrolled
