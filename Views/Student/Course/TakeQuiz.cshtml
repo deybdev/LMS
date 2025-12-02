@@ -1,17 +1,17 @@
-@model LMS.Models.Course
+﻿@model LMS.Models.Course
 
 @{
     ViewBag.Title = "Take Quiz";
     int courseId = ViewBag.CourseId ?? Model.Id;
     var classwork = ViewBag.Classwork as dynamic;
-    var questions = ViewBag.Questions as List<dynamic> ?? new List<dynamic>();
+    string questionsJson = ViewBag.QuestionsJson as string ?? "[]";
 }
 
 <link rel="stylesheet" href="~/Content/teacherCourse.css" />
 <link rel="stylesheet" href="~/Content/teacherViewCourse.css" />
 
 <style>
-    /* Disable text selection and copy-paste */
+    /* All your existing CSS - keep it exactly as is */
     .quiz-container {
         user-select: none;
         -webkit-user-select: none;
@@ -68,16 +68,17 @@
         display: none;
     }
 
-    .question-container.active {
-        display: block;
-        animation: fadeIn 0.3s ease-in;
-    }
+        .question-container.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
 
     @@keyframes fadeIn {
         from {
             opacity: 0;
             transform: translateX(20px);
         }
+
         to {
             opacity: 1;
             transform: translateX(0);
@@ -134,23 +135,23 @@
         background: white;
     }
 
-    .answer-option:hover {
-        border-color: var(--primary-color);
-        background: #f8f9ff;
-    }
+        .answer-option:hover {
+            border-color: var(--primary-color);
+            background: #f8f9ff;
+        }
 
-    .answer-option input[type="radio"],
-    .answer-option input[type="checkbox"] {
-        margin-right: 15px;
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-    }
+        .answer-option input[type="radio"],
+        .answer-option input[type="checkbox"] {
+            margin-right: 15px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
 
-    .answer-option.selected {
-        border-color: var(--primary-color);
-        background: #f0f4ff;
-    }
+        .answer-option.selected {
+            border-color: var(--primary-color);
+            background: #f0f4ff;
+        }
 
     .answer-text-input {
         width: 100%;
@@ -163,10 +164,10 @@
         min-height: 100px;
     }
 
-    .answer-text-input:focus {
-        outline: none;
-        border-color: var(--primary-color);
-    }
+        .answer-text-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
 
     .quiz-navigation {
         display: flex;
@@ -193,18 +194,18 @@
         color: #666;
     }
 
-    .btn-previous:hover:not(:disabled) {
-        background: #e0e0e0;
-    }
+        .btn-previous:hover:not(:disabled) {
+            background: #e0e0e0;
+        }
 
     .btn-next {
         background: var(--primary-color);
         color: white;
     }
 
-    .btn-next:hover:not(:disabled) {
-        background: var(--dark-primary-color);
-    }
+        .btn-next:hover:not(:disabled) {
+            background: var(--dark-primary-color);
+        }
 
     .btn-nav:disabled {
         opacity: 0.5;
@@ -252,22 +253,22 @@
         color: #999;
     }
 
-    .question-dot:hover {
-        border-color: var(--primary-color);
-        transform: scale(1.1);
-    }
+        .question-dot:hover {
+            border-color: var(--primary-color);
+            transform: scale(1.1);
+        }
 
-    .question-dot.answered {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
-        color: white;
-    }
+        .question-dot.answered {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
 
-    .question-dot.current {
-        border-color: var(--primary-color);
-        border-width: 3px;
-        box-shadow: 0 0 0 3px rgba(24, 82, 172, 0.1);
-    }
+        .question-dot.current {
+            border-color: var(--primary-color);
+            border-width: 3px;
+            box-shadow: 0 0 0 3px rgba(24, 82, 172, 0.1);
+        }
 
     .legend {
         display: flex;
@@ -293,10 +294,10 @@
         border: 2px solid #e0e0e0;
     }
 
-    .legend-dot.answered {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
-    }
+        .legend-dot.answered {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
 
     .submit-section {
         margin-top: 20px;
@@ -321,11 +322,11 @@
         gap: 8px;
     }
 
-    .btn-submit-quiz:hover {
-        background: #45a049;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-    }
+        .btn-submit-quiz:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
 
     .progress-info {
         text-align: center;
@@ -347,7 +348,6 @@
         transition: width 0.3s ease;
     }
 
-    /* True/False buttons */
     .tf-options {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -364,26 +364,25 @@
         background: white;
     }
 
-    .tf-option:hover {
-        border-color: var(--primary-color);
-        background: #f8f9ff;
-    }
+        .tf-option:hover {
+            border-color: var(--primary-color);
+            background: #f8f9ff;
+        }
 
-    .tf-option input[type="radio"] {
-        display: none;
-    }
+        .tf-option input[type="radio"] {
+            display: none;
+        }
 
-    .tf-option.selected {
-        border-color: var(--primary-color);
-        background: #f0f4ff;
-    }
+        .tf-option.selected {
+            border-color: var(--primary-color);
+            background: #f0f4ff;
+        }
 
     .tf-label {
         font-weight: 600;
         font-size: 1.1rem;
     }
 
-    /* Disable copy-paste context menu */
     .no-copy {
         -webkit-touch-callout: none;
         -webkit-user-select: none;
@@ -392,7 +391,6 @@
         user-select: none;
     }
 
-    /* File upload styling */
     .file-upload-area {
         margin-top: 10px;
     }
@@ -401,110 +399,108 @@
         display: none;
     }
 
-    /* Mobile responsiveness */
-@@media (max-width: 992px) {
-    .quiz-body {
-        grid-template-columns: 1fr; /* Stack content vertically */
-        padding: 20px;
+    @@media (max-width: 992px) {
+        .quiz-body {
+            grid-template-columns: 1fr;
+            padding: 20px;
+        }
+
+        .quiz-sidebar {
+            position: relative;
+            top: auto;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .question-grid {
+            gap: 6px;
+        }
+
+        .quiz-content {
+            padding: 20px;
+        }
+
+        .quiz-header {
+            padding: 15px 20px;
+        }
+
+        .quiz-title {
+            font-size: 1.3rem;
+        }
+
+        .quiz-meta {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-nav {
+            width: 48%;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .tf-options {
+            grid-template-columns: 1fr;
+        }
+
+        .answer-options .answer-option {
+            padding: 12px 15px;
+            font-size: 0.95rem;
+        }
+
+        .answer-text-input {
+            font-size: 0.95rem;
+            padding: 12px;
+        }
+
+        .submit-section .btn-submit-quiz {
+            padding: 12px;
+            font-size: 0.95rem;
+        }
     }
 
-    .quiz-sidebar {
-        position: relative;
-        top: auto;
-        margin-top: 20px;
-        width: 100%;
-    }
+    @@media (max-width: 576px) {
+        .quiz-title {
+            font-size: 1.1rem;
+        }
 
-    .question-grid {
-        gap: 6px;
-    }
+        .quiz-meta-item span {
+            font-size: 0.8rem;
+        }
 
-    .quiz-content {
-        padding: 20px;
-    }
+        .question-number {
+            font-size: 1rem;
+        }
 
-    .quiz-header {
-        padding: 15px 20px;
-    }
+        .question-points {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+        }
 
-    .quiz-title {
-        font-size: 1.3rem;
-    }
+        .quiz-navigation .btn-nav {
+            width: 100%;
+            margin-bottom: 10px;
+        }
 
-    .quiz-meta {
-        flex-direction: column;
-        gap: 10px;
-    }
+        .quiz-navigation {
+            flex-direction: column;
+            gap: 10px;
+        }
 
-    .btn-nav {
-        width: 48%;
-        justify-content: center;
-        padding: 10px;
-    }
+        .tf-options .tf-option {
+            padding: 15px;
+            font-size: 0.95rem;
+        }
 
-    .tf-options {
-        grid-template-columns: 1fr; /* Stack True/False vertically on mobile */
-    }
+        .file-upload-area button.btn-next {
+            font-size: 0.9rem;
+            padding: 10px;
+        }
 
-    .answer-options .answer-option {
-        padding: 12px 15px;
-        font-size: 0.95rem;
+        .file-upload-area p {
+            font-size: 0.85rem;
+        }
     }
-
-    .answer-text-input {
-        font-size: 0.95rem;
-        padding: 12px;
-    }
-
-    .submit-section .btn-submit-quiz {
-        padding: 12px;
-        font-size: 0.95rem;
-    }
-}
-
-@@media (max-width: 576px) {
-    .quiz-title {
-        font-size: 1.1rem;
-    }
-
-    .quiz-meta-item span {
-        font-size: 0.8rem;
-    }
-
-    .question-number {
-        font-size: 1rem;
-    }
-
-    .question-points {
-        font-size: 0.75rem;
-        padding: 4px 10px;
-    }
-
-    .quiz-navigation .btn-nav {
-        width: 100%;
-        margin-bottom: 10px;
-    }
-
-    .quiz-navigation {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .tf-options .tf-option {
-        padding: 15px;
-        font-size: 0.95rem;
-    }
-
-    .file-upload-area button.btn-next {
-        font-size: 0.9rem;
-        padding: 10px;
-    }
-
-    .file-upload-area p {
-        font-size: 0.85rem;
-    }
-}
-
 </style>
 
 <div class="quiz-container no-copy">
@@ -513,7 +509,7 @@
         <div class="quiz-meta">
             <div class="quiz-meta-item">
                 <i class="fas fa-clipboard-question"></i>
-                <span>@questions.Count Questions</span>
+                <span id="questionCount">Loading...</span>
             </div>
             <div class="quiz-meta-item">
                 <i class="fas fa-star"></i>
@@ -530,155 +526,7 @@
         <div class="quiz-content">
             <form id="quizForm">
                 @Html.AntiForgeryToken()
-                @for (int i = 0; i < questions.Count; i++)
-                {
-                    var question = questions[i];
-                    <div class="question-container @(i == 0 ? "active" : "")" data-question-index="@i">
-                        <div class="question-header">
-                            <span class="question-number">Question @(i + 1) of @questions.Count</span>
-                            <span class="question-points">@question.points pt@(question.points > 1 ? "s" : "")</span>
-                        </div>
-
-                        <div class="question-text">@Html.Raw(question.questionText)</div>
-
-                        @if (question.type == "multipleChoice")
-                        {
-                            <div class="answer-options">
-                                @for (int j = 0; j < question.options.Count; j++)
-                                {
-                                    var option = question.options[j];
-                                    <label class="answer-option" onclick="selectOption(this, @i, @j, 'radio')">
-                                        <input type="radio" name="answer_@i" value="@j" />
-                                        <span>@option.text</span>
-                                    </label>
-                                }
-                            </div>
-                        }
-                        else if (question.type == "multipleAnswer")
-                        {
-                            <div class="answer-options">
-                                @for (int j = 0; j < question.options.Count; j++)
-                                {
-                                    var option = question.options[j];
-                                    <label class="answer-option" onclick="selectOption(this, @i, @j, 'checkbox')">
-                                        <input type="checkbox" name="answer_@(i)[]" value="@j" />
-                                        <span>@option.text</span>
-                                    </label>
-                                }
-                            </div>
-                        }
-                        else if (question.type == "trueFalse")
-                        {
-                            <div class="tf-options">
-                                <label class="tf-option" onclick="selectTrueFalse(this, @i, true)">
-                                    <input type="radio" name="answer_@i" value="true" />
-                                    <div class="tf-label">
-                                        <i class="fas fa-check" style="color: #4CAF50;"></i> True
-                                    </div>
-                                </label>
-                                <label class="tf-option" onclick="selectTrueFalse(this, @i, false)">
-                                    <input type="radio" name="answer_@i" value="false" />
-                                    <div class="tf-label">
-                                        <i class="fas fa-times" style="color: #f44336;"></i> False
-                                    </div>
-                                </label>
-                            </div>
-                        }
-                        else if (question.type == "identification")
-                        {
-                            <input type="text" 
-                                   class="answer-text-input" 
-                                   name="answer_@i" 
-                                   placeholder="Type your answer here..."
-                                   onpaste="return false"
-                                   oncut="return false"
-                                   oncopy="return false"
-                                   oncontextmenu="return false"
-                                   onkeyup="markAsAnswered(@i)" />
-                        }
-                        else if (question.type == "essay")
-                        {
-                            <textarea class="answer-text-input" 
-                                      name="answer_@i" 
-                                      rows="8"
-                                      placeholder="Type your essay here..."
-                                      onpaste="return false"
-                                      oncut="return false"
-                                      oncopy="return false"
-                                      oncontextmenu="return false"
-                                      onkeyup="markAsAnswered(@i)"
-                                      @(question.maxWords != null ? $"maxlength=\"{question.maxWords}\"" : "")></textarea>
-                            if (question.maxWords != null)
-                            {
-                                <small style="color: #666; margin-top: 5px; display: block;">
-                                    Maximum @question.maxWords words
-                                </small>
-                            }
-                        }
-                        else if (question.type == "fileUpload")
-                        {
-                            <div class="file-upload-area">
-                                <div style="padding: 20px; background: #f8f9fa; border: 2px dashed #e0e0e0; border-radius: 8px; text-align: center;">
-                                    <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #999; margin-bottom: 15px;"></i>
-                                    <p style="color: #666; margin-bottom: 15px;">Click or drag file to upload</p>
-                                    <input type="file" 
-                                           id="fileUpload_@i"
-                                           name="answer_@(i)_file" 
-                                           class="file-upload-input"
-                                           accept="@(question.allowedFileTypes ?? ".pdf,.doc,.docx")"
-                                           onchange="handleFileUpload(@i, this)"
-                                           style="display: none;" />
-                                    <button type="button" 
-                                            class="btn-nav btn-next" 
-                                            onclick="document.getElementById('fileUpload_@i').click()"
-                                            style="display: inline-flex;">
-                                        <i class="fas fa-file-upload"></i>
-                                        Choose File
-                                    </button>
-                                    <div id="fileInfo_@i" style="margin-top: 15px; padding: 10px; background: white; border-radius: 6px; display: none;">
-                                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                                            <div style="display: flex; align-items: center; gap: 10px;">
-                                                <i class="fas fa-file" style="color: var(--primary-color);"></i>
-                                                <span id="fileName_@i" style="font-weight: 500;"></span>
-                                            </div>
-                                            <button type="button" 
-                                                    class="btn-previous" 
-                                                    onclick="clearFileUpload(@i)"
-                                                    style="padding: 8px 12px;">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <small style="color: #999; display: block; margin-top: 10px;">
-                                        Allowed types: @(question.allowedFileTypes ?? ".pdf, .doc, .docx")
-                                        @if (question.maxFileSize != null)
-                                        {
-                                            <text> � Max size: @question.maxFileSize MB</text>
-                                        }
-                                    </small>
-                                </div>
-                            </div>
-                        }
-
-                        <div class="quiz-navigation">
-                            <button type="button" 
-                                    class="btn-nav btn-previous" 
-                                    onclick="navigateQuestion(@i - 1)"
-                                    @(i == 0 ? "disabled" : "")>
-                                <i class="fas fa-chevron-left"></i>
-                                Previous
-                            </button>
-
-                            @if (i < questions.Count - 1)
-                            {
-                                <button type="button" class="btn-nav btn-next" onclick="navigateQuestion(@(i + 1))">
-                                    Next
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                            }
-                        </div>
-                    </div>
-                }
+                <div id="questionsContainer"></div>
             </form>
         </div>
 
@@ -691,19 +539,9 @@
             <div class="progress-bar-container">
                 <div class="progress-bar" id="progressBar" style="width: 0%"></div>
             </div>
-            <div class="progress-info" id="progressInfo">0 of @questions.Count answered</div>
+            <div class="progress-info" id="progressInfo">0 of 0 answered</div>
 
-            <div class="question-grid" id="questionGrid">
-                @for (int i = 0; i < questions.Count; i++)
-                {
-                    <button type="button" 
-                            class="question-dot @(i == 0 ? "current" : "")" 
-                            data-question="@i"
-                            onclick="navigateQuestion(@i)">
-                        @(i + 1)
-                    </button>
-                }
-            </div>
+            <div class="question-grid" id="questionGrid"></div>
 
             <div class="legend">
                 <div class="legend-item">
@@ -727,10 +565,190 @@
 </div>
 
 <script>
+    // ✅ Parse JSON on client side to avoid server-side serialization issues
+    const questionsData = @Html.Raw(questionsJson);
     let currentQuestion = 0;
-    const totalQuestions = @questions.Count;
+    const totalQuestions = questionsData.length;
     const answeredQuestions = new Set();
-    const deadline = new Date('@classwork.Deadline?.ToString("yyyy-MM-ddTHH:mm:ss")');
+    const deadline = new Date('@(classwork.Deadline?.ToString("yyyy-MM-ddTHH:mm:ss") ?? "")');
+
+    // Initialize quiz
+    document.addEventListener('DOMContentLoaded', function() {
+        renderQuiz();
+    });
+
+    function renderQuiz() {
+        const container = document.getElementById('questionsContainer');
+        const grid = document.getElementById('questionGrid');
+
+        document.getElementById('questionCount').textContent = `${totalQuestions} Questions`;
+        document.getElementById('progressInfo').textContent = `0 of ${totalQuestions} answered`;
+
+        questionsData.forEach((question, i) => {
+            // Render question container
+            const questionHtml = renderQuestion(question, i);
+            container.innerHTML += questionHtml;
+
+            // Render grid dot
+            grid.innerHTML += `
+                <button type="button"
+                        class="question-dot ${i === 0 ? 'current' : ''}"
+                        data-question="${i}"
+                        onclick="navigateQuestion(${i})">
+                    ${i + 1}
+                </button>
+            `;
+        });
+    }
+
+    function renderQuestion(question, index) {
+        const isActive = index === 0 ? 'active' : '';
+        const questionType = question.type || '';
+        const questionText = question.questionText || '';
+        const points = question.points || 0;
+
+        let optionsHtml = '';
+
+        if (questionType === 'multipleChoice') {
+            optionsHtml = '<div class="answer-options">';
+            (question.options || []).forEach((opt, j) => {
+                optionsHtml += `
+                    <label class="answer-option" onclick="selectOption(this, ${index}, ${j}, 'radio')">
+                        <input type="radio" name="answer_${index}" value="${j}" />
+                        <span>${opt.text || ''}</span>
+                    </label>
+                `;
+            });
+            optionsHtml += '</div>';
+        } else if (questionType === 'multipleAnswer') {
+            optionsHtml = '<div class="answer-options">';
+            (question.options || []).forEach((opt, j) => {
+                optionsHtml += `
+                    <label class="answer-option" onclick="selectOption(this, ${index}, ${j}, 'checkbox')">
+                        <input type="checkbox" name="answer_${index}[]" value="${j}" />
+                        <span>${opt.text || ''}</span>
+                    </label>
+                `;
+            });
+            optionsHtml += '</div>';
+        } else if (questionType === 'trueFalse') {
+            optionsHtml = `
+                <div class="tf-options">
+                    <div class="tf-option" onclick="selectTrueFalse(this, ${index}, true)">
+                        <input type="radio" name="answer_${index}" value="true" />
+                        <div class="tf-label">
+                            <i class="fas fa-check" style="color: #4CAF50;"></i> True
+                        </div>
+                    </div>
+                    <div class="tf-option" onclick="selectTrueFalse(this, ${index}, false)">
+                        <input type="radio" name="answer_${index}" value="false" />
+                        <div class="tf-label">
+                            <i class="fas fa-times" style="color: #f44336;"></i> False
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (questionType === 'identification') {
+            optionsHtml = `
+                <input type="text"
+                       class="answer-text-input"
+                       name="answer_${index}"
+                       placeholder="Type your answer here..."
+                       onpaste="return false"
+                       oncut="return false"
+                       oncopy="return false"
+                       oncontextmenu="return false"
+                       onkeyup="markAsAnswered(${index})" />
+            `;
+        } else if (questionType === 'essay') {
+            const maxWords = question.maxWords || '';
+            optionsHtml = `
+                <textarea class="answer-text-input"
+                          name="answer_${index}"
+                          rows="8"
+                          placeholder="Type your essay here..."
+                          onpaste="return false"
+                          oncut="return false"
+                          oncopy="return false"
+                          oncontextmenu="return false"
+                          onkeyup="markAsAnswered(${index})"
+                          ${maxWords ? `maxlength="${maxWords}"` : ''}></textarea>
+                ${maxWords ? `<small style="color: #666; margin-top: 5px; display: block;">Maximum ${maxWords} words</small>` : ''}
+            `;
+        } else if (questionType === 'fileUpload') {
+            const allowedTypes = question.allowedFileTypes || '.pdf,.doc,.docx';
+            const maxSize = question.maxFileSize || '';
+            optionsHtml = `
+                <div class="file-upload-area">
+                    <div style="padding: 20px; background: #f8f9fa; border: 2px dashed #e0e0e0; border-radius: 8px; text-align: center;">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #999; margin-bottom: 15px;"></i>
+                        <p style="color: #666; margin-bottom: 15px;">Click or drag file to upload</p>
+                        <input type="file"
+                               id="fileUpload_${index}"
+                               name="answer_${index}_file"
+                               class="file-upload-input"
+                               accept="${allowedTypes}"
+                               onchange="handleFileUpload(${index}, this)"
+                               style="display: none;" />
+                        <button type="button"
+                                class="btn-nav btn-next"
+                                onclick="document.getElementById('fileUpload_${index}').click()"
+                                style="display: inline-flex;">
+                            <i class="fas fa-file-upload"></i>
+                            Choose File
+                        </button>
+                        <div id="fileInfo_${index}" style="margin-top: 15px; padding: 10px; background: white; border-radius: 6px; display: none;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-file" style="color: var(--primary-color);"></i>
+                                    <span id="fileName_${index}" style="font-weight: 500;"></span>
+                                </div>
+                                <button type="button"
+                                        class="btn-previous"
+                                        onclick="clearFileUpload(${index})"
+                                        style="padding: 8px 12px;">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <small style="color: #999; display: block; margin-top: 10px;">
+                            Allowed types: ${allowedTypes}
+                            ${maxSize ? ` • Max size: ${maxSize} MB` : ''}
+                        </small>
+                    </div>
+                </div>
+            `;
+        }
+
+        const prevDisabled = index === 0 ? 'disabled' : '';
+        const nextBtn = index < totalQuestions - 1
+            ? `<button type="button" class="btn-nav btn-next" onclick="navigateQuestion(${index + 1})">
+                   Next
+                   <i class="fas fa-chevron-right"></i>
+               </button>`
+            : '';
+
+        return `
+            <div class="question-container ${isActive}" data-question-index="${index}">
+                <div class="question-header">
+                    <span class="question-number">Question ${index + 1} of ${totalQuestions}</span>
+                    <span class="question-points">${points} pt${points > 1 ? 's' : ''}</span>
+                </div>
+                <div class="question-text">${questionText}</div>
+                ${optionsHtml}
+                <div class="quiz-navigation">
+                    <button type="button"
+                            class="btn-nav btn-previous"
+                            onclick="navigateQuestion(${index - 1})"
+                            ${prevDisabled}>
+                        <i class="fas fa-chevron-left"></i>
+                        Previous
+                    </button>
+                    ${nextBtn}
+                </div>
+            </div>
+        `;
+    }
 
     // Disable copy-paste globally
     document.addEventListener('copy', function(e) {
@@ -755,9 +773,7 @@
         }
     });
 
-    // Disable keyboard shortcuts
     document.addEventListener('keydown', function(e) {
-        // Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+A
         if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x' || e.key === 'a')) {
             if (e.target.closest('.quiz-container')) {
                 e.preventDefault();
@@ -769,33 +785,26 @@
     function navigateQuestion(index) {
         if (index < 0 || index >= totalQuestions) return;
 
-        // Hide current question
         document.querySelectorAll('.question-container').forEach(q => q.classList.remove('active'));
         document.querySelectorAll('.question-dot').forEach(d => d.classList.remove('current'));
 
-        // Show new question
         document.querySelector(`[data-question-index="${index}"]`).classList.add('active');
         document.querySelector(`[data-question="${index}"]`).classList.add('current');
 
         currentQuestion = index;
-
-        // Scroll to top
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function selectOption(element, questionIndex, optionIndex, type) {
         const input = element.querySelector('input');
-        
+
         if (type === 'radio') {
-            // Clear all selections in this question
             const container = element.closest('.answer-options');
             container.querySelectorAll('.answer-option').forEach(opt => opt.classList.remove('selected'));
-            
-            // Select this option
+
             input.checked = true;
             element.classList.add('selected');
         } else {
-            // Toggle checkbox
             input.checked = !input.checked;
             element.classList.toggle('selected', input.checked);
         }
@@ -806,7 +815,7 @@
     function selectTrueFalse(element, questionIndex, value) {
         const container = element.closest('.tf-options');
         container.querySelectorAll('.tf-option').forEach(opt => opt.classList.remove('selected'));
-        
+
         const input = element.querySelector('input');
         input.checked = true;
         element.classList.add('selected');
@@ -829,10 +838,10 @@
             const file = input.files[0];
             const fileInfo = document.getElementById(`fileInfo_${questionIndex}`);
             const fileName = document.getElementById(`fileName_${questionIndex}`);
-            
+
             fileName.textContent = file.name;
             fileInfo.style.display = 'block';
-            
+
             markAsAnswered(questionIndex);
         }
     }
@@ -840,14 +849,13 @@
     function clearFileUpload(questionIndex) {
         const input = document.getElementById(`fileUpload_${questionIndex}`);
         const fileInfo = document.getElementById(`fileInfo_${questionIndex}`);
-        
+
         input.value = '';
         fileInfo.style.display = 'none';
-        
-        // Remove from answered if no other answer exists
+
         answeredQuestions.delete(questionIndex);
         updateProgress();
-        
+
         const dot = document.querySelector(`[data-question="${questionIndex}"]`);
         if (dot) {
             dot.classList.remove('answered');
@@ -857,14 +865,14 @@
     function updateProgress() {
         const answered = answeredQuestions.size;
         const percentage = (answered / totalQuestions) * 100;
-        
+
         document.getElementById('progressBar').style.width = percentage + '%';
         document.getElementById('progressInfo').textContent = `${answered} of ${totalQuestions} answered`;
     }
 
     function submitQuiz() {
         const unanswered = totalQuestions - answeredQuestions.size;
-        
+
         if (unanswered > 0) {
             if (!confirm(`You have ${unanswered} unanswered question(s). Do you want to submit anyway?`)) {
                 return;
@@ -875,78 +883,81 @@
             return;
         }
 
-        // Create FormData to handle both text answers and files
-        const formData = new FormData();
         const answers = [];
 
         for (let i = 0; i < totalQuestions; i++) {
-            const questionData = {
-                questionIndex: i,
-                answer: null
-            };
+            let answerValue = null;
 
-            // Check for file upload
-            const fileInput = document.getElementById(`fileUpload_${i}`);
-            if (fileInput && fileInput.files.length > 0) {
-                // File will be sent via FormData
-                questionData.answer = "FILE_UPLOADED";
-                formData.append(`question_${i}_file`, fileInput.files[0]);
-            }
-            // Check for multiple answer (checkbox)
-            else {
-                const checkboxes = document.querySelectorAll(`input[name="answer_${i}[]"]:checked`);
-                if (checkboxes.length > 0) {
-                    questionData.answer = Array.from(checkboxes).map(cb => parseInt(cb.value));
-                } else {
-                    // Check for single answer (radio, text, etc.)
-                    const input = document.querySelector(`input[name="answer_${i}"]:checked`) ||
-                                 document.querySelector(`input[name="answer_${i}"]`) ||
-                                 document.querySelector(`textarea[name="answer_${i}"]`);
-                    
-                    if (input) {
-                        questionData.answer = input.value;
-                    }
+            const checkboxes = document.querySelectorAll(`input[name="answer_${i}[]"]:checked`);
+            if (checkboxes.length > 0) {
+                answerValue = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            } else {
+                const radioInput = document.querySelector(`input[name="answer_${i}"]:checked`);
+                const textInput = document.querySelector(`input[name="answer_${i}"]`);
+                const textareaInput = document.querySelector(`textarea[name="answer_${i}"]`);
+
+                if (radioInput) {
+                    answerValue = radioInput.value;
+                } else if (textareaInput) {
+                    answerValue = textareaInput.value;
+                } else if (textInput && textInput.type !== 'radio') {
+                    answerValue = textInput.value;
                 }
             }
 
-            answers.push(questionData);
+            answers.push({
+                answer: answerValue
+            });
         }
 
-        // Add data to FormData
+        const formData = new FormData();
         formData.append('answersJson', JSON.stringify(answers));
         formData.append('classworkId', @classwork.Id);
         formData.append('courseId', @courseId);
-        
-        // Add AntiForgeryToken
+
+        for (let i = 0; i < totalQuestions; i++) {
+            const fileInput = document.getElementById(`fileUpload_${i}`);
+            if (fileInput && fileInput.files.length > 0) {
+                formData.append(`question_${i}_file`, fileInput.files[0]);
+            }
+        }
+
         const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
         if (tokenInput) {
             formData.append('__RequestVerificationToken', tokenInput.value);
         }
 
-        // Submit to server with file support
+        const submitBtn = document.querySelector('.btn-submit-quiz');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
         $.ajax({
             url: '@Url.Action("SubmitQuizAnswers", "Student")',
             type: 'POST',
             data: formData,
-            processData: false,  // Don't process the data
-            contentType: false,  // Don't set content type (let browser set it with boundary)
+            processData: false,
+            contentType: false,
             success: function(response) {
                 if (response.success) {
                     alert('Quiz submitted successfully!');
                     window.location.href = '@Url.Action("ViewClasswork", "Student", new { id = courseId, classworkId = classwork.Id })';
                 } else {
                     alert('Error: ' + response.message);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
                 }
             },
             error: function(xhr, status, error) {
                 console.error('Submit error:', error);
                 console.error('Response:', xhr.responseText);
                 alert('An error occurred while submitting your quiz. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
             }
         });
     }
 
-    // Timer countdown
     function updateTimer() {
         const now = new Date();
         const diff = deadline - now;
@@ -962,7 +973,7 @@
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-        document.getElementById('timerDisplay').textContent = 
+        document.getElementById('timerDisplay').textContent =
             `Time Remaining: ${hours}h ${minutes}m ${seconds}s`;
     }
 
@@ -980,7 +991,6 @@
         </text>
     }
 
-    // Prevent leaving page without confirmation
     window.addEventListener('beforeunload', function (e) {
         if (answeredQuestions.size > 0) {
             e.preventDefault();

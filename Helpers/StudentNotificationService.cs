@@ -26,6 +26,8 @@ namespace LMS.Helpers
 
                     if (material == null) return;
 
+                    int courseId = material.TeacherCourseSection.CourseId;
+
                     // Get all students enrolled in this course section
                     var students = db.StudentCourses
                         .Where(sc => sc.CourseId == material.TeacherCourseSection.CourseId && 
@@ -45,7 +47,9 @@ namespace LMS.Helpers
                                 material.TeacherCourseSection.Course.CourseTitle,
                                 material.Title,
                                 $"{material.TeacherCourseSection.Teacher.FirstName} {material.TeacherCourseSection.Teacher.LastName}",
-                                material.Type
+                                material.Type,
+                                courseId,
+                                materialId
                             );
                         }
                     }
@@ -77,6 +81,8 @@ namespace LMS.Helpers
 
                     if (announcement == null) return;
 
+                    int courseId = announcement.TeacherCourseSection.CourseId;
+
                     // Get all students enrolled in this course section
                     var students = db.StudentCourses
                         .Where(sc => sc.CourseId == announcement.TeacherCourseSection.CourseId && 
@@ -96,7 +102,9 @@ namespace LMS.Helpers
                                 $"{student.FirstName} {student.LastName}",
                                 announcement.TeacherCourseSection.Course.CourseTitle,
                                 $"{announcement.CreatedBy.FirstName} {announcement.CreatedBy.LastName}",
-                                announcement.Content
+                                announcement.Content,
+                                courseId,
+                                announcementId
                             );
                         }
                     }
@@ -136,6 +144,8 @@ namespace LMS.Helpers
                         return;
                     }
 
+                    int courseId = classwork.TeacherCourseSection.CourseId;
+
                     // Get all students enrolled in this course section
                     var students = db.StudentCourses
                         .Where(sc => sc.CourseId == classwork.TeacherCourseSection.CourseId && 
@@ -157,7 +167,9 @@ namespace LMS.Helpers
                                 classwork.ClassworkType,
                                 $"{classwork.TeacherCourseSection.Teacher.FirstName} {classwork.TeacherCourseSection.Teacher.LastName}",
                                 classwork.Deadline,
-                                classwork.Points
+                                classwork.Points,
+                                courseId,
+                                classworkId
                             );
                         }
                     }
@@ -197,6 +209,8 @@ namespace LMS.Helpers
 
                     foreach (var classwork in dueSoonClasswork)
                     {
+                        int courseId = classwork.TeacherCourseSection.CourseId;
+
                         // Get students who haven't submitted yet
                         var notSubmittedStudents = classwork.ClassworkSubmissions
                             .Where(s => s.Status == "Not Submitted")
@@ -214,7 +228,9 @@ namespace LMS.Helpers
                                 classwork.Title,
                                 classwork.ClassworkType,
                                 classwork.Deadline.Value,
-                                classwork.Points
+                                classwork.Points,
+                                courseId,
+                                classwork.Id
                             );
                         }
 
@@ -247,6 +263,8 @@ namespace LMS.Helpers
 
                     if (assignment == null) return;
 
+                    int courseId = assignment.CourseId;
+
                     // Get all students enrolled in this course section
                     var students = db.StudentCourses
                         .Where(sc => sc.CourseId == assignment.CourseId && 
@@ -268,7 +286,8 @@ namespace LMS.Helpers
                                 $"{assignment.Teacher.FirstName} {assignment.Teacher.LastName}",
                                 assignment.Course.CourseTitle,
                                 sectionName,
-                                assignment.Semester
+                                assignment.Semester,
+                                courseId
                             );
                         }
                     }

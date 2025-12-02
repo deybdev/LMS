@@ -83,7 +83,6 @@
                         <th>Section Name</th>
                         <th>Program</th>
                         <th>Year Level</th>
-                        <th>Students</th>
                         <th>Date Created</th>
                         <th>Actions</th>
                     </tr>
@@ -108,7 +107,6 @@
                                 </td>
                                 <td><span class="role-tag">@s.Program.ProgramCode</span></td>
                                 <td>@s.YearLevel@(yearSuffix) Year</td>
-                                <td>0</td>
                                 <td class="last-login">
                                     <div>@s.DateCreated.ToString("MM/dd/yyyy")</div>
                                     <div class="login-time">@s.DateCreated.ToString("hh:mm tt")</div>
@@ -250,5 +248,75 @@
             });
         </script>
     }
-}
 
+    <script>
+        (function () {
+            const $search = $('#searchInput');
+            const $program = $('#programFilter');
+            const $year = $('#yearLevelFilter');
+            const $status = $('#statusFilter');
+            const $rows = $('#sectionTableBody').find('tr.default-row');
+            const $paginationInfo = $('#paginationInfo');
+
+            function normalize(s) {
+                return (s || '').toString().trim().toLowerCase();
+            }
+
+            function matchesFilters($row) {
+                const q = normalize($search.val());
+
+                const sectionName = normalize($row.find('.user-name').text());
+                const programText = normalize($row.find('td .role-tag').text());
+                const programAttr = normalize($row.data('program'));
+                const yearAttr = ($row.data('year') || '').toString(); // numeric string
+                const statusAttr = ($row.data('status') || 'Active').toString();
+
+                const progFilter = $program.val() || '';
+                const yearFilter = $year.val() || '';
+                const statusFilter = $status.val() || '';
+
+                // Text search: match Section Name OR Program text
+                const textHit = !q || sectionName.includes(q) || programText.includes(q);
+
+                // Program filter: match data attribute or visible text
+                const progHit = !progFilter
+                    || programAttr === normalize(progFilter)
+                    || programText === normalize(progFilter);
+
+                // Year filter: exact match on numeric year
+                const yearHit = !yearFilter || yearAttr === yearFilter;
+
+                // Status filter: default Active if missing
+                const statusHit = !statusFilter || statusAttr === statusFilter;
+
+                return textHit && progHit && yearHit && statusHit;
+            }
+
+            function applyFilters() {
+                let shown = 0;
+                $rows.each(function () {
+                    const $row = $(this);
+                    if (matchesFilters($row)) {
+                        $row.show();
+                        shown++;
+                    } else {
+                        $row.hide();
+                    }
+                });
+
+                const total = $rows.length;
+                $paginationInfo.text(`Showing ${shown} of ${total} entries`);
+                // Do not modify pagination controls or logic; index.js handles pagination only.
+            }
+
+            // Wire up events
+            $search.on('input', applyFilters);
+            $program.on('change', applyFilters);
+            $year.on('change', applyFilters);
+            $status.on('change', applyFilters);
+
+            // Initial apply
+            applyFilters();
+        })();
+    </script>
+}

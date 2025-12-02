@@ -546,9 +546,14 @@
             : '';
 
         const canView = submission.Status !== 'Pending' && submission.Status !== 'Not Submitted';
+        
+        // FIX: Build the complete URL properly for both localhost and hosting
+        const viewSubmissionUrl = '@Url.Action("ViewSubmission", "Teacher", new { })' + 
+            '?courseId=' + @courseId + 
+            '&submissionId=' + submission.Id;
+        
         const viewButton = canView ? 
-            `<a href="@Url.Action("ViewSubmission", "Teacher")?courseId=@courseId&submissionId=${submission.Id}" 
-               class="btn-view-submission">
+            `<a href="${viewSubmissionUrl}" class="btn-view-submission">
                 <i class="fas fa-eye"></i> View Submission
             </a>` :
             `<button class="btn-view-submission" disabled>

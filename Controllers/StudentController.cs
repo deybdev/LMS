@@ -1,4 +1,6 @@
-﻿using System;
+﻿using LMS.Models;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Dynamic;
@@ -6,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-using LMS.Models;
 
 namespace LMS.Controllers
 {
@@ -1512,6 +1513,7 @@ namespace LMS.Controllers
         }
 
         // GET: Submit/Take Classwork
+        // GET: Submit/Take Classwork
         public ActionResult SubmitClasswork(int? id, int? classworkId)
         {
             try
@@ -1555,10 +1557,10 @@ namespace LMS.Controllers
 
                 // Get classwork
                 var classwork = db.Classworks
-                    .FirstOrDefault(c => c.Id == classworkId.Value && 
+                    .FirstOrDefault(c => c.Id == classworkId.Value &&
                                        c.TeacherCourseSectionId == teacherCourseSectionId &&
                                        c.IsActive &&
-                                       !c.IsManualEntry); // Prevent access to manual entries
+                                       !c.IsManualEntry);
 
                 if (classwork == null)
                 {
@@ -1566,11 +1568,16 @@ namespace LMS.Controllers
                     return RedirectToAction("Classwork", "Student", new { id = id });
                 }
 
-                // Check if already submitted
                 var existingSubmission = db.ClassworkSubmissions
                     .FirstOrDefault(s => s.ClassworkId == classworkId.Value && s.StudentId == studentId);
 
-                if (existingSubmission != null && existingSubmission.Status != "Not Submitted")
+                if (existingSubmission == null)
+                {
+                    TempData["ErrorMessage"] = "This classwork was not assigned to you.";
+                    return RedirectToAction("Classwork", "Student", new { id = id });
+                }
+
+                if (existingSubmission.Status != "Not Submitted")
                 {
                     TempData["ErrorMessage"] = "You have already submitted this classwork.";
                     return RedirectToAction("ViewClasswork", "Student", new { id = id, classworkId = classworkId });
@@ -1579,19 +1586,35 @@ namespace LMS.Controllers
                 // Check if it's a quiz/exam with questions
                 if (!string.IsNullOrEmpty(classwork.QuestionsJson))
                 {
-                    // Parse questions
-                    var questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(classwork.QuestionsJson);
+                    // ✅ IMPORTANT: Validate that QuestionsJson is valid JSON
+                    try
+                    {
+                        // Test if it's valid JSON by attempting to parse it
+                        var testParse = Newtonsoft.Json.JsonConvert.DeserializeObject(classwork.QuestionsJson);
 
+                        System.Diagnostics.Debug.WriteLine($"✅ QuestionsJson is valid JSON with length: {classwork.QuestionsJson.Length}");
+                    }
+                    catch (Exception jsonEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Invalid QuestionsJson: {jsonEx.Message}");
+                        TempData["ErrorMessage"] = "This quiz has invalid question data. Please contact your teacher.";
+                        return RedirectToAction("Classwork", "Student", new { id = id });
+                    }
+
+                    // ✅ FIX: Use dynamic ExpandoObject instead of anonymous type
                     dynamic classworkData = new ExpandoObject();
                     classworkData.Id = classwork.Id;
                     classworkData.Title = classwork.Title;
                     classworkData.Description = classwork.Description;
-                    classworkData.Points = classwork.Points;
+                    classworkData.Points = classwork.Points;    
                     classworkData.Deadline = classwork.Deadline;
 
-                    ViewBag.Classwork = classworkData;
-                    ViewBag.Questions = questions;
+                    ViewBag.Classwork = classworkData; // Now it's dynamic and accessible in the view
+                    ViewBag.QuestionsJson = classwork.QuestionsJson; // ✅ Pass raw JSON string directly
                     ViewBag.CourseId = id.Value;
+
+                    System.Diagnostics.Debug.WriteLine($"✅ Rendering TakeQuiz view for classwork ID: {classwork.Id}");
+                    System.Diagnostics.Debug.WriteLine($"✅ Questions JSON length: {classwork.QuestionsJson?.Length ?? 0}");
 
                     return View("~/Views/Student/Course/TakeQuiz.cshtml", studentCourse.Course);
                 }
@@ -1604,6 +1627,7 @@ namespace LMS.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"SubmitClasswork Error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
                 TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
                 return RedirectToAction("Classwork", "Student", new { id = id });
             }
@@ -1690,9 +1714,9 @@ namespace LMS.Controllers
                 var classwork = db.Classworks.Find(classworkId);
                 if (classwork != null && !string.IsNullOrEmpty(classwork.QuestionsJson))
                 {
-                    var questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(classwork.QuestionsJson);
-                    var answers = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(answersJson);
-                    
+                    var questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Newtonsoft.Json.Linq.JObject>>(classwork.QuestionsJson);
+                    var answers = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Newtonsoft.Json.Linq.JObject>>(answersJson);
+
                     decimal totalScore = 0;
                     bool canAutoGrade = true;
 
@@ -1700,10 +1724,12 @@ namespace LMS.Controllers
                     {
                         var question = questions[i];
                         var answer = answers[i];
-                        string questionType = question.type;
+
+                        // Use bracket notation or Value<T> method for JObject
+                        string questionType = question["type"]?.Value<string>() ?? "";
 
                         // Only auto-grade objective questions (skip file upload and essay)
-                        if (questionType == "multipleChoice" || questionType == "trueFalse" || 
+                        if (questionType == "multipleChoice" || questionType == "trueFalse" ||
                             questionType == "identification" || questionType == "multipleAnswer")
                         {
                             bool isCorrect = false;
@@ -1711,26 +1737,33 @@ namespace LMS.Controllers
                             if (questionType == "multipleChoice")
                             {
                                 var correctIndex = -1;
-                                for (int j = 0; j < question.options.Count; j++)
+                                var options = question["options"] as Newtonsoft.Json.Linq.JArray;
+                                if (options != null)
                                 {
-                                    if ((bool)question.options[j].isCorrect)
+                                    for (int j = 0; j < options.Count; j++)
                                     {
-                                        correctIndex = j;
-                                        break;
+                                        if (options[j]["isCorrect"]?.Value<bool>() ?? false)
+                                        {
+                                            correctIndex = j;
+                                            break;
+                                        }
                                     }
                                 }
-                                isCorrect = answer.answer != null && answer.answer.ToString() == correctIndex.ToString();
+
+                                var studentAnswer = answer["answer"]?.Value<string>();
+                                isCorrect = studentAnswer != null && studentAnswer == correctIndex.ToString();
                             }
                             else if (questionType == "trueFalse")
                             {
-                                bool correctAnswer = (bool)question.correctAnswer;
-                                isCorrect = answer.answer != null && answer.answer.ToString().ToLower() == correctAnswer.ToString().ToLower();
+                                bool correctAnswer = question["correctAnswer"]?.Value<bool>() ?? false;
+                                var studentAnswer = answer["answer"]?.Value<string>();
+                                isCorrect = studentAnswer != null && studentAnswer.ToLower() == correctAnswer.ToString().ToLower();
                             }
                             else if (questionType == "identification")
                             {
-                                string correctAnswer = question.correctAnswer.ToString();
-                                string studentAnswer = answer.answer?.ToString() ?? "";
-                                bool caseSensitive = question.caseSensitive ?? false;
+                                string correctAnswer = question["correctAnswer"]?.Value<string>() ?? "";
+                                string studentAnswer = answer["answer"]?.Value<string>() ?? "";
+                                bool caseSensitive = question["caseSensitive"]?.Value<bool>() ?? false;
 
                                 if (caseSensitive)
                                 {
@@ -1744,22 +1777,23 @@ namespace LMS.Controllers
                             else if (questionType == "multipleAnswer")
                             {
                                 var correctIndices = new List<int>();
-                                for (int j = 0; j < question.options.Count; j++)
+                                var options = question["options"] as Newtonsoft.Json.Linq.JArray;
+                                if (options != null)
                                 {
-                                    if ((bool)question.options[j].isCorrect)
+                                    for (int j = 0; j < options.Count; j++)
                                     {
-                                        correctIndices.Add(j);
+                                        if (options[j]["isCorrect"]?.Value<bool>() ?? false)
+                                        {
+                                            correctIndices.Add(j);
+                                        }
                                     }
                                 }
 
                                 var studentAnswers = new List<int>();
-                                if (answer.answer != null)
+                                var answerArray = answer["answer"] as Newtonsoft.Json.Linq.JArray;
+                                if (answerArray != null)
                                 {
-                                    var answerArray = answer.answer as Newtonsoft.Json.Linq.JArray;
-                                    if (answerArray != null)
-                                    {
-                                        studentAnswers = answerArray.Select(a => (int)a).ToList();
-                                    }
+                                    studentAnswers = answerArray.Select(a => a.Value<int>()).ToList();
                                 }
 
                                 isCorrect = correctIndices.Count == studentAnswers.Count &&
@@ -1768,7 +1802,7 @@ namespace LMS.Controllers
 
                             if (isCorrect)
                             {
-                                totalScore += (decimal)question.points;
+                                totalScore += question["points"]?.Value<decimal>() ?? 0;
                             }
                         }
                         else
@@ -1792,6 +1826,7 @@ namespace LMS.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"SubmitQuizAnswers Error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
                 return Json(new { success = false, message = "An error occurred: " + ex.Message });
             }
         }
@@ -1849,8 +1884,16 @@ namespace LMS.Controllers
                     return RedirectToAction("Classwork", "Student", new { id = id });
                 }
 
+                // 🔥 CRITICAL FIX: Check if student has a submission record
+                // If no submission exists, it means this classwork was not assigned to them
                 var submission = db.ClassworkSubmissions
                     .FirstOrDefault(s => s.ClassworkId == classworkId.Value && s.StudentId == studentId);
+
+                if (submission == null)
+                {
+                    TempData["ErrorMessage"] = "This classwork was not assigned to you.";
+                    return RedirectToAction("Classwork", "Student", new { id = id });
+                }
 
                 dynamic classworkData = new ExpandoObject();
                 classworkData.Id = classwork.Id;
@@ -1927,16 +1970,17 @@ namespace LMS.Controllers
                     return RedirectToAction("Course", "Student");
                 }
 
-                // Get finished tasks from ALL courses
+                // Get finished tasks from ALL courses - Include BOTH Submitted AND Graded
                 var finishedTasks = db.ClassworkSubmissions
-                    .Where(s => s.StudentId == studentId && s.Status == "Graded")
+                    .Where(s => s.StudentId == studentId && (s.Status == "Graded" || s.Status == "Submitted" || s.Status == "Pending")) // ✅ FIX: Include both statuses
                     .Join(db.Classworks, s => s.ClassworkId, c => c.Id, (s, c) => new { Submission = s, Classwork = c })
                     .Join(db.TeacherCourseSections, sc => sc.Classwork.TeacherCourseSectionId, tcs => tcs.Id, (sc, tcs) => new { sc.Submission, sc.Classwork, TeacherCourseSection = tcs })
                     .Join(db.Courses, sct => sct.TeacherCourseSection.CourseId, course => course.Id, (sct, course) => new { sct.Submission, sct.Classwork, sct.TeacherCourseSection, Course = course })
                     .Where(result => allTeacherCourseSectionIds.Contains(result.Classwork.TeacherCourseSectionId) && result.Classwork.IsActive)
+                    .Where(result => result.Submission.Status == "Graded" || result.Submission.Status == "Submitted" || result.Submission.Status == "Pending") // ✅ Double-check filter
                     .OrderByDescending(result => result.Submission.GradedAt ?? result.Submission.SubmittedAt)
                     .ToList()
-                    .Select(result =>
+                                    .Select(result =>
                     {
                         dynamic item = new ExpandoObject();
                         item.Id = result.Classwork.Id;
@@ -2069,14 +2113,13 @@ namespace LMS.Controllers
                         item.Title = result.Classwork.Title;
                         item.ClassworkType = result.Classwork.ClassworkType;
                         item.Points = result.Classwork.Points;
-                        item.Deadline = result.Classwork.Deadline;
-                        item.DateCreated = result.Classwork.DateCreated;
-                        item.Description = result.Classwork.Description;
-                        item.SubmissionStatus = submission?.Status ?? "Not Submitted";
-                        item.SubmittedAt = submission?.SubmittedAt;
                         item.Grade = submission?.Grade;
                         item.Feedback = submission?.Feedback;
+                        item.Deadline = result.Classwork.Deadline;
+                        item.DateCreated = result.Classwork.DateCreated;
+                        item.SubmittedAt = submission?.SubmittedAt;
                         item.GradedAt = submission?.GradedAt;
+                        item.SubmissionStatus = submission?.Status ?? "Not Submitted";
                         item.CourseId = result.Course.Id;
                         item.CourseTitle = result.Course.CourseTitle;
                         item.CourseCode = result.Course.CourseCode;
@@ -2194,14 +2237,13 @@ namespace LMS.Controllers
                         item.Title = result.Classwork.Title;
                         item.ClassworkType = result.Classwork.ClassworkType;
                         item.Points = result.Classwork.Points;
-                        item.Deadline = result.Classwork.Deadline;
-                        item.DateCreated = result.Classwork.DateCreated;
-                        item.Description = result.Classwork.Description;
-                        item.SubmissionStatus = submission?.Status ?? "Not Submitted";
-                        item.SubmittedAt = submission?.SubmittedAt;
                         item.Grade = submission?.Grade;
                         item.Feedback = submission?.Feedback;
+                        item.Deadline = result.Classwork.Deadline;
+                        item.DateCreated = result.Classwork.DateCreated;
+                        item.SubmittedAt = submission?.SubmittedAt;
                         item.GradedAt = submission?.GradedAt;
+                        item.SubmissionStatus = submission?.Status ?? "Not Submitted";
                         item.CourseId = result.Course.Id;
                         item.CourseTitle = result.Course.CourseTitle;
                         item.CourseCode = result.Course.CourseCode;

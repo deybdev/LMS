@@ -284,6 +284,11 @@
             color: #F44336;
         }
 
+        .performance-indicator.pending {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
     .finished-actions {
         display: flex;
         gap: 10px;
@@ -505,24 +510,36 @@
                             typeIcon = "fa-tasks";
                         }
 
-                        decimal percentage = task.Percentage;
+                        decimal percentage = 0;
                         string performanceClass = "poor";
                         string performanceText = "Needs Improvement";
 
-                        if (percentage >= 90)
+                        // Check if task has a grade (Graded status) or is just submitted
+                        if (task.Grade != null && task.Points > 0)
                         {
-                            performanceClass = "excellent";
-                            performanceText = "Excellent";
+                            percentage = task.Percentage;
+                            
+                            if (percentage >= 90)
+                            {
+                                performanceClass = "excellent";
+                                performanceText = "Excellent";
+                            }
+                            else if (percentage >= 80)
+                            {
+                                performanceClass = "good";
+                                performanceText = "Good";
+                            }
+                            else if (percentage >= 70)
+                            {
+                                performanceClass = "fair";
+                                performanceText = "Fair";
+                            }
                         }
-                        else if (percentage >= 80)
+                        else
                         {
-                            performanceClass = "good";
-                            performanceText = "Good";
-                        }
-                        else if (percentage >= 70)
-                        {
-                            performanceClass = "fair";
-                            performanceText = "Fair";
+                            // Task is submitted but not graded yet
+                            performanceClass = "pending";
+                            performanceText = "Pending Review";
                         }
 
                         DateTime? gradedAt = task.GradedAt as DateTime?;
@@ -553,10 +570,23 @@
                             <div class="finished-details">
                                 <div class="detail-item">
                                     <span class="detail-label">Grade</span>
-                                    <div class="grade-display @performanceClass">
-                                        @task.Grade.ToString("0")/@task.Points.ToString("0")
-                                        <span class="performance-indicator @performanceClass">@percentage.ToString("F1")%</span>
-                                    </div>
+                                    @if (task.Grade != null)
+                                    {
+                                        <div class="grade-display @performanceClass">
+                                            @task.Grade.ToString("0")/@task.Points.ToString("0")
+                                            <span class="performance-indicator @performanceClass">@percentage.ToString("F1")%</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="grade-display" style="color: #FF9800;">
+                                            <span style="font-size: 0.9rem;">Pending</span>
+                                            <span class="performance-indicator" style="background: #fff3e0; color: #f57c00;">
+                                                <i class="fas fa-clock"></i>
+                                                Awaiting Grade
+                                            </span>
+                                        </div>
+                                    }
                                 </div>
 
                                 <div class="detail-item">
@@ -566,7 +596,14 @@
 
                                 <div class="detail-item">
                                     <span class="detail-label">Status</span>
-                                    <span class="detail-value" style="color: #4CAF50;">@task.SubmissionStatus</span>
+                                    @if (task.SubmissionStatus == "Graded")
+                                    {
+                                        <span class="detail-value" style="color: #4CAF50;">@task.SubmissionStatus</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="detail-value" style="color: #FF9800;">@task.SubmissionStatus</span>
+                                    }
                                 </div>
                             </div>
 

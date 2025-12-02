@@ -13,9 +13,12 @@
 
     <div class="dashboard-header">
         <div>
-            <h1>
-                Welcome back, John!
-            </h1>
+            @if (Session["FirstName"] != null)
+            {
+                <h1>
+                    Welcome back, @Session["LastName"]
+                </h1>
+            }
             <p>Here what's happening with your studies today</p>
         </div>
     </div>

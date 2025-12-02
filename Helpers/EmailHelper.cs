@@ -96,7 +96,8 @@ namespace LMS.Helpers
                         data.MaterialTitle,
                         data.TeacherName,
                         data.MaterialType,
-                        data.PostedDate
+                        data.PostedDate,
+                        data.MaterialUrl ?? "#"
                     );
 
                 case EmailType.AnnouncementPosted:
@@ -105,7 +106,8 @@ namespace LMS.Helpers
                         data.CourseTitle,
                         data.TeacherName,
                         data.AnnouncementContent,
-                        data.PostedDate
+                        data.PostedDate,
+                        data.AnnouncementUrl ?? "#"
                     );
 
                 case EmailType.ClassworkPosted:
@@ -117,7 +119,8 @@ namespace LMS.Helpers
                         data.TeacherName,
                         data.Deadline,
                         data.Points,
-                        data.PostedDate
+                        data.PostedDate,
+                        data.ClassworkUrl ?? "#"
                     );
 
                 case EmailType.ClassworkDueReminder:
@@ -128,7 +131,8 @@ namespace LMS.Helpers
                         data.ClassworkType,
                         data.Deadline,
                         data.HoursRemaining,
-                        data.Points
+                        data.Points,
+                        data.SubmitUrl ?? "#"
                     );
 
                 case EmailType.TeacherAssignedToStudent:
@@ -137,7 +141,8 @@ namespace LMS.Helpers
                         data.TeacherName,
                         data.CourseTitle,
                         data.SectionName,
-                        data.Semester
+                        data.Semester,
+                        data.CourseUrl ?? "#"
                     );
 
                 default:
@@ -244,7 +249,7 @@ namespace LMS.Helpers
         //  TEMPLATE: MATERIAL POSTED
         // ======================================================
         private static string MaterialPostedTemplate(string studentName, string courseTitle, string materialTitle, 
-            string teacherName, string materialType, DateTime postedDate)
+            string teacherName, string materialType, DateTime postedDate, string materialUrl = "#")
         {
             string greeting = !string.IsNullOrEmpty(studentName) ? $"Dear {studentName}," : "Dear Student,";
 
@@ -275,7 +280,7 @@ namespace LMS.Helpers
         </p>
 
         <div style='text-align:center;margin:30px 0;'>
-            <a href='#' 
+            <a href='{materialUrl}' 
                style='background:#1852AC;color:#fff;padding:15px 30px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:bold;'>
                View Material
             </a>
@@ -293,7 +298,7 @@ namespace LMS.Helpers
         //  TEMPLATE: ANNOUNCEMENT POSTED
         // ======================================================
         private static string AnnouncementPostedTemplate(string studentName, string courseTitle, string teacherName, 
-            string announcementContent, DateTime postedDate)
+            string announcementContent, DateTime postedDate, string announcementUrl = "#")
         {
             string greeting = !string.IsNullOrEmpty(studentName) ? $"Dear {studentName}," : "Dear Student,";
             
@@ -330,7 +335,7 @@ namespace LMS.Helpers
         </p>
 
         <div style='text-align:center;margin:30px 0;'>
-            <a href='#' 
+            <a href='{announcementUrl}' 
                style='background:#FF6B35;color:#fff;padding:15px 30px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:bold;'>
                View Announcement
             </a>
@@ -348,7 +353,8 @@ namespace LMS.Helpers
         //  TEMPLATE: CLASSWORK POSTED
         // ======================================================
         private static string ClassworkPostedTemplate(string studentName, string courseTitle, string classworkTitle, 
-            string classworkType, string teacherName, DateTime? deadline, int points, DateTime postedDate)
+            string classworkType, string teacherName, DateTime? deadline, int points, DateTime postedDate, 
+            string classworkUrl = "#")
         {
             string greeting = !string.IsNullOrEmpty(studentName) ? $"Dear {studentName}," : "Dear Student,";
             string deadlineText = deadline.HasValue 
@@ -388,7 +394,7 @@ namespace LMS.Helpers
         </p>
 
         <div style='text-align:center;margin:30px 0;'>
-            <a href='#' 
+            <a href='{classworkUrl}' 
                style='background:#28A745;color:#fff;padding:15px 30px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:bold;'>
                View {classworkType}
             </a>
@@ -406,7 +412,7 @@ namespace LMS.Helpers
         //  TEMPLATE: CLASSWORK DUE REMINDER (24 hours)
         // ======================================================
         private static string ClassworkDueReminderTemplate(string studentName, string courseTitle, string classworkTitle, 
-            string classworkType, DateTime deadline, int hoursRemaining, int points)
+            string classworkType, DateTime deadline, int hoursRemaining, int points, string submitUrl = "#")
         {
             string greeting = !string.IsNullOrEmpty(studentName) ? $"Dear {studentName}," : "Dear Student,";
             string urgencyColor = hoursRemaining <= 6 ? "#DC3545" : "#FFC107";
@@ -442,7 +448,7 @@ namespace LMS.Helpers
         </p>
 
         <div style='text-align:center;margin:30px 0;'>
-            <a href='#' 
+            <a href='{submitUrl}' 
                style='background:{urgencyColor};color:#fff;padding:15px 30px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:bold;'>
                Submit Now
             </a>
@@ -460,7 +466,7 @@ namespace LMS.Helpers
         //  TEMPLATE: TEACHER ASSIGNED TO STUDENT
         // ======================================================
         private static string TeacherAssignedToStudentTemplate(string studentName, string teacherName, 
-            string courseTitle, string sectionName, string semester)
+            string courseTitle, string sectionName, string semester, string courseUrl = "#")
         {
             string greeting = !string.IsNullOrEmpty(studentName) ? $"Dear {studentName}," : "Dear Student,";
 
@@ -491,7 +497,7 @@ namespace LMS.Helpers
         </p>
 
         <div style='text-align:center;margin:30px 0;'>
-            <a href='#' 
+            <a href='{courseUrl}' 
                style='background:#6F42C1;color:#fff;padding:15px 30px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:bold;'>
                Go to Course
             </a>
@@ -513,10 +519,13 @@ namespace LMS.Helpers
         /// Send material posted notification to students
         /// </summary>
         public static void SendMaterialNotification(string studentEmail, string studentName, string courseTitle, 
-            string materialTitle, string teacherName, string materialType)
+            string materialTitle, string teacherName, string materialType, int courseId, int materialId)
         {
             try
             {
+                // Build direct URL to material
+                string materialUrl = $"{GetBaseUrl()}/Student/ViewMaterial?id={courseId}&materialId={materialId}";
+
                 var emailBody = GenerateEmailTemplate(EmailType.MaterialPosted, new
                 {
                     StudentName = studentName,
@@ -524,7 +533,8 @@ namespace LMS.Helpers
                     MaterialTitle = materialTitle,
                     TeacherName = teacherName,
                     MaterialType = materialType,
-                    PostedDate = DateTime.Now
+                    PostedDate = DateTime.Now,
+                    MaterialUrl = materialUrl
                 });
 
                 SendEmail(studentEmail, $"New Material Posted: {materialTitle} - {courseTitle}", emailBody);
@@ -539,17 +549,21 @@ namespace LMS.Helpers
         /// Send announcement posted notification to students
         /// </summary>
         public static void SendAnnouncementNotification(string studentEmail, string studentName, string courseTitle,
-            string teacherName, string announcementContent)
+            string teacherName, string announcementContent, int courseId, int announcementId)
         {
             try
             {
+                // Build direct URL to announcement
+                string announcementUrl = $"{GetBaseUrl()}/Student/ViewAnnouncement?id={courseId}&announcementId={announcementId}";
+
                 var emailBody = GenerateEmailTemplate(EmailType.AnnouncementPosted, new
                 {
                     StudentName = studentName,
                     CourseTitle = courseTitle,
                     TeacherName = teacherName,
                     AnnouncementContent = announcementContent,
-                    PostedDate = DateTime.Now
+                    PostedDate = DateTime.Now,
+                    AnnouncementUrl = announcementUrl
                 });
 
                 SendEmail(studentEmail, $"New Announcement - {courseTitle}", emailBody);
@@ -564,10 +578,14 @@ namespace LMS.Helpers
         /// Send classwork posted notification to students
         /// </summary>
         public static void SendClassworkNotification(string studentEmail, string studentName, string courseTitle,
-            string classworkTitle, string classworkType, string teacherName, DateTime? deadline, int points)
+            string classworkTitle, string classworkType, string teacherName, DateTime? deadline, int points, 
+            int courseId, int classworkId)
         {
             try
             {
+                // Build direct URL to classwork
+                string classworkUrl = $"{GetBaseUrl()}/Student/ViewClasswork?id={courseId}&classworkId={classworkId}";
+
                 var emailBody = GenerateEmailTemplate(EmailType.ClassworkPosted, new
                 {
                     StudentName = studentName,
@@ -577,7 +595,8 @@ namespace LMS.Helpers
                     TeacherName = teacherName,
                     Deadline = deadline,
                     Points = points,
-                    PostedDate = DateTime.Now
+                    PostedDate = DateTime.Now,
+                    ClassworkUrl = classworkUrl
                 });
 
                 SendEmail(studentEmail, $"New {classworkType}: {classworkTitle} - {courseTitle}", emailBody);
@@ -592,11 +611,14 @@ namespace LMS.Helpers
         /// Send classwork due reminder to students
         /// </summary>
         public static void SendClassworkDueReminder(string studentEmail, string studentName, string courseTitle,
-            string classworkTitle, string classworkType, DateTime deadline, int points)
+            string classworkTitle, string classworkType, DateTime deadline, int points, int courseId, int classworkId)
         {
             try
             {
                 var hoursRemaining = (int)Math.Ceiling((deadline - DateTime.Now).TotalHours);
+                
+                // Build direct URL to classwork submission
+                string submitUrl = $"{GetBaseUrl()}/Student/SubmitClasswork?id={courseId}&classworkId={classworkId}";
                 
                 var emailBody = GenerateEmailTemplate(EmailType.ClassworkDueReminder, new
                 {
@@ -606,7 +628,8 @@ namespace LMS.Helpers
                     ClassworkType = classworkType,
                     Deadline = deadline,
                     HoursRemaining = hoursRemaining,
-                    Points = points
+                    Points = points,
+                    SubmitUrl = submitUrl
                 });
 
                 SendEmail(studentEmail, $"Reminder: {classworkType} Due Soon - {classworkTitle}", emailBody);
@@ -621,11 +644,14 @@ namespace LMS.Helpers
         /// Send teacher assigned notification to students
         /// </summary>
         public static void SendTeacherAssignedToStudentNotification(string studentEmail, string studentName, 
-            string teacherName, string courseTitle, string sectionName, int semester)
+            string teacherName, string courseTitle, string sectionName, int semester, int courseId)
         {
             try
             {
                 string semesterText = semester == 1 ? "1st Semester" : semester == 2 ? "2nd Semester" : $"Semester {semester}";
+
+                // Build direct URL to course page
+                string courseUrl = $"{GetBaseUrl()}/Student/Material?id={courseId}";
 
                 var emailBody = GenerateEmailTemplate(EmailType.TeacherAssignedToStudent, new
                 {
@@ -633,7 +659,8 @@ namespace LMS.Helpers
                     TeacherName = teacherName,
                     CourseTitle = courseTitle,
                     SectionName = sectionName,
-                    Semester = semesterText
+                    Semester = semesterText,
+                    CourseUrl = courseUrl
                 });
 
                 SendEmail(studentEmail, $"New Instructor Assigned: {courseTitle}", emailBody);
@@ -642,6 +669,34 @@ namespace LMS.Helpers
             {
                 System.Diagnostics.Debug.WriteLine($"Failed to send teacher assignment notification: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Get the base URL from Web.config or use default
+        /// </summary>
+        private static string GetBaseUrl()
+        {
+            // Try to get from config first
+            string baseUrl = ConfigurationManager.AppSettings["ApplicationBaseUrl"];
+            
+            // If not in config, use the live URL based on your Web.config connection string
+            if (string.IsNullOrEmpty(baseUrl))
+            {
+                // Check if using live database (bsite.net connection)
+                string connectionString = ConfigurationManager.ConnectionStrings["LMS_DB"]?.ConnectionString ?? "";
+                if (connectionString.Contains("bsite.net"))
+                {
+                    // Live/Production URL
+                    baseUrl = "https://g2academyuniversity.bsite.net";
+                }
+                else
+                {
+                    // Local development URL
+                    baseUrl = "https://localhost:44332";
+                }
+            }
+            
+            return baseUrl;
         }
     }
 }

@@ -46,25 +46,6 @@
         <div class="search-filter-section">
             <div class="filter-controls">
                 <input type="text" id="searchInput" class="search-input" placeholder="Search programs by name, code, or department..." />
-
-                <div class="filter-dropdowns">
-                    <select class="filter-select" id="departmentFilter">
-                        <option value="">All Departments</option>
-                        <option value="Computer Studies">Computer Studies</option>
-                        <option value="Information Technology">Information Technology</option>
-                        <option value="Engineering">Engineering</option>
-                        <option value="Business Administration">Business Administration</option>
-                        <option value="Accountancy">Accountancy</option>
-                        <option value="Education">Education</option>
-                        <option value="General Education">General Education</option>
-                    </select>
-
-                    <select class="filter-select" id="statusFilter">
-                        <option value="">All Status</option>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                    </select>
-                </div>
             </div>
         </div>
 
@@ -238,5 +219,46 @@
             });
         </script>
     }
-}
 
+    <script>
+        (function () {
+            const $search = $('#searchInput');
+            const $rows = $('#programTableBody').find('tr.default-row');
+            const $paginationInfo = $('#paginationInfo');
+
+            function normalize(s) {
+                return (s || '').toString().trim().toLowerCase();
+            }
+
+            function applySearchByNameOrCode() {
+                const q = normalize($search.val());
+                let shown = 0;
+
+                $rows.each(function () {
+                    const $row = $(this);
+                    const programName = normalize($row.find('.user-name').text());
+                    const programCode = normalize($row.find('td .role-tag').text());
+
+                    const hit = !q || programName.includes(q) || programCode.includes(q);
+
+                    if (hit) {
+                        $row.show();
+                        shown++;
+                    } else {
+                        $row.hide();
+                    }
+                });
+
+                const total = $rows.length;
+                $paginationInfo.text(`Showing ${shown} of ${total} entries`);
+                // Do not alter pagination controls or other scripts.
+            }
+
+            // Wire up only the text input
+            $search.on('input', applySearchByNameOrCode);
+
+            // Initial run
+            applySearchByNameOrCode();
+        })();
+    </script>
+}

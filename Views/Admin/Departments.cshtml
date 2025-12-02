@@ -170,9 +170,50 @@
 @section scripts {
     <script src="~/Scripts/Custom/deleteHandler.js"></script>
     <script src="~/Scripts/Custom/formValidation.js"></script>
+
+    <script>
+        (function () {
+            const $search = $('#searchDepartmentInput');
+            const $rows = $('#departmentTableBody').find('tr.default-row');
+            const $paginationInfo = $('#deptPaginationInfo');
+
+            function normalize(s) {
+                return (s || '').toString().trim().toLowerCase();
+            }
+
+            function applyDeptSearch() {
+                const q = normalize($search.val());
+                let shown = 0;
+
+                $rows.each(function () {
+                    const $row = $(this);
+                    const deptName = normalize($row.find('.user-name').text());
+                    const deptCode = normalize($row.find('td .role-tag').text());
+
+                    const hit = !q || deptName.includes(q) || deptCode.includes(q);
+
+                    if (hit) {
+                        $row.show();
+                        shown++;
+                    } else {
+                        $row.hide();
+                    }
+                });
+
+                const total = $rows.length;
+                $paginationInfo.text(`Showing ${shown} of ${total} entries`);
+                // Do not alter pagination controls; they remain as-is.
+            }
+
+            // Wire up only the text input
+            $search.on('input', applyDeptSearch);
+
+            // Initial run
+            applyDeptSearch();
+        })();
+    </script>
 }
 
 <style>
-
 </style>
 

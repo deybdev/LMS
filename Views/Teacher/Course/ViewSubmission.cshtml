@@ -1,12 +1,21 @@
 @model LMS.Models.Course
+@using LMS.Models
+@using Newtonsoft.Json.Linq
+@using System.Linq
 
 @{
     ViewBag.Title = "View Submission";
     int courseId = ViewBag.CourseId;
     ViewBag.ActiveTab = "Gradebook";
     var submission = ViewBag.Submission as LMS.Models.ClassworkSubmission;
-    var questions = ViewBag.Questions as List<dynamic>;
-    var studentAnswers = ViewBag.StudentAnswers as List<dynamic>;
+    
+    List<JObject> questions = ViewBag.Questions != null ? 
+        Newtonsoft.Json.JsonConvert.DeserializeObject<List<JObject>>(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Questions)) : 
+        null;
+    
+    List<JObject> studentAnswers = ViewBag.StudentAnswers != null ? 
+        Newtonsoft.Json.JsonConvert.DeserializeObject<List<JObject>>(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.StudentAnswers)) : 
+        null;
 }
 
 <link rel="stylesheet" href="~/Content/teacherCourse.css" />
@@ -498,44 +507,63 @@
 
                 bool isCorrect = false;
                 bool canAutoGrade = false;
-                string questionType = question.type?.ToString() ?? "";
+                
+                // Safe null check for type property
+                var questionTypeToken = question["type"];
+                string questionType = questionTypeToken != null ? questionTypeToken.ToString() : "";
 
                 // Determine if answer is correct for auto-gradable questions
                 if (questionType == "multipleChoice")
                 {
                     canAutoGrade = true;
                     var correctIndex = -1;
-                    for (int j = 0; j < question.options.Count; j++)
+                    var options = question["options"] as JArray;
+                    if (options != null)
                     {
-                        if ((bool)question.options[j].isCorrect)
+                        for (int j = 0; j < options.Count; j++)
                         {
-                            correctIndex = j;
-                            break;
+                            var isCorrectToken = options[j]["isCorrect"];
+                            if (isCorrectToken != null && isCorrectToken.Value<bool>())
+                            {
+                                correctIndex = j;
+                                break;
+                            }
                         }
                     }
-                    isCorrect = answer?.answer != null && answer.answer.ToString() == correctIndex.ToString();
+                    
+                    var answerToken = answer != null ? answer["answer"] : null;
+                    isCorrect = answerToken != null && answerToken.ToString() == correctIndex.ToString();
                 }
                 else if (questionType == "multipleAnswer")
                 {
                     canAutoGrade = true;
                     // Get correct indices
                     var correctIndices = new List<int>();
-                    for (int j = 0; j < question.options.Count; j++)
+                    var options = question["options"] as JArray;
+                    if (options != null)
                     {
-                        if ((bool)question.options[j].isCorrect)
+                        for (int j = 0; j < options.Count; j++)
                         {
-                            correctIndices.Add(j);
+                            var isCorrectToken = options[j]["isCorrect"];
+                            if (isCorrectToken != null && isCorrectToken.Value<bool>())
+                            {
+                                correctIndices.Add(j);
+                            }
                         }
                     }
 
                     // Get student answers
                     var studentAnswers_MA = new List<int>();
-                    if (answer?.answer != null)
+                    if (answer != null)
                     {
-                        var answerArray = answer.answer as Newtonsoft.Json.Linq.JArray;
-                        if (answerArray != null)
+                        var answerToken = answer["answer"];
+                        if (answerToken != null)
                         {
-                            studentAnswers_MA = answerArray.Select(a => (int)a).ToList();
+                            var answerArray = answerToken as JArray;
+                            if (answerArray != null)
+                            {
+                                studentAnswers_MA = answerArray.Select(a => a.Value<int>()).ToList();
+                            }
                         }
                     }
 
@@ -546,15 +574,23 @@
                 else if (questionType == "trueFalse")
                 {
                     canAutoGrade = true;
-                    bool correctAnswer_TF = (bool)question.correctAnswer;
-                    isCorrect = answer?.answer != null && answer.answer.ToString().ToLower() == correctAnswer_TF.ToString().ToLower();
+                    var correctAnswerToken = question["correctAnswer"];
+                    bool correctAnswer_TF = correctAnswerToken != null && correctAnswerToken.Value<bool>();
+                    
+                    var answerToken = answer != null ? answer["answer"] : null;
+                    isCorrect = answerToken != null && answerToken.ToString().ToLower() == correctAnswer_TF.ToString().ToLower();
                 }
                 else if (questionType == "identification")
                 {
                     canAutoGrade = true;
-                    string correctAnswer_ID = question.correctAnswer.ToString();
-                    string studentAnswer_ID = answer?.answer?.ToString() ?? "";
-                    bool caseSensitive = question.caseSensitive ?? false;
+                    var correctAnswerToken = question["correctAnswer"];
+                    string correctAnswer_ID = correctAnswerToken != null ? correctAnswerToken.ToString() : "";
+                    
+                    var answerToken = answer != null ? answer["answer"] : null;
+                    string studentAnswer_ID = answerToken != null ? answerToken.ToString() : "";
+                    
+                    var caseSensitiveToken = question["caseSensitive"];
+                    bool caseSensitive = caseSensitiveToken != null && caseSensitiveToken.Value<bool>();
 
                     if (caseSensitive)
                     {
@@ -570,10 +606,14 @@
                     <div class="question-review-header">
                         <span class="question-review-number">Question @(i + 1)</span>
                         <div class="question-review-points">
+                            @{
+                                var pointsToken = question["points"];
+                                decimal points = pointsToken != null ? pointsToken.Value<decimal>() : 0;
+                            }
                             @if (canAutoGrade)
                             {
-                                <span class="points-earned">@(isCorrect ? question.points : 0)</span>
-                                <span class="points-total">/ @question.points pts</span>
+                                <span class="points-earned">@(isCorrect ? points : 0)</span>
+                                <span class="points-total">/ @points pts</span>
                                 <div class="correct-indicator @(isCorrect ? "correct" : "incorrect")">
                                     <i class="fas @(isCorrect ? "fa-check" : "fa-times")"></i>
                                 </div>
@@ -581,7 +621,7 @@
                             }
                             else
                             {
-                                <span class="points-total">@question.points pts</span>
+                                <span class="points-total">@points pts</span>
                                 <div class="correct-indicator pending">
                                     <i class="fas fa-user"></i>
                                 </div>
@@ -590,106 +630,132 @@
                         </div>
                     </div>
 
-                    <div class="question-review-text">@Html.Raw(question.questionText?.ToString() ?? question.question?.ToString() ?? "")</div>
+                    @{
+                        var questionTextToken = question["questionText"];
+                        var questionToken2 = question["question"];
+                        string questionText = questionTextToken != null ? questionTextToken.ToString() : 
+                                            (questionToken2 != null ? questionToken2.ToString() : "");
+                    }
+                    <div class="question-review-text">@Html.Raw(questionText)</div>
 
                     <div class="answer-review">
                         @if (questionType == "multipleChoice")
                         {
                             <span class="answer-label">Student's Answer:</span>
-                            for (int j = 0; j < question.options.Count; j++)
+                            var options = question["options"] as JArray;
+                            if (options != null)
                             {
-                                var option = question.options[j];
-                                bool wasSelected = answer?.answer != null && answer.answer.ToString() == j.ToString();
-                                bool isCorrectOption = (bool)option.isCorrect;
+                                for (int j = 0; j < options.Count; j++)
+                                {
+                                    var option = options[j];
+                                    
+                                    var answerToken = answer != null ? answer["answer"] : null;
+                                    bool wasSelected = answerToken != null && answerToken.ToString() == j.ToString();
+                                    
+                                    var isCorrectToken = option["isCorrect"];
+                                    bool isCorrectOption = isCorrectToken != null && isCorrectToken.Value<bool>();
 
-                                string cssClass = "";
-                                if (isCorrectOption)
-                                {
-                                    cssClass = "correct";
-                                }
-                                else if (wasSelected)
-                                {
-                                    cssClass = "incorrect";
-                                }
-                                else if (wasSelected)
-                                {
-                                    cssClass = "selected";
-                                }
+                                    string cssClass = "";
+                                    if (isCorrectOption)
+                                    {
+                                        cssClass = "correct";
+                                    }
+                                    else if (wasSelected)
+                                    {
+                                        cssClass = "incorrect";
+                                    }
 
-                                <div class="answer-option-review @cssClass">
-                                    @option.text
-                                    @if (isCorrectOption)
-                                    {
-                                        <i class="fas fa-check" style="color: #4CAF50; float: right;"></i>
-                                    }
-                                    @if (wasSelected && !isCorrectOption)
-                                    {
-                                        <i class="fas fa-times" style="color: #d32f2f; float: right;"></i>
-                                    }
-                                </div>
+                                    var optionTextToken = option["text"];
+                                    string optionText = optionTextToken != null ? optionTextToken.ToString() : "";
+
+                                    <div class="answer-option-review @cssClass">
+                                        @optionText
+                                        @if (isCorrectOption)
+                                        {
+                                            <i class="fas fa-check" style="color: #4CAF50; float: right;"></i>
+                                        }
+                                        @if (wasSelected && !isCorrectOption)
+                                        {
+                                            <i class="fas fa-times" style="color: #d32f2f; float: right;"></i>
+                                        }
+                                    </div>
+                                }
                             }
                         }
                         else if (questionType == "multipleAnswer")
                         {
                             <span class="answer-label">Student's Answer:</span>
 
-                                // Get student's selected answers
-                                var studentAnswers_Display = new List<int>();
-                                if (answer?.answer != null)
+                            // Get student's selected answers
+                            var studentAnswers_Display = new List<int>();
+                            if (answer != null)
+                            {
+                                var answerToken = answer["answer"];
+                                if (answerToken != null)
                                 {
-                                    var answerArray = answer.answer as Newtonsoft.Json.Linq.JArray;
+                                    var answerArray = answerToken as JArray;
                                     if (answerArray != null)
                                     {
-                                        studentAnswers_Display = answerArray.Select(a => (int)a).ToList();
+                                        studentAnswers_Display = answerArray.Select(a => a.Value<int>()).ToList();
                                     }
                                 }
+                            }
 
-                            for (int j = 0; j < question.options.Count; j++)
+                            var options = question["options"] as JArray;
+                            if (options != null)
                             {
-                                var option = question.options[j];
-                                bool wasSelected = studentAnswers_Display.Contains(j);
-                                bool isCorrectOption = (bool)option.isCorrect;
+                                for (int j = 0; j < options.Count; j++)
+                                {
+                                    var option = options[j];
+                                    bool wasSelected = studentAnswers_Display.Contains(j);
+                                    
+                                    var isCorrectToken = option["isCorrect"];
+                                    bool isCorrectOption = isCorrectToken != null && isCorrectToken.Value<bool>();
 
-                                string cssClass = "";
-                                if (isCorrectOption && wasSelected)
-                                {
-                                    cssClass = "correct"; // Correct and selected
-                                }
-                                else if (isCorrectOption && !wasSelected)
-                                {
-                                    cssClass = "correct"; // Correct but not selected
-                                }
-                                else if (!isCorrectOption && wasSelected)
-                                {
-                                    cssClass = "incorrect"; // Incorrect but selected
-                                }
-                                else if (wasSelected)
-                                {
-                                    cssClass = "selected";
-                                }
+                                    string cssClass = "";
+                                    if (isCorrectOption && wasSelected)
+                                    {
+                                        cssClass = "correct";
+                                    }
+                                    else if (isCorrectOption && !wasSelected)
+                                    {
+                                        cssClass = "correct";
+                                    }
+                                    else if (!isCorrectOption && wasSelected)
+                                    {
+                                        cssClass = "incorrect";
+                                    }
 
-                                <div class="answer-option-review @cssClass">
-                                    @if (wasSelected)
-                                    {
-                                        <i class="fas fa-check-square" style="color: var(--primary-color); margin-right: 8px;"></i>
-                                    }
-                                    else
-                                    {
-                                        <i class="far fa-square" style="color: #999; margin-right: 8px;"></i>
-                                    }
-                                    @option.text
-                                    @if (isCorrectOption)
-                                    {
-                                        <i class="fas fa-check" style="color: #4CAF50; float: right;"></i>
-                                    }
-                                </div>
+                                    var optionTextToken = option["text"];
+                                    string optionText = optionTextToken != null ? optionTextToken.ToString() : "";
+
+                                    <div class="answer-option-review @cssClass">
+                                        @if (wasSelected)
+                                        {
+                                            <i class="fas fa-check-square" style="color: var(--primary-color); margin-right: 8px;"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="far fa-square" style="color: #999; margin-right: 8px;"></i>
+                                        }
+                                        @optionText
+                                        @if (isCorrectOption)
+                                        {
+                                            <i class="fas fa-check" style="color: #4CAF50; float: right;"></i>
+                                        }
+                                    </div>
+                                }
                             }
                         }
                         else if (questionType == "trueFalse")
                         {
                             <span class="answer-label">Student's Answer:</span>
-                                var studentAnswer_TF = answer?.answer?.ToString().ToLower() == "true" ? "True" : "False";
-                                var correctAnswer_TF_Display = (bool)question.correctAnswer ? "True" : "False";
+                            
+                            var answerToken = answer != null ? answer["answer"] : null;
+                            string studentAnswer_TF = (answerToken != null && answerToken.ToString().ToLower() == "true") ? "True" : "False";
+                            
+                            var correctAnswerToken = question["correctAnswer"];
+                            string correctAnswer_TF_Display = (correctAnswerToken != null && correctAnswerToken.Value<bool>()) ? "True" : "False";
 
                             <div class="answer-text-review @(isCorrect ? "correct" : "incorrect")">
                                 <strong>@studentAnswer_TF</strong>
@@ -714,9 +780,13 @@
                         else if (questionType == "identification")
                         {
                             <span class="answer-label">Student's Answer:</span>
+                            
+                            var answerToken = answer != null ? answer["answer"] : null;
+                            string studentAnswerText = answerToken != null ? answerToken.ToString() : "(No answer provided)";
+                            
                             <div class="answer-text-review @(isCorrect ? "correct" : "incorrect")">
-                                @(answer?.answer?.ToString() ?? "(No answer provided)")
-                                @if (!isCorrect && !string.IsNullOrEmpty(answer?.answer?.ToString()))
+                                @studentAnswerText
+                                @if (!isCorrect && !string.IsNullOrEmpty(answerToken != null ? answerToken.ToString() : ""))
                                 {
                                     <i class="fas fa-times" style="color: #d32f2f; float: right;"></i>
                                 }
@@ -728,39 +798,50 @@
 
                             if (!isCorrect)
                             {
+                                var correctAnswerToken = question["correctAnswer"];
+                                string correctAnswerText = correctAnswerToken != null ? correctAnswerToken.ToString() : "";
+                                
                                 <div class="correct-answer-section">
                                     <div class="correct-answer-label">Correct Answer:</div>
-                                    <div><strong>@question.correctAnswer</strong></div>
+                                    <div><strong>@correctAnswerText</strong></div>
                                 </div>
                             }
                         }
                         else if (questionType == "essay")
                         {
                             <span class="answer-label">Student's Answer:</span>
+                            
+                            var answerToken = answer != null ? answer["answer"] : null;
+                            string essayAnswer = answerToken != null ? answerToken.ToString() : "(No answer provided)";
+                            
                             <div class="answer-text-review">
-                                @(answer?.answer?.ToString() ?? "(No answer provided)")
+                                @essayAnswer
                             </div>
                         }
                         else if (questionType == "fileUpload")
                         {
                             <span class="answer-label">Student's File Upload:</span>
                             
-                                // Find files related to this specific question
-                                var questionFiles = submission.SubmissionFiles
-                                    .Where(f => f.FileName.StartsWith($"Q{i + 1}_") || 
-                                               f.FileName.Contains($"question_{i + 1}") ||
-                                               f.FileName.Contains($"q{i + 1}_"))
-                                    .ToList();
+                            // Find files related to this specific question
+                            var questionFiles = submission.SubmissionFiles
+                                .Where(f => f.FileName.StartsWith("Q" + (i + 1) + "_") || 
+                                           f.FileName.Contains("question_" + (i + 1)) ||
+                                           f.FileName.Contains("q" + (i + 1) + "_"))
+                                .ToList();
+                            
+                            // If no specific files found and this is the only file upload question, show all files
+                            if (!questionFiles.Any())
+                            {
+                                var fileUploadQuestions = questions.Where(q => {
+                                    var qTypeToken = q["type"];
+                                    return qTypeToken != null && qTypeToken.ToString() == "fileUpload";
+                                }).Count();
                                 
-                                // If no specific files found and this is the only file upload question, show all files
-                                if (!questionFiles.Any())
+                                if (fileUploadQuestions == 1 && submission.SubmissionFiles.Any())
                                 {
-                                    var fileUploadQuestions = questions.Where(q => (q.type?.ToString() ?? "") == "fileUpload").Count();
-                                    if (fileUploadQuestions == 1 && submission.SubmissionFiles.Any())
-                                    {
-                                        questionFiles = submission.SubmissionFiles.ToList();
-                                    }
+                                    questionFiles = submission.SubmissionFiles.ToList();
                                 }
+                            }
                             
                             if (questionFiles.Any())
                             {
@@ -802,13 +883,13 @@
                                        class="score-input" 
                                        id="question_@(i)_score" 
                                        min="0" 
-                                       max="@question.points" 
+                                       max="@points" 
                                        step="0.5" 
                                        value="0"
                                        placeholder="0" />
-                                <span>/ @question.points points</span>
+                                <span>/ @points points</span>
                                 <button type="button" class="btn" style="background: #4CAF50; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;" 
-                                        onclick="setQuestionScore(@(i), @question.points)">
+                                        onclick="setQuestionScore(@(i), @points)">
                                     Full Points
                                 </button>
                                 <button type="button" class="btn" style="background: #f44336; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;" 
@@ -897,18 +978,20 @@
 
 @section scripts {
     <script>
-        // Store auto-graded scores for reference
-        var autoGradedScores = {};
-        
-        // Initialize auto-graded scores on page load
-        function initializeAutoGradedScores() {
+        // Store auto-graded scores for reference (pre-calculated on server)
+        var autoGradedScores = {
             @if (questions != null && questions.Count > 0)
             {
-                for (int i = 0; i < questions.Count; i++)
+                // Pre-calculate all auto-graded scores on the server side
+                var scoreEntries = new List<string>();
+                
+                for (int k = 0; k < questions.Count; k++)
                 {
-                    var question = questions[i];
-                    var answer = i < studentAnswers.Count ? studentAnswers[i] : null;
-                    string questionType = question.type?.ToString() ?? "";
+                    var question = questions[k];
+                    var answer = k < studentAnswers.Count ? studentAnswers[k] : null;
+                    
+                    var questionTypeToken = question["type"];
+                    string questionType = questionTypeToken != null ? questionTypeToken.ToString() : "";
                     
                     bool canAutoGrade = questionType == "multipleChoice" || questionType == "multipleAnswer" || 
                                        questionType == "trueFalse" || questionType == "identification";
@@ -920,53 +1003,70 @@
                         if (questionType == "multipleChoice")
                         {
                             var correctIndex = -1;
-                            for (int j = 0; j < question.options.Count; j++)
+                            var options = question["options"] as JArray;
+                            if (options != null)
                             {
-                                if ((bool)question.options[j].isCorrect)
+                                for (int j = 0; j < options.Count; j++)
                                 {
-                                    correctIndex = j;
-                                    break;
+                                    var isCorrectToken = options[j]["isCorrect"];
+                                    if (isCorrectToken != null && isCorrectToken.Value<bool>())
+                                    {
+                                        correctIndex = j;
+                                        break;
+                                    }
                                 }
                             }
-                            isCorrect = answer?.answer != null && answer.answer.ToString() == correctIndex.ToString();
+                            var answerToken = answer != null ? answer["answer"] : null;
+                            isCorrect = answerToken != null && answerToken.ToString() == correctIndex.ToString();
                         }
                         else if (questionType == "multipleAnswer")
                         {
-                            // Get correct indices
                             var correctIndices = new List<int>();
-                            for (int j = 0; j < question.options.Count; j++)
+                            var options = question["options"] as JArray;
+                            if (options != null)
                             {
-                                if ((bool)question.options[j].isCorrect)
+                                for (int j = 0; j < options.Count; j++)
                                 {
-                                    correctIndices.Add(j);
+                                    var isCorrectToken = options[j]["isCorrect"];
+                                    if (isCorrectToken != null && isCorrectToken.Value<bool>())
+                                    {
+                                        correctIndices.Add(j);
+                                    }
                                 }
                             }
 
-                            // Get student answers
                             var studentAnswers_MA = new List<int>();
-                            if (answer?.answer != null)
+                            if (answer != null)
                             {
-                                var answerArray = answer.answer as Newtonsoft.Json.Linq.JArray;
-                                if (answerArray != null)
+                                var answerToken = answer["answer"];
+                                if (answerToken != null)
                                 {
-                                    studentAnswers_MA = answerArray.Select(a => (int)a).ToList();
+                                    var answerArray = answerToken as JArray;
+                                    if (answerArray != null)
+                                    {
+                                        studentAnswers_MA = answerArray.Select(a => a.Value<int>()).ToList();
+                                    }
                                 }
                             }
 
-                            // Check if correct
                             isCorrect = correctIndices.Count == studentAnswers_MA.Count &&
                                        correctIndices.All(studentAnswers_MA.Contains);
                         }
                         else if (questionType == "trueFalse")
                         {
-                            bool correctAnswer_TF = (bool)question.correctAnswer;
-                            isCorrect = answer?.answer != null && answer.answer.ToString().ToLower() == correctAnswer_TF.ToString().ToLower();
+                            var correctAnswerToken = question["correctAnswer"];
+                            bool correctAnswer_TF = correctAnswerToken != null && correctAnswerToken.Value<bool>();
+                            var answerToken = answer != null ? answer["answer"] : null;
+                            isCorrect = answerToken != null && answerToken.ToString().ToLower() == correctAnswer_TF.ToString().ToLower();
                         }
                         else if (questionType == "identification")
                         {
-                            string correctAnswer_ID = question.correctAnswer.ToString();
-                            string studentAnswer_ID = answer?.answer?.ToString() ?? "";
-                            bool caseSensitive = question.caseSensitive ?? false;
+                            var correctAnswerToken = question["correctAnswer"];
+                            string correctAnswer_ID = correctAnswerToken != null ? correctAnswerToken.ToString() : "";
+                            var answerToken = answer != null ? answer["answer"] : null;
+                            string studentAnswer_ID = answerToken != null ? answerToken.ToString() : "";
+                            var caseSensitiveToken = question["caseSensitive"];
+                            bool caseSensitive = caseSensitiveToken != null && caseSensitiveToken.Value<bool>();
 
                             if (caseSensitive)
                             {
@@ -978,13 +1078,16 @@
                             }
                         }
                         
-                        <text>
-                        autoGradedScores[@i] = @(isCorrect ? question.points : 0);
-                        </text>
+                        var pointsToken = question["points"];
+                        decimal questionPoints = pointsToken != null ? pointsToken.Value<decimal>() : 0;
+                        
+                        scoreEntries.Add(string.Format("{0}: {1}", k, isCorrect ? questionPoints.ToString() : "0"));
                     }
                 }
+                
+                @Html.Raw(string.Join(",\n            ", scoreEntries))
             }
-        }
+        };
 
         // Auto-calculate total score from individual question scores
         function calculateTotalFromQuestions() {
@@ -1024,7 +1127,7 @@
         // Update percentage display
         function updatePercentage() {
             const total = parseFloat($('#totalScoreInput').val()) || 0;
-            const maxPoints = @(submission?.Classwork?.Points ?? 0);
+            const maxPoints = @(submission != null ? submission.Classwork.Points : 0);
             const percentage = maxPoints > 0 ? ((total / maxPoints) * 100).toFixed(1) : 0;
             
             // Update any percentage displays if they exist
@@ -1050,7 +1153,7 @@
 
         // Initialize manual scores with any existing grades
         function initializeManualScores() {
-            @if (submission?.Grade.HasValue == true)
+            @if (submission != null && submission.Grade.HasValue)
             {
                 <text>
                 // If already graded, try to distribute the grade proportionally to manual questions
@@ -1068,7 +1171,7 @@
                 if (manualQuestions.length > 0 && manualGrade > 0) {
                     var scorePerQuestion = manualGrade / manualQuestions.length;
                     manualQuestions.each(function() {
-                        $(this).val(scorePerQuestion);
+                        $(this).val(scorePerQuestion.toFixed(1));
                     });
                 }
                 
@@ -1087,7 +1190,7 @@
         function releaseGrade() {
             const score = $('#totalScoreInput').val();
             const feedback = $('#feedbackInput').val();
-            const maxPoints = @(submission?.Classwork?.Points ?? 0);
+            const maxPoints = @(submission != null ? submission.Classwork.Points : 0);
 
             if (!score || score === '') {
                 alert('Please enter a total score');
@@ -1117,7 +1220,7 @@
                 type: 'POST',
                 data: {
                     __RequestVerificationToken: token,
-                    submissionId: @(submission?.Id ?? 0),
+                    submissionId: @(submission != null ? submission.Id : 0),
                     grade: score,
                     feedback: feedback
                 },
@@ -1127,13 +1230,11 @@
                         window.location.href = '@Url.Action("Gradebook", "Teacher", new { id = courseId })';
                     } else {
                         alert('Error: ' + response.message);
+                        btnRelease.prop('disabled', false).html(originalText);
                     }
                 },
                 error: function() {
                     alert('Error releasing grade');
-                },
-                complete: function() {
-                    // Restore button state
                     btnRelease.prop('disabled', false).html(originalText);
                 }
             });
@@ -1141,9 +1242,6 @@
 
         // Initialize on page load
         $(document).ready(function() {
-            // Initialize auto-graded scores
-            initializeAutoGradedScores();
-            
             // Initialize manual scores
             initializeManualScores();
             
